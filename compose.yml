@@ -1,0 +1,78 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ticketing_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: ticketing_broker
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    ports:
+      - "${RABBITMQ_AMQP_PORT}:5672"   # AMQP port
+      - "${RABBITMQ_MGMT_PORT}:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./scripts/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RabbitMQ Setup - configura exchanges, colas y bindings automáticamente
+  rabbitmq-setup:
+    image: alpine:latest
+    container_name: ticketing_setup
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./scripts/setup-rabbitmq.sh:/setup-rabbitmq.sh:ro
+    entrypoint: /bin/sh
+    command: |
+      -c "
+      apk add --no-cache curl bash
+      echo 'Esperando a que RabbitMQ esté completamente listo...'
+      for i in {1..30}; do
+        if curl -s -u ${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS} http://rabbitmq:15672/api/queues > /dev/null 2>&1; then
+          echo 'RabbitMQ listo!'
+          break
+        fi
+        echo 'Intento '$i'/30...'
+        sleep 2
+      done
+      /bin/bash /setup-rabbitmq.sh
+      "
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=15672
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    networks:
+      - default
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+
+networks:
+  default:
+    name: ticketing_network

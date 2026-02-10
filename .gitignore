@@ -1,6 +1,11 @@
 # Ignorar archivo de notas/plan
 agents.md
 
+# Environment files (credenciales, configuración local)
+.env
+.env.local
+.env.*.local
+
 # macOS
 .DS_Store
 
