@@ -1,7 +1,7 @@
 # Ignorar archivos de configuracion de agentes AI (personales)
-agents.md
-CLAUDE.md
-.cursorrules
+**/agents.md
+**/CLAUDE.md
+**/.cursorrules
 
 # Environment files (credenciales, configuración local)
 .env
