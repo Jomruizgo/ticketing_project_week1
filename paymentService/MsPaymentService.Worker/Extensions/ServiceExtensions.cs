@@ -1,7 +1,7 @@
-using PaymentService.Api.Repositories;
-using PaymentService.Api.Services;
+using MsPaymentService.Worker.Repositories;
+using MsPaymentService.Worker.Services;
 
-namespace PaymentService.Api.Extensions;
+namespace MsPaymentService.Worker.Extensions;
 
 public static class ServiceExtensions
 {

@@ -1,6 +1,6 @@
-using PaymentService.Api.Models.Entities;
+using MsPaymentService.Worker.Models.Entities;
 
-namespace PaymentService.Api.Models.DTOs;
+namespace MsPaymentService.Worker.Models.DTOs;
 
 public class PaymentResponse
 {

@@ -1,4 +1,4 @@
-namespace PaymentService.Api.Models.Events;
+namespace MsPaymentService.Worker.Models.Events;
 
 public class TicketPaymentEvent
 {

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using PaymentService.Api.Models.Entities;
+using MsPaymentService.Worker.Models.Entities;
 
-namespace PaymentService.Api.Data;
+namespace MsPaymentService.Worker.Data;
 
 public class PaymentDbContext : DbContext
 {

@@ -1,4 +1,4 @@
-using PaymentService.Api.Messaging.RabbitMQ;
+using MsPaymentService.Worker.Messaging.RabbitMQ;
 
 namespace MsPaymentService.Worker;
 
@@ -21,7 +21,8 @@ public class Worker : BackgroundService
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
             }
-            _consumer.Start();
+            _consumer.Start("ticket.payments.approved");
+            _consumer.Start("ticket.payments.rejected");
             await Task.Delay(Timeout.Infinite, stoppingToken);
         }
     }

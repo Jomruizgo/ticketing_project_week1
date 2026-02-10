@@ -1,4 +1,4 @@
-namespace PaymentService.Api.Models.DTOs;
+namespace MsPaymentService.Worker.Models.DTOs;
 
 public class ValidationResult
 {

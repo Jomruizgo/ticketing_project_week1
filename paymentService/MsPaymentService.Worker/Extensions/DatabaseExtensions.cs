@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using PaymentService.Api.Data;
+using MsPaymentService.Worker.Data;
 
-namespace PaymentService.Api.Extensions;
+namespace MsPaymentService.Worker.Extensions;
 
 public static class DatabaseExtensions
 {

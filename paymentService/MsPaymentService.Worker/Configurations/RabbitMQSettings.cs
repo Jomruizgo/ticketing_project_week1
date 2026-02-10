@@ -1,4 +1,4 @@
-namespace PaymentService.Api.Configurations;
+namespace MsPaymentService.Worker.Configurations;
 
 public class RabbitMQSettings
 {

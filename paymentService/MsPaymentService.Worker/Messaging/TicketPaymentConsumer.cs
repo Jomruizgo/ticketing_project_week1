@@ -4,9 +4,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client;
-using PaymentService.Api.Models.Events;
+using MsPaymentService.Worker.Models.Events;
+using MsPaymentService.Worker.Models.DTOs;
+using MsPaymentService.Worker.Services;
 
-namespace PaymentService.Api.Messaging.RabbitMQ;
+namespace MsPaymentService.Worker.Messaging.RabbitMQ;
 
 public class TicketPaymentConsumer
 {
@@ -24,22 +26,25 @@ public class TicketPaymentConsumer
         _logger = logger;
     }
 
-    public void Start()
+    public void Start(string queueName)
     {
         var channel = _connection.GetChannel();
 
-        channel.BasicQos(0, 1, false); // consumo seguro
+        channel.BasicQos(0, 1, false);
 
         var consumer = new AsyncEventingBasicConsumer(channel);
         consumer.Received += OnMessageReceivedAsync;
 
         channel.BasicConsume(
-            queue: "payment.reservation.consumer", // TU cola
+            queue: queueName,
             autoAck: false,
             consumer: consumer
         );
 
-        _logger.LogInformation("TicketPaymentConsumer iniciado");
+        _logger.LogInformation(
+            "TicketPaymentConsumer escuchando cola {Queue}",
+            queueName
+        );
     }
 
     private async Task OnMessageReceivedAsync(object sender, BasicDeliverEventArgs args)
@@ -49,36 +54,64 @@ public class TicketPaymentConsumer
         try
         {
             var json = Encoding.UTF8.GetString(args.Body.ToArray());
-            var evt = JsonSerializer.Deserialize<TicketPaymentEvent>(json);
 
-            if (evt == null)
+            using var scope = _scopeFactory.CreateScope();
+            var validationService = scope.ServiceProvider
+                .GetRequiredService<IPaymentValidationService>();
+
+            if (args.RoutingKey == "ticket.payments.approved")
             {
-                _logger.LogError("Evento inválido (null)");
-                channel.BasicAck(args.DeliveryTag, false);
-                return;
+                var evt = JsonSerializer.Deserialize<PaymentApprovedEvent>(json);
+                await validationService.ValidateAndProcessApprovedPaymentAsync(evt);
             }
-
-            _logger.LogInformation(
-                "Evento recibido EventId={EventId}, TicketId={TicketId}",
-                evt.EventId, evt.TicketId
-            );
-
-            // 👉 AQUÍ TU LÓGICA MÍNIMA
-            // Validar ticket, crear intención de pago, etc.
-            await Task.CompletedTask;
-
-            channel.BasicAck(args.DeliveryTag, false);
+            else if (args.RoutingKey == "ticket.payments.rejected")
+            {
+                var evt = JsonSerializer.Deserialize<PaymentRejectedEvent>(json);
+                await validationService.ValidateAndProcessRejectedPaymentAsync(evt);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Evento con routing key desconocida: {RoutingKey}",
+                    args.RoutingKey);
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error procesando evento");
+            _logger.LogError(ex, "Error procesando evento {RoutingKey}", args.RoutingKey);
 
-            // MVP: no requeue infinito
             channel.BasicNack(
                 deliveryTag: args.DeliveryTag,
                 multiple: false,
-                requeue: false // va a DLQ
+                requeue: false // DLQ
             );
         }
     }
+
+    private void HandleResult(
+        ValidationResult result,
+        IModel channel,
+        BasicDeliverEventArgs args)
+    {
+        if (result.IsSuccess || result.IsAlreadyProcessed)
+        {
+            channel.BasicAck(args.DeliveryTag, false);
+            return;
+        }
+
+        // Error de negocio → NO requeue
+        if (!string.IsNullOrEmpty(result.FailureReason))
+        {
+            channel.BasicAck(args.DeliveryTag, false);
+            return;
+        }
+
+        // Error técnico → DLQ
+        channel.BasicNack(
+            deliveryTag: args.DeliveryTag,
+            multiple: false,
+            requeue: false
+        );
+    }
+
 }

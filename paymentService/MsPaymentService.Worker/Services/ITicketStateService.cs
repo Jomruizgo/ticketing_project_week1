@@ -1,6 +1,6 @@
-using PaymentService.Api.Models.Entities;
+using MsPaymentService.Worker.Models.Entities;
 
-namespace PaymentService.Api.Services;
+namespace MsPaymentService.Worker.Services;
 
 public interface ITicketStateService
 {

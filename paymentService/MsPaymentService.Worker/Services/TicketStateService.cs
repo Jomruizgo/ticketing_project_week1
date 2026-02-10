@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using PaymentService.Api.Data;
-using PaymentService.Api.Models.Entities;
-using PaymentService.Api.Repositories;
+using MsPaymentService.Worker.Data;
+using MsPaymentService.Worker.Models.Entities;
+using MsPaymentService.Worker.Repositories;
 
-namespace PaymentService.Api.Services;
+namespace MsPaymentService.Worker.Services;
 
 public class TicketStateService : ITicketStateService
 {

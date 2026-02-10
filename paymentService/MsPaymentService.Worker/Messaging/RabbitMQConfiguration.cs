@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Options;
-using PaymentService.Api.Configurations;
+using MsPaymentService.Worker.Configurations;
 using RabbitMQ.Client;
 
-namespace PaymentService.Api.Messaging.RabbitMQ;
+namespace MsPaymentService.Worker.Messaging.RabbitMQ;
 
 public static class RabbitMQConfiguration
 {

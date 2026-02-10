@@ -1,7 +1,7 @@
-using PaymentService.Api.Models.DTOs;
-using PaymentService.Api.Models.Events;
+using MsPaymentService.Worker.Models.DTOs;
+using MsPaymentService.Worker.Models.Events;
 
-namespace PaymentService.Api.Services;
+namespace MsPaymentService.Worker.Services;
 
 public interface IPaymentValidationService
 {

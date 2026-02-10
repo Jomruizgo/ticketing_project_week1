@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PaymentService.Api.Models.Entities;
+using MsPaymentService.Worker.Models.Entities;
 
-namespace PaymentService.Api.Data.EntityConfigurations;
+namespace MsPaymentService.Worker.Data.EntityConfigurations;
 
 public class TicketHistoryConfiguration : IEntityTypeConfiguration<TicketHistory>
 {

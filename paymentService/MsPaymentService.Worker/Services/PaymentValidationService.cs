@@ -1,9 +1,9 @@
-using PaymentService.Api.Models.DTOs;
-using PaymentService.Api.Models.Entities;
-using PaymentService.Api.Models.Events;
-using PaymentService.Api.Repositories;
+using MsPaymentService.Worker.Models.DTOs;
+using MsPaymentService.Worker.Models.Entities;
+using MsPaymentService.Worker.Models.Events;
+using MsPaymentService.Worker.Repositories;
 
-namespace PaymentService.Api.Services;
+namespace MsPaymentService.Worker.Services;
 
 public class PaymentValidationService : IPaymentValidationService
 {

@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using PaymentService.Api.Data;
-using PaymentService.Api.Models.Entities;
+using MsPaymentService.Worker.Data;
+using MsPaymentService.Worker.Models.Entities;
 
-namespace PaymentService.Api.Repositories;
+namespace MsPaymentService.Worker.Repositories;
 
 public class TicketHistoryRepository : ITicketHistoryRepository
 {

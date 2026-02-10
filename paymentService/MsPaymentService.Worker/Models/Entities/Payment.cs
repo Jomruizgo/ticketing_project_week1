@@ -1,4 +1,4 @@
-namespace PaymentService.Api.Models.Entities;
+namespace MsPaymentService.Worker.Models.Entities;
 
 public enum PaymentStatus
 {
