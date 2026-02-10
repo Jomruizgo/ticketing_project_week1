@@ -17,6 +17,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - ticketing_network
 
   # RabbitMQ Message Broker
   rabbitmq:
@@ -36,43 +38,96 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - ticketing_network
 
   # RabbitMQ Setup - configura exchanges, colas y bindings automáticamente
   rabbitmq-setup:
-    image: alpine:latest
+    image: curlimages/curl:latest
     container_name: ticketing_setup
     depends_on:
       rabbitmq:
         condition: service_healthy
     volumes:
       - ./scripts/setup-rabbitmq.sh:/setup-rabbitmq.sh:ro
-    entrypoint: /bin/sh
-    command: |
-      -c "
-      apk add --no-cache curl bash
-      echo 'Esperando a que RabbitMQ esté completamente listo...'
-      for i in {1..30}; do
-        if curl -s -u ${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS} http://rabbitmq:15672/api/queues > /dev/null 2>&1; then
-          echo 'RabbitMQ listo!'
-          break
-        fi
-        echo 'Intento '$i'/30...'
-        sleep 2
-      done
-      /bin/bash /setup-rabbitmq.sh
-      "
+    entrypoint: sh
+    command:
+      - -c
+      - |
+        echo 'Esperando a que RabbitMQ esté disponible...'
+        sleep 5
+        echo 'Ejecutando setup de RabbitMQ...'
+        sh /setup-rabbitmq.sh
+        echo 'Setup completado'
     environment:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=15672
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     networks:
-      - default
+      - ticketing_network
+
+  # Producer Service - Expone API para publicar eventos
+  producer:
+    build:
+      context: ./producer
+      dockerfile: Dockerfile
+    container_name: ticketing_producer
+    depends_on:
+      rabbitmq-setup:
+        condition: service_completed_successfully
+    ports:
+      - "${PRODUCER_PORT}:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=${RABBITMQ_AMQP_PORT}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_VHOST=/
+      - RABBITMQ_EXCHANGE=tickets
+      - RABBITMQ_ROUTING_KEY=ticket.reserved
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/api/tickets/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ticketing_network
+    restart: unless-stopped
+
+  # CRUD Service - Gestiona datos de eventos, tickets y pagos
+  crud-service:
+    build:
+      context: ./crud_service
+      dockerfile: Dockerfile
+    container_name: ticketing_crud
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${CRUD_PORT}:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/api/events || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ticketing_network
+    restart: unless-stopped
 
 volumes:
   postgres_data:
   rabbitmq_data:
 
 networks:
-  default:
+  ticketing_network:
     name: ticketing_network
+    driver: bridge

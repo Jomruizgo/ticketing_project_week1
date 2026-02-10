@@ -33,6 +33,12 @@ public class TicketingDbContext : DbContext
     /// </summary>
     public DbSet<TicketHistory> TicketHistories { get; set; } = null!;
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.UseSnakeCaseNamingConvention();
+    }
+
     /// <summary>
     /// Configurar el modelo
     /// </summary>
@@ -103,6 +109,7 @@ public class TicketingDbContext : DbContext
 
         // Historial de Tickets
         modelBuilder.Entity<TicketHistory>()
+            .ToTable("ticket_history")
             .HasKey(h => h.Id);
         modelBuilder.Entity<TicketHistory>()
             .Property(h => h.OldStatus)
