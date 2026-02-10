@@ -1,0 +1,84 @@
+{
+  "exchanges": [
+    {
+      "name": "tickets",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "q.ticket.reserved",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "q.ticket.payments.approved",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "q.ticket.payments.rejected",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "q.ticket.expired",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "q.ticket.reserved.delay",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 300000,
+        "x-dead-letter-exchange": "tickets",
+        "x-dead-letter-routing-key": "ticket.expired"
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "source": "tickets",
+      "destination": "q.ticket.reserved",
+      "destination_type": "queue",
+      "routing_key": "ticket.reserved",
+      "vhost": "/"
+    },
+    {
+      "source": "tickets",
+      "destination": "q.ticket.payments.approved",
+      "destination_type": "queue",
+      "routing_key": "ticket.payments.approved",
+      "vhost": "/"
+    },
+    {
+      "source": "tickets",
+      "destination": "q.ticket.payments.rejected",
+      "destination_type": "queue",
+      "routing_key": "ticket.payments.rejected",
+      "vhost": "/"
+    },
+    {
+      "source": "tickets",
+      "destination": "q.ticket.expired",
+      "destination_type": "queue",
+      "routing_key": "ticket.expired",
+      "vhost": "/"
+    }
+  ]
+}
