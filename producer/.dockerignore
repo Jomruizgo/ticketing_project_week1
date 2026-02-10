@@ -1,0 +1,15 @@
+**/.git
+**/.gitignore
+**/.dockerignore
+**/Dockerfile
+**/README.md
+**/.vs
+**/.vscode
+**/bin
+**/obj
+**/.DS_Store
+**/node_modules
+**/.env
+**/.env.local
+**/dist
+**/coverage
