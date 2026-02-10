@@ -1,0 +1,89 @@
+# Ignorar archivo de notas/plan
+agents.md
+
+# macOS
+.DS_Store
+
+# Visual Studio / .NET
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+bin/
+obj/
+artifacts/
+TestResults/
+*.cache
+*.log
+*.ncrunch*
+*.vspscc
+*.pdb
+
+# Rider / IDEs
+.idea/
+
+# User secrets and local settings
+secrets.json
+appsettings.Development.json
+appsettings.*.Local
+appsettings.Local.json
+
+# Entity Framework / local DB
+*.db
+*.sqlite
+
+# NuGet
+*.nupkg
+.packages/
+project.lock.json
+project.fragment.lock.json
+.nuget/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Package manager lockfiles (optional to ignore if you track them)
+package-lock.json
+pnpm-lock.yaml
+
+# Environment files
+.env
+.env.*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs and coverage
+logs/
+coverage/
+.nyc_output/
+.cache/
+
+# Docker
+docker-compose.override.yml
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Editor temporary files
+*~
+*.swp
+
+# Misc
+dist/
+tmp/
+temp/
+
+# Keep IDE/editor specific files out
+*.idea/
