@@ -50,9 +50,23 @@ public class TicketStateService : ITicketStateService
             ticket.PaidAt = DateTime.UtcNow;
 
             var updated = await _ticketRepository.UpdateAsync(ticket);
+
             if (!updated)
             {
-                _logger.LogWarning("Failed to update ticket {TicketId} - concurrent modification", ticketId);
+                var current = await _ticketRepository.GetByIdAsync(ticketId);
+
+                if (current != null && current.Status == TicketStatus.released)
+                {
+                    _logger.LogInformation(
+                        "Ticket {TicketId} already released (idempotent event).",
+                        ticketId);
+                    return true;
+                }
+
+                _logger.LogWarning(
+                    "Failed to update ticket {TicketId} - real concurrent modification",
+                    ticketId);
+
                 return false;
             }
             
@@ -107,9 +121,23 @@ public class TicketStateService : ITicketStateService
             ticket.Status = TicketStatus.released;
 
             var updated = await _ticketRepository.UpdateAsync(ticket);
+
             if (!updated)
             {
-                _logger.LogWarning("Failed to update ticket {TicketId} - concurrent modification", ticketId);
+                var current = await _ticketRepository.GetByIdAsync(ticketId);
+
+                if (current != null && current.Status == TicketStatus.released)
+                {
+                    _logger.LogInformation(
+                        "Ticket {TicketId}- {status} already released (idempotent event).",
+                        ticketId, current.Status);
+                    return true;
+                }
+
+                _logger.LogWarning(
+                    "Failed to update ticket {TicketId} - real concurrent modification",
+                    ticketId);
+
                 return false;
             }
             

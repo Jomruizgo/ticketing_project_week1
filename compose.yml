@@ -113,9 +113,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       # Override config (convención .NET: Section__Key)
-      - ConnectionStrings__TicketingDb=Host=postgres;Port=5432;Database=${POSTGRES_DB:-ticketing};Username=${POSTGRES_USER:-ticketing_user};Password=${POSTGRES_PASSWORD:-ticketing_password}
-      - RabbitMQ__HostName=rabbitmq
-      - RabbitMQ__Port=5672
+      - ConnectionStrings__TicketingDb=Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
+      - RabbitMQ__HostName=${RABBITMQ_HOST}
+      - RabbitMQ__Port=${RABBITMQ_AMQP_PORT}
       - RabbitMQ__UserName=${RABBITMQ_DEFAULT_USER:-guest}
       - RabbitMQ__Password=${RABBITMQ_DEFAULT_PASS:-guest}
       - RabbitMQ__VirtualHost=/

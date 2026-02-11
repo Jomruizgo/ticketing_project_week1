@@ -22,7 +22,7 @@ public class PaymentRejectedEvent
     public DateTime RejectedAt { get; set; }
 
     /// <summary>Identificador único del evento de mensajería.</summary>
-    public string EventId { get; set; } = string.Empty;
+    public long EventId { get; set; }
 
     /// <summary>Timestamp del evento de mensajería (UTC).</summary>
     public DateTime EventTimestamp { get; set; }
