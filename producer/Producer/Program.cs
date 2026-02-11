@@ -16,6 +16,17 @@ builder.Services.AddSwaggerGen();
 // Registrar RabbitMQ y sus servicios
 builder.Services.AddRabbitMQ(builder.Configuration);
 
+// CORS - CRÍTICO para que frontend pueda hacer POST desde navegador
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
 
 // Configurar pipeline HTTP
@@ -26,6 +37,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// CORS DEBE venir ANTES de MapControllers
+app.UseCors("AllowAll");
+
 app.MapControllers();
 
 // Health check endpoint
