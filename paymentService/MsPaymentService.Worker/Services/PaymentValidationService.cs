@@ -37,7 +37,7 @@ public class PaymentValidationService : IPaymentValidationService
                 return ValidationResult.Failure("Ticket not found");
             }
 
-            if (ticket.Status == TicketStatus.Paid)
+            if (ticket.Status == TicketStatus.paid)
             {
                 _logger.LogInformation(
                     "Ticket {TicketId} already paid. Skipping duplicate event",
@@ -46,7 +46,7 @@ public class PaymentValidationService : IPaymentValidationService
             }
 
             // 2. Validar estado actual
-            if (ticket.Status != TicketStatus.Reserved)
+            if (ticket.Status != TicketStatus.reserved)
             {
                 _logger.LogWarning(
                     "Invalid ticket status for payment. TicketId: {TicketId}, Status: {Status}",
@@ -68,7 +68,7 @@ public class PaymentValidationService : IPaymentValidationService
 
             // 4. Validar payment
             var payment = await _paymentRepository.GetByTicketIdAsync(paymentEvent.TicketId);
-            if (payment == null || payment.Status != PaymentStatus.Pending)
+            if (payment == null || payment.Status != PaymentStatus.pending)
             {
                 _logger.LogWarning(
                     "Invalid payment status. TicketId: {TicketId}, PaymentStatus: {PaymentStatus}",
@@ -107,7 +107,7 @@ public class PaymentValidationService : IPaymentValidationService
             }
 
             // Si ya está released, no hacer nada (idempotencia)
-            if (ticket.Status == TicketStatus.Released)
+            if (ticket.Status == TicketStatus.released)
             {
                 _logger.LogInformation(
                     "Ticket {TicketId} already released. Skipping duplicate event",

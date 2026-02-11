@@ -36,7 +36,7 @@ public class TicketStateService : ITicketStateService
             // 1. Obtener ticket con lock pesimista
             var ticket = await _ticketRepository.GetByIdForUpdateAsync(ticketId);
             
-            if (ticket == null || ticket.Status != TicketStatus.Reserved)
+            if (ticket == null || ticket.Status != TicketStatus.reserved)
             {
                 _logger.LogWarning(
                     "Cannot transition to paid - invalid state. TicketId: {TicketId}, Status: {Status}",
@@ -46,7 +46,7 @@ public class TicketStateService : ITicketStateService
             
             // 2. Actualizar ticket
             var oldStatus = ticket.Status;
-            ticket.Status = TicketStatus.Paid;
+            ticket.Status = TicketStatus.paid;
             ticket.PaidAt = DateTime.UtcNow;
             ticket.Version++; // Optimistic concurrency
             
@@ -56,7 +56,7 @@ public class TicketStateService : ITicketStateService
             var payment = await _paymentRepository.GetByTicketIdAsync(ticketId);
             if (payment != null)
             {
-                payment.Status = PaymentStatus.Approved;
+                payment.Status = PaymentStatus.approved;
                 payment.ProviderRef = providerRef;
                 payment.UpdatedAt = DateTime.UtcNow;
                 
@@ -64,7 +64,7 @@ public class TicketStateService : ITicketStateService
             }
             
             // 4. Registrar en historial
-            await RecordHistoryAsync(ticketId, oldStatus, TicketStatus.Paid, "Payment approved");
+            await RecordHistoryAsync(ticketId, oldStatus, TicketStatus.paid, "Payment approved");
             
             // 5. Commit transacción
             await transaction.CommitAsync();
@@ -100,23 +100,23 @@ public class TicketStateService : ITicketStateService
             
             // 2. Actualizar ticket
             var oldStatus = ticket.Status;
-            ticket.Status = TicketStatus.Released;
+            ticket.Status = TicketStatus.released;
             ticket.Version++; // Optimistic concurrency
             
             await _ticketRepository.UpdateAsync(ticket);
             
             // 3. Actualizar payment si existe
             var payment = await _paymentRepository.GetByTicketIdAsync(ticketId);
-            if (payment != null && payment.Status == PaymentStatus.Pending)
+            if (payment != null && payment.Status == PaymentStatus.pending)
             {
-                payment.Status = reason.Contains("TTL") ? PaymentStatus.Expired : PaymentStatus.Failed;
+                payment.Status = reason.Contains("TTL") ? PaymentStatus.expired : PaymentStatus.failed;
                 payment.UpdatedAt = DateTime.UtcNow;
                 
                 await _paymentRepository.UpdateAsync(payment);
             }
             
             // 4. Registrar en historial
-            await RecordHistoryAsync(ticketId, oldStatus, TicketStatus.Released, reason);
+            await RecordHistoryAsync(ticketId, oldStatus, TicketStatus.released, reason);
             
             // 5. Commit transacción
             await transaction.CommitAsync();
