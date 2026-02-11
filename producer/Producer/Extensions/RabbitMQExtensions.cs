@@ -57,8 +57,11 @@ public static class RabbitMQExtensions
             }
         });
 
-        // Registrar el publicador
+        // Registrar el publicador de tickets
         services.AddScoped<ITicketPublisher, RabbitMQTicketPublisher>();
+
+        // Registrar el publicador de pagos
+        services.AddScoped<IPaymentPublisher, RabbitMQPaymentPublisher>();
 
         return services;
     }
