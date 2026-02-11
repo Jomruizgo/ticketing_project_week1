@@ -172,6 +172,34 @@ services:
       - ticketing_network
     restart: unless-stopped
 
+  # Expiration Job - Libera tickets expirados cada minuto
+  ticket-expiration-job:
+    image: alpine:3.19
+    container_name: ticketing_expiration_job
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./scripts/release-expired-tickets.sh:/scripts/release-expired-tickets.sh:ro
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        apk add --no-cache postgresql15-client && \
+        printf "SHELL=/bin/sh\nPATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\nPOSTGRES_HOST=%s\nPOSTGRES_PORT=%s\nPOSTGRES_DB=%s\nPOSTGRES_USER=%s\nPOSTGRES_PASSWORD=%s\n* * * * * /scripts/release-expired-tickets.sh\n" \
+          "$$POSTGRES_HOST" "$$POSTGRES_PORT" "$$POSTGRES_DB" "$$POSTGRES_USER" "$$POSTGRES_PASSWORD" \
+          > /etc/crontabs/root && \
+        crond -f -l 8 -L /dev/stdout
+    networks:
+      - ticketing_network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   rabbitmq_data:
