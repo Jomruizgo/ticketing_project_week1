@@ -149,6 +149,29 @@ services:
       - ticketing_network
     restart: unless-stopped
 
+  # Reservation Service - Consumer que procesa reservas de tickets
+  reservation-service:
+    build:
+      context: ./ReservationService
+      dockerfile: Dockerfile
+    container_name: ticketing_reservation
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq-setup:
+        condition: service_completed_successfully
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__Username=${RABBITMQ_DEFAULT_USER}
+      - RabbitMQ__Password=${RABBITMQ_DEFAULT_PASS}
+      - RabbitMQ__QueueName=q.ticket.reserved
+    networks:
+      - ticketing_network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   rabbitmq_data:
