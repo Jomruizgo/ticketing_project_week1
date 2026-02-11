@@ -140,6 +140,36 @@ export const api = {
     throw new ApiError(res.status, text || `Error ${res.status}`, "producer")
   },
 
+  /**
+   * Process a payment (async operation)
+   * Returns 202 Accepted - payment is processed asynchronously by RabbitMQ
+   * Frontend should poll the ticket status to confirm payment approval
+   */
+  async processPayment(payload: {
+    ticketId: number
+    eventId: number
+    amountCents: number
+    currency: string
+    paymentBy: string
+    paymentMethodId: string
+    transactionRef: string
+  }): Promise<{ message: string; ticketId: number; eventId: number; status: string }> {
+    const res = await fetch(`${PRODUCER_URL}/api/payments/process`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+
+    if (res.status === 202) {
+      // 202 Accepted - payment queued for async processing
+      return res.json()
+    }
+
+    // Any other status (including errors) goes through error handler
+    const text = await res.text()
+    throw new ApiError(res.status, text || `Error ${res.status}`, "producer")
+  },
+
   // ─── Health ───────────────────────────────────────────
   async healthCrud(): Promise<boolean> {
     try {
