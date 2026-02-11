@@ -15,7 +15,7 @@ public class PaymentEventDispatcherImpl : IPaymentEventDispatcher
     public async Task<Models.DTOs.ValidationResult?> DispatchAsync(string queueName, string json, CancellationToken cancellationToken = default)
     {
         var handler = _handlers.FirstOrDefault(h =>
-            string.Equals(h.QueueName, queueName, StringComparison.Ordinal));
+            h.QueueName.EndsWith(queueName, StringComparison.Ordinal));
 
         if (handler == null)
             return null;

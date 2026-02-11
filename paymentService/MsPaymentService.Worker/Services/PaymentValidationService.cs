@@ -55,29 +55,32 @@ public class PaymentValidationService : IPaymentValidationService
             }
 
             // 3. Validar TTL
-            if (ticket.ReservedAt == null || !IsWithinTimeLimit(ticket.ReservedAt.Value, paymentEvent.PublishedAt))
+            if (ticket.ReservedAt == null || !IsWithinTimeLimit(ticket.ReservedAt.Value, paymentEvent.ApprovedAt))
             {
                 _logger.LogWarning(
-                    "Payment received after TTL. TicketId: {TicketId}, ReservedAt: {ReservedAt}, PublishedAt: {PublishedAt}",
-                    paymentEvent.TicketId, ticket.ReservedAt, paymentEvent.PublishedAt);
-                    
-                // Marcar ticket como released por TTL expirado
+                    "Payment received after TTL. TicketId: {TicketId}, ReservedAt: {ReservedAt}, ApprovedAt: {ApprovedAt}",
+                    paymentEvent.TicketId, ticket.ReservedAt, paymentEvent.ApprovedAt);
+
                 await _stateService.TransitionToReleasedAsync(paymentEvent.TicketId, "Payment received after TTL");
                 return ValidationResult.Failure("TTL exceeded");
             }
 
-            // 4. Validar payment
+            // 4. Obtener o crear payment
             var payment = await _paymentRepository.GetByTicketIdAsync(paymentEvent.TicketId);
-            if (payment == null || payment.Status != PaymentStatus.pending)
+            if (payment == null)
             {
-                _logger.LogWarning(
-                    "Invalid payment status. TicketId: {TicketId}, PaymentStatus: {PaymentStatus}",
-                    paymentEvent.TicketId, payment?.Status);
-                return ValidationResult.Failure("Invalid payment status");
+                payment = await _paymentRepository.CreateAsync(new Payment
+                {
+                    TicketId = paymentEvent.TicketId,
+                    Status = PaymentStatus.pending,
+                    AmountCents = paymentEvent.AmountCents,
+                    Currency = paymentEvent.Currency,
+                    ProviderRef = paymentEvent.TransactionRef
+                });
             }
 
             // 5. Procesar transición exitosa
-            var success = await _stateService.TransitionToPaidAsync(paymentEvent.TicketId, paymentEvent.OrderId);
+            var success = await _stateService.TransitionToPaidAsync(paymentEvent.TicketId, paymentEvent.TransactionRef);
             
             if (success)
             {

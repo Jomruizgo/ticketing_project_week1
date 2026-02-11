@@ -48,9 +48,13 @@ public class TicketStateService : ITicketStateService
             var oldStatus = ticket.Status;
             ticket.Status = TicketStatus.paid;
             ticket.PaidAt = DateTime.UtcNow;
-            ticket.Version++; // Optimistic concurrency
-            
-            await _ticketRepository.UpdateAsync(ticket);
+
+            var updated = await _ticketRepository.UpdateAsync(ticket);
+            if (!updated)
+            {
+                _logger.LogWarning("Failed to update ticket {TicketId} - concurrent modification", ticketId);
+                return false;
+            }
             
             // 3. Actualizar payment
             var payment = await _paymentRepository.GetByTicketIdAsync(ticketId);
@@ -101,9 +105,13 @@ public class TicketStateService : ITicketStateService
             // 2. Actualizar ticket
             var oldStatus = ticket.Status;
             ticket.Status = TicketStatus.released;
-            ticket.Version++; // Optimistic concurrency
-            
-            await _ticketRepository.UpdateAsync(ticket);
+
+            var updated = await _ticketRepository.UpdateAsync(ticket);
+            if (!updated)
+            {
+                _logger.LogWarning("Failed to update ticket {TicketId} - concurrent modification", ticketId);
+                return false;
+            }
             
             // 3. Actualizar payment si existe
             var payment = await _paymentRepository.GetByTicketIdAsync(ticketId);

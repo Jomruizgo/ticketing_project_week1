@@ -47,17 +47,22 @@ public class TicketRepository : ITicketRepository
                 UPDATE tickets 
                 SET status = {0}, paid_at = {1}, version = version + 1
                 WHERE id = {2} AND version = {3}",
-                new object[] { 
-                    ticket.Status.ToString().ToLower(), 
-                    ticket.PaidAt ?? (object)DBNull.Value, 
-                    ticket.Id, 
-                    ticket.Version 
+                new object[] {
+                    ticket.Status,
+                    ticket.PaidAt ?? (object)DBNull.Value,
+                    ticket.Id,
+                    ticket.Version
                 });
 
             if (rowsAffected == 0)
             {
                 throw new DbUpdateConcurrencyException("Ticket was modified by another process");
             }
+
+            // Detach entity to prevent change tracker conflicts with subsequent SaveChangesAsync calls.
+            // The raw SQL already persisted changes; keeping the entity tracked would cause EF Core
+            // to re-flush it with a stale version token.
+            _context.Entry(ticket).State = EntityState.Detached;
 
             return true;
         }
