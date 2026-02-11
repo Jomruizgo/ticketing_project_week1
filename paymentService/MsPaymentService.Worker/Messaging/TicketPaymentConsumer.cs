@@ -2,8 +2,10 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client;
+using MsPaymentService.Worker.Configurations;
 using MsPaymentService.Worker.Models.Events;
 using MsPaymentService.Worker.Models.DTOs;
 using MsPaymentService.Worker.Services;
@@ -13,6 +15,7 @@ namespace MsPaymentService.Worker.Messaging.RabbitMQ;
 public class TicketPaymentConsumer
 {
     private readonly RabbitMQConnection _connection;
+    private readonly RabbitMQSettings _settings;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<TicketPaymentConsumer> _logger;
     private static readonly JsonSerializerOptions _jsonOptions = new()
@@ -22,10 +25,12 @@ public class TicketPaymentConsumer
 
     public TicketPaymentConsumer(
         RabbitMQConnection connection,
+        IOptions<RabbitMQSettings> settings,
         IServiceScopeFactory scopeFactory,
         ILogger<TicketPaymentConsumer> logger)
     {
         _connection = connection;
+        _settings = settings.Value;
         _scopeFactory = scopeFactory;
         _logger = logger;
     }
@@ -34,7 +39,7 @@ public class TicketPaymentConsumer
     {
         var channel = _connection.GetChannel();
 
-        channel.BasicQos(0, 1, false);
+        channel.BasicQos(0, _settings.PrefetchCount, false);
 
         var consumer = new AsyncEventingBasicConsumer(channel);
         consumer.Received += OnMessageReceivedAsync;

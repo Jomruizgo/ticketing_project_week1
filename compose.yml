@@ -97,6 +97,34 @@ services:
       - ticketing_network
     restart: unless-stopped
 
+  # Payment Service Worker - Consume eventos de pago (approved/rejected) desde RabbitMQ
+  payment:
+    build:
+      context: ./paymentService
+      dockerfile: Dockerfile
+    container_name: ticketing_payment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-setup:
+        condition: service_completed_successfully
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # Override config (convención .NET: Section__Key)
+      - ConnectionStrings__TicketingDb=Host=postgres;Port=5432;Database=${POSTGRES_DB:-ticketing};Username=${POSTGRES_USER:-ticketing_user};Password=${POSTGRES_PASSWORD:-ticketing_password}
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__UserName=${RABBITMQ_DEFAULT_USER:-guest}
+      - RabbitMQ__Password=${RABBITMQ_DEFAULT_PASS:-guest}
+      - RabbitMQ__VirtualHost=/
+      - RabbitMQ__ApprovedQueueName=q.ticket.payments.approved
+      - RabbitMQ__RejectedQueueName=q.ticket.payments.rejected
+    networks:
+      - ticketing_network
+    restart: unless-stopped
+
   # CRUD Service - Gestiona datos de eventos, tickets y pagos
   crud-service:
     build:
@@ -127,5 +155,4 @@ volumes:
 
 networks:
   ticketing_network:
-    name: ticketing_network
     driver: bridge

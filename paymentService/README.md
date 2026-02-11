@@ -21,9 +21,9 @@ Microservicio **Worker** del dominio de pagos del sistema de ticketing. Consume 
 
 El Worker es un **Background Service** (.NET 8) que:
 
-1. **Escucha** dos colas de RabbitMQ:
-   - `ticket.payments.approved` — pagos aprobados por el proveedor.
-   - `ticket.payments.rejected` — pagos rechazados.
+1. **Escucha** dos colas de RabbitMQ (definidas en `scripts/setup-rabbitmq.sh`):
+   - `q.ticket.payments.approved` — pagos aprobados por el proveedor.
+   - `q.ticket.payments.rejected` — pagos rechazados.
 
 2. **Valida** cada evento (idempotencia, estado del ticket, TTL de reserva, estado del pago).
 
@@ -53,7 +53,7 @@ Todo se hace dentro de **transacciones** con bloqueo pesimista donde aplica, y c
     ┌───────────────────┼───────────────────┐
     │                   │                   │
     ▼                   ▼                   │
-ticket.payments.approved   ticket.payments.rejected
+q.ticket.payments.approved   q.ticket.payments.rejected
     │                   │                   │
     └───────────────────┼───────────────────┘
                         │
@@ -92,7 +92,7 @@ ticket.payments.approved   ticket.payments.rejected
 
 ### Evento: Pago aprobado (`PaymentApprovedEvent`)
 
-1. Llega mensaje a la cola `ticket.payments.approved`.
+1. Llega mensaje a la cola `q.ticket.payments.approved`.
 2. Se valida:
    - Ticket existe.
    - Idempotencia: si el ticket ya está `paid`, se considera ya procesado (ACK sin cambios).
@@ -104,7 +104,7 @@ ticket.payments.approved   ticket.payments.rejected
 
 ### Evento: Pago rechazado (`PaymentRejectedEvent`)
 
-1. Llega mensaje a la cola `ticket.payments.rejected`.
+1. Llega mensaje a la cola `q.ticket.payments.rejected`.
 2. Se valida:
    - Ticket existe.
    - Idempotencia: si ya está `released`, se considera ya procesado (ACK).
@@ -112,10 +112,10 @@ ticket.payments.approved   ticket.payments.rejected
 
 ### Contrato de colas (resumen)
 
-| Cola                         | Routing Key                 | Evento                |
-|-----------------------------|-----------------------------|------------------------|
-| `ticket.payments.approved`  | `ticket.payments.approved`  | `PaymentApprovedEvent` |
-| `ticket.payments.rejected`  | `ticket.payments.rejected`  | `PaymentRejectedEvent` |
+| Cola                          | Routing Key                 | Evento                |
+|------------------------------|-----------------------------|------------------------|
+| `q.ticket.payments.approved` | `ticket.payments.approved`  | `PaymentApprovedEvent` |
+| `q.ticket.payments.rejected` | `ticket.payments.rejected`  | `PaymentRejectedEvent` |
 
 ---
 
@@ -152,15 +152,16 @@ Ejemplo:
 
 ### RabbitMQ
 
-| Sección                    | Descripción                          |
-|---------------------------|--------------------------------------|
-| `HostName`, `Port`        | Servidor y puerto RabbitMQ           |
-| `UserName`, `Password`    | Credenciales                         |
-| `VirtualHost`             | Virtual host (por defecto `/`)       |
-| `PaymentApprovedQueue`    | Cola y routing key para aprobados    |
-| `PaymentRejectedQueue`    | Cola y routing key para rechazados   |
+La **topología** (exchange `tickets`, colas, bindings) se define y crea en **`scripts/`**: `setup-rabbitmq.sh` y `rabbitmq-definitions.json`. Este Worker **solo consume**; no declara colas ni exchanges. La config incluye solo conexión y nombres de colas a escuchar (deben coincidir con los del script).
 
-Cada cola tiene: `QueueName`, `ExchangeName`, `RoutingKey`, `Durable`, `PrefetchCount`.
+| Clave                 | Descripción                                      |
+|-----------------------|--------------------------------------------------|
+| `HostName`, `Port`    | Servidor y puerto RabbitMQ                       |
+| `UserName`, `Password`| Credenciales                                     |
+| `VirtualHost`         | Virtual host (por defecto `/`)                   |
+| `ApprovedQueueName`   | Cola de pagos aprobados (default: `q.ticket.payments.approved`) |
+| `RejectedQueueName`   | Cola de pagos rechazados (default: `q.ticket.payments.rejected`) |
+| `PrefetchCount`       | Mensajes sin ACK en vuelo por canal (default: 10) |
 
 ### PaymentSettings
 
