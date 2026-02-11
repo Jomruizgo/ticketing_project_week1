@@ -53,9 +53,16 @@ public class RabbitMQPaymentPublisher : IPaymentPublisher
 
             // Propiedades del mensaje
             var properties = channel.CreateBasicProperties();
-            properties.Persistent = true;
+            properties.Persistent = true;   // ️ HUMAN CHECK: Persistencia crítica
             properties.ContentType = "application/json";
             properties.Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+
+            // ️ HUMAN CHECK:
+            // La IA sugirió properties.DeliveryMode = DeliveryMode.Transient
+            // Lo rechazamos y pusimos Persistent=true porque:
+            // 1. Los pagos NO PUEDEN perderse. Si RabbitMQ cae, debemos recuperar el evento.
+            // 2. Persistent=true almacena el mensaje en disco (/var/lib/rabbitmq)
+            // 3. Sin persistencia: si algún consumer no procesó el evento antes de la caída, se pierde = inconsistencias = tickets bloqueados = dinero perdido.
 
             // Publicar
             channel.BasicPublish(
@@ -114,9 +121,12 @@ public class RabbitMQPaymentPublisher : IPaymentPublisher
 
             // Propiedades del mensaje
             var properties = channel.CreateBasicProperties();
-            properties.Persistent = true;
+            properties.Persistent = true;   // ️ HUMAN CHECK: Eventos de rechazo también son críticos
             properties.ContentType = "application/json";
             properties.Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+
+            // ️ HUMAN CHECK:
+            // La IA sugirió usar Transient para eventos de rechazo "porque son menos críticos, eechazamos esa lógica porque los rechazos son TAN críticos como los aprobados porque es la manera en la que nosotros liberamos un ticket no pagado. Perder un PaymentRejected = ticket reservado indefinidamente = dinero perdido. Por eso ambos eventos (aprobado y rechazado) deben ser Persistent=true para garantizar que no se pierdan, incluso si RabbitMQ cae. En microservicios, la durabilidad de los mensajes es clave para mantener la integridad del sistema.
 
             // Publicar
             channel.BasicPublish(

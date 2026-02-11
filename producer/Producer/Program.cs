@@ -21,6 +21,15 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
+        // ️ HUMAN CHECK:
+        // La IA sugirió AllowAnyOrigin() como "patrón por defecto"
+        // Lo mantuvimos SOLO para el MVP/desarrollo local.
+        // En producción: DEBE ser específico:
+        // policy.WithOrigins("https://app.example.com")
+        //       .WithMethods("GET", "POST", "PATCH")
+        //       .WithHeaders("Content-Type", "Authorization")
+        //       .AllowCredentials();
+        // AllowAnyOrigin() + AllowAnyMethod() abre vulnerabilidades CSRF
         policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader();
