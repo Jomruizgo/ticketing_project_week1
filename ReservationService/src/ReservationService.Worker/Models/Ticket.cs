@@ -8,7 +8,6 @@ public class Ticket
 {
     public long Id { get; set; }
     public long EventId { get; set; }
-    public long? SectionId { get; set; }
     public TicketStatus Status { get; set; } = TicketStatus.Available;
     public DateTime? ReservedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }
