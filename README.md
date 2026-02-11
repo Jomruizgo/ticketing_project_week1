@@ -303,11 +303,37 @@ ticketing_project_week0/
 └── README.md
 ```
 
-## 📝 Notas Importantes
+## � Lo Que la IA Hizo Mal
+
+Como parte de nuestro enfoque **AI-First**, documentamos decisiones donde rechazamos sugerencias de la IA por ser anti-patrones:
+
+### Rechazo 1: Credenciales Hardcodeadas en Código
+**Situación:** La IA sugirió crear la conexión RabbitMQ con credenciales directas:
+```csharp
+var factory = new ConnectionFactory 
+{ 
+    HostName = "rabbitmq.prod.com", 
+    Password = "admin123"  // ❌ CRÍTICO
+};
+```
+**Por qué rechazamos:** Nunca exponer secrets en repositorio. Usamos `IOptions<RabbitMQOptions>` inyectadas por DI, cargadas desde `appsettings.json` + variables de entorno. ✅ Ahora las credenciales están seguras en `.env` (ignorado en Git).
+
+### Rechazo 2: CORS AllowAll en Producción
+**Situación:** La IA generó:
+```csharp
+policy.AllowAnyOrigin()  // Permite requests de cualquier dominio
+      .AllowAnyMethod()
+      .AllowAnyHeader();
+```
+**Por qué rechazamos:** Vulnerabilidad CSRF y exposición a ataques cross-origin. Aunque lo mantuvimos para desarrollo, está documentado que debe restringirse a `http://localhost:3000` en producción o a su dominio respectivo y usar credenciales.
+
+---
+
+## �📝 Notas Importantes
 
 1. **Simulación de Pagos**: Los pagos tienen 80% probabilidad de éxito simulada. En producción se integraría con Stripe/PayPal.
 
-2. **Frontend**: Solo implementada la vista del buyer. Admin view pendiente.
+2. **Frontend**: Solo implementada la vista del buyer para el mvp. Admin view pendiente.
 
 3. **CRUD Consumer**: El CRUD Service necesita implementar el consumer de pagos (guía en `PAYMENT_CONSUMER.md`).
 
@@ -335,23 +361,3 @@ ticketing_project_week0/
 - [.NET RabbitMQ Client](https://www.rabbitmq.com/tutorials/tutorial-three-dotnet.html)
 - [Next.js Documentation](https://nextjs.org/docs)
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/15/index.html)
-
----
-
-## 🤖 Lo que la IA hizo mal
-
-> Esta seccion documenta casos donde la IA sugirio soluciones que funcionaban pero eran malas practicas. El equipo las identifico y corrigio.
-
-| Fecha | Situacion | Sugerencia de la IA | Correccion del Equipo |
-|-------|-----------|---------------------|----------------------|
-| | | | |
-
----
-
-## 📋 Metodologia AI-First
-
-Ver [AI_WORKFLOW.md](./AI_WORKFLOW.md) para la estrategia de interaccion con IA del equipo.
-
-## 📄 Licencia
-
-MIT

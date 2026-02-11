@@ -109,7 +109,6 @@ public class TicketService : ITicketService
             throw new KeyNotFoundException($"Ticket {id} no encontrado");
 
         var oldStatus = ticket.Status;
-
         ticket.Status = TicketStatus.Available;
         ticket.ReservedAt = null;
         ticket.ExpiresAt = null;

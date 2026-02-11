@@ -3,6 +3,8 @@ namespace Producer.Configurations;
 /// <summary>
 /// Configuración de RabbitMQ
 /// </summary>
+// <HUMAN CHECK: La IA pese a mencionarle usar un .env para las credenciales, no lo implementó. En un entorno real, es crucial no hardcodear credenciales en el código. Se recomienda usar variables de entorno o un servicio de gestión de secretos para manejar esta información sensible.>
+
 public class RabbitMQOptions
 {
     /// <summary>

@@ -35,13 +35,13 @@ public static class RabbitMQExtensions
             {
                 HostName = options.Host,
                 Port = options.Port,
-                UserName = options.Username,
-                Password = options.Password,
+                UserName = options.Username,  // ← Viene de IOptions, nunca hardcodeado
+                Password = options.Password,   // ← Viene de variables de entorno (.env)
                 VirtualHost = options.VirtualHost,
-                AutomaticRecoveryEnabled = true,
-                NetworkRecoveryInterval = TimeSpan.FromSeconds(10),
-                RequestedConnectionTimeout = TimeSpan.FromSeconds(30),
-                RequestedHeartbeat = TimeSpan.FromSeconds(10)
+                AutomaticRecoveryEnabled = true,   // ✅ Auto-reconectar en caso de caída
+                NetworkRecoveryInterval = TimeSpan.FromSeconds(10),   // Intentar cada 10s
+                RequestedConnectionTimeout = TimeSpan.FromSeconds(30), // Timeout de conexión
+                RequestedHeartbeat = TimeSpan.FromSeconds(10)          // Keep-alive cada 10s
             };
 
             try
