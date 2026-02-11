@@ -5,14 +5,17 @@ import { useParams } from "next/navigation"
 import Link from "next/link"
 import { Calendar, Tickets, Loader2, CheckCircle2, XCircle, ArrowLeft } from "lucide-react"
 import { useEvent, useTickets } from "@/hooks/use-ticketing"
+import { usePaymentStatus } from "@/hooks/use-payment-status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
+import { PaymentForm } from "@/components/payment-form"
+import { PaymentStatus } from "@/components/payment-status"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
 
-type PurchaseStep = "form" | "processing" | "success" | "error"
+type PurchaseStep = "form" | "processing" | "reserved" | "payment" | "confirming" | "success" | "error"
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("es-ES", {
@@ -42,6 +45,23 @@ export default function BuyerEventPage() {
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState("")
   const [reservedCount, setReservedCount] = useState(0)
+  const [reservedTicketIds, setReservedTicketIds] = useState<number[]>([])
+  const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "success" | "error">("idle")
+  const [paymentError, setPaymentError] = useState("")
+
+  const { isPolling: isPaymentPolling, startPolling: startPaymentPolling } = usePaymentStatus({
+    ticketId: reservedTicketIds[0],
+    onPaymentConfirmed: () => {
+      setPaymentStatus("success")
+      setStep("success")
+      toast.success("¡Pago confirmado! Tu compra está completa")
+    },
+    onPaymentRejected: (reason) => {
+      setPaymentStatus("error")
+      setPaymentError(reason)
+      toast.error(`Pago rechazado: ${reason}`)
+    },
+  })
 
   const availableTickets = tickets?.filter(
     (t) => t.status?.toLowerCase() === "available"
@@ -79,6 +99,7 @@ export default function BuyerEventPage() {
       const selectedTickets = availableTickets.slice(0, qty)
       const orderId = `ORD-${Date.now()}`
       let successCount = 0
+      const reservedIds: number[] = []
 
       // Enviar reservas en paralelo
       await Promise.all(
@@ -91,21 +112,28 @@ export default function BuyerEventPage() {
               reservedBy: email.trim(),
               expiresInSeconds: seconds,
             })
-            .then(() => {
+            .then((result) => {
               successCount++
+              reservedIds.push(result.ticketId)
             })
-            .catch(() => {
-              // Continuar aunque falle uno
+            .catch((err) => {
+              console.error("Failed to reserve ticket:", err)
             })
         )
       )
 
+      if (successCount === 0) {
+        throw new Error("No fue posible reservar los tickets")
+      }
+
       setReservedCount(successCount)
+      setReservedTicketIds(reservedIds)
       
       // Esperar un poco para que se procesen
       await new Promise(r => setTimeout(r, 2000))
       
-      setStep("success")
+      // Mostrar formulario de pago
+      setStep("reserved")
     } catch (err) {
       setStep("error")
       setErrorMsg(
@@ -114,6 +142,37 @@ export default function BuyerEventPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  async function handlePaymentStart() {
+    setPaymentStatus("processing")
+  }
+
+  async function handlePaymentSuccess(ticketId: number, transactionRef: string) {
+    toast.loading("Confirmando pago...")
+    setPaymentStatus("processing")
+    setStep("confirming")
+    
+    // Iniciar polling para esperar confirmación del pago
+    startPaymentPolling()
+  }
+
+  async function handlePaymentError(error: string) {
+    setPaymentStatus("error")
+    setPaymentError(error)
+    toast.error(`Error en el pago: ${error}`)
+  }
+
+  function handleReset() {
+    setStep("form")
+    setQuantity("1")
+    setEmail("")
+    setExpiresIn("300")
+    setReservedCount(0)
+    setReservedTicketIds([])
+    setPaymentStatus("idle")
+    setPaymentError("")
+    setErrorMsg("")
   }
 
   if (eventLoading) {
@@ -254,6 +313,43 @@ export default function BuyerEventPage() {
               </div>
             )}
 
+            {step === "reserved" && event && (
+              <div className="flex flex-col gap-6">
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Completar Pago
+                  </h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {reservedCount} ticket{reservedCount !== 1 ? "s" : ""} reservado{reservedCount !== 1 ? "s" : ""} • Total: ${(9999 * reservedCount / 100).toFixed(2)}
+                  </p>
+                </div>
+
+                {reservedTicketIds.map((ticketId) => (
+                  <PaymentForm
+                    key={ticketId}
+                    ticket={{
+                      id: ticketId,
+                      price: 9999, // $99.99 en centavos
+                      currency: "USD",
+                    }}
+                    eventId={eventId}
+                    email={email}
+                    onPaymentStart={handlePaymentStart}
+                    onPaymentSuccess={handlePaymentSuccess}
+                    onPaymentError={handlePaymentError}
+                  />
+                ))}
+              </div>
+            )}
+
+            {step === "confirming" && (
+              <PaymentStatus
+                status="processing"
+                ticketId={reservedTicketIds[0]}
+                onReset={handleReset}
+              />
+            )}
+
             {step === "success" && (
               <div className="flex flex-col items-center gap-4 py-8">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10">
@@ -264,10 +360,10 @@ export default function BuyerEventPage() {
                     ¡Compra completada!
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {reservedCount} ticket{reservedCount !== 1 ? "s" : ""} reservado{reservedCount !== 1 ? "s" : ""} para {email}
+                    {reservedCount} ticket{reservedCount !== 1 ? "s" : ""} pagado{reservedCount !== 1 ? "s" : ""} para {email}
                   </p>
                 </div>
-                <Button onClick={() => window.location.href = "/buy"} className="mt-4">
+                <Button onClick={handleReset} className="mt-4">
                   Volver a Eventos
                 </Button>
               </div>
