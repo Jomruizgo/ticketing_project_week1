@@ -37,19 +37,51 @@ En la practica, el ciclo de debugging fue iterativo: la IA proponia un fix, se p
 | GitHub Copilot | Claude Sonnet 4.5 | Desarrollo del Producer, Frontend, configuracion inicial (RabbitMQ, PostgreSQL, Docker) | Jostin |
 | GitHub Copilot | Claude Sonnet 4 / Opus 4.5 | Desarrollo del Payment Service y CRUD Service | Guillermo |
 
-### 2.1 Claude Code - Configuracion
+### 2.1 Configuracion del agente (`agent.md`)
 
-Se uso Claude Code como CLI con acceso directo al filesystem y terminal. Esto permitio:
+Cada herramienta de IA permite definir instrucciones persistentes que se cargan automaticamente al inicio de cada sesion (ej: `CLAUDE.md` en Claude Code, instrucciones personalizadas en GitHub Copilot). Generalizamos este concepto como **`agent.md`**.
+
+**Capacidades del agente (Claude Code CLI):**
 - Lectura de codigo fuente y schema SQL para entender contexto completo
 - Ejecucion de `docker compose build/up`, `dotnet build`, `dotnet test`
 - Consultas directas a PostgreSQL via `docker exec psql`
 - Publicacion de mensajes a RabbitMQ para testing end-to-end
 - Operaciones git (commit, push, PR via `gh`)
 
-Se configuro un archivo `CLAUDE.md` con instrucciones persistentes:
+**Instrucciones persistentes configuradas:**
 - Conversacion en espanol, codigo en ingles
-- Nunca incluir "Co-Authored-By" ni "Generated with Claude Code" en commits
+- Nunca incluir firmas automaticas de la IA en commits
 - Actuar como experto critico, no complaciente
+- Usar `scripts/schema.sql`, `compose.yml` y `scripts/rabbitmq-definitions.json` como fuentes de verdad
+- Alcance del trabajo: se le indico que microservicio(s) le correspondia al desarrollador y que el alcance era MVP (funcionalidad minima, sin idempotencia, sin health checks propios, sin tests de integracion). Esto evito que el agente propusiera funcionalidades fuera de scope, aunque en ocasiones igual lo hizo y se tuvo que rechazar.
+
+**Arquitectura base proporcionada al agente:**
+
+Se le indico que todos los microservicios debian seguir una estructura simple sin DDD:
+
+```
+/MicroService
+├── MicroService.sln
+├── Dockerfile
+├── src/
+│   └── MicroService.Api/
+│       ├── Controllers/         # Controladores HTTP (o Consumers/ en Workers)
+│       ├── Models/              # DTOs de entrada/salida
+│       ├── Services/            # Logica de negocio
+│       ├── Repositories/        # Interfaces de acceso a datos
+│       ├── Data/                # Implementaciones (EF Core, DbContext)
+│       ├── Configurations/      # Configuracion de servicios y middlewares
+│       ├── Extensions/          # Metodos de extension
+│       ├── Program.cs           # Punto de entrada
+│       └── appsettings.json
+├── tests/
+│   ├── MicroService.UnitTests/
+│   └── MicroService.IntegrationTests/
+├── scripts/
+└── docs/
+```
+
+Se opto por esta estructura plana (Controllers → Services → Repositories → Data) en lugar de DDD, dado que es un MVP donde la complejidad del dominio no lo justifica. Los Workers adaptan la estructura reemplazando `Controllers/` por `Consumers/` o `Handlers/`.
 
 ## 3. Interacciones Clave
 
