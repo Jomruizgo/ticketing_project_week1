@@ -44,4 +44,14 @@ public class RabbitMQOptions
     /// Routing key para ticket.reserved
     /// </summary>
     public string TicketReservedRoutingKey { get; set; } = "ticket.reserved";
+
+    /// <summary>
+    /// Routing key para ticket.payments.approved
+    /// </summary>
+    public string PaymentApprovedRoutingKey { get; set; } = "ticket.payments.approved";
+
+    /// <summary>
+    /// Routing key para ticket.payments.rejected
+    /// </summary>
+    public string PaymentRejectedRoutingKey { get; set; } = "ticket.payments.rejected";
 }

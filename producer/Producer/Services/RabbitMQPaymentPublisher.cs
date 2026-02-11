@@ -1,5 +1,7 @@
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
+using Producer.Configurations;
 using Producer.Models;
 using RabbitMQ.Client;
 
@@ -11,16 +13,16 @@ namespace Producer.Services;
 public class RabbitMQPaymentPublisher : IPaymentPublisher
 {
     private readonly IConnection _connection;
+    private readonly RabbitMQOptions _options;
     private readonly ILogger<RabbitMQPaymentPublisher> _logger;
-    private const string ExchangeName = "tickets";
-    private const string PaymentApprovedRoutingKey = "ticket.payments.approved";
-    private const string PaymentRejectedRoutingKey = "ticket.payments.rejected";
 
     public RabbitMQPaymentPublisher(
         IConnection connection,
+        IOptions<RabbitMQOptions> options,
         ILogger<RabbitMQPaymentPublisher> logger)
     {
         _connection = connection ?? throw new ArgumentNullException(nameof(connection));
+        _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -40,7 +42,7 @@ public class RabbitMQPaymentPublisher : IPaymentPublisher
 
             // Declarar exchange (topic)
             channel.ExchangeDeclare(
-                exchange: ExchangeName,
+                exchange: _options.ExchangeName,
                 type: ExchangeType.Topic,
                 durable: true,
                 autoDelete: false);
@@ -57,8 +59,8 @@ public class RabbitMQPaymentPublisher : IPaymentPublisher
 
             // Publicar
             channel.BasicPublish(
-                exchange: ExchangeName,
-                routingKey: PaymentApprovedRoutingKey,
+                exchange: _options.ExchangeName,
+                routingKey: _options.PaymentApprovedRoutingKey,
                 mandatory: false,
                 basicProperties: properties,
                 body: body);
@@ -101,7 +103,7 @@ public class RabbitMQPaymentPublisher : IPaymentPublisher
 
             // Declarar exchange (topic)
             channel.ExchangeDeclare(
-                exchange: ExchangeName,
+                exchange: _options.ExchangeName,
                 type: ExchangeType.Topic,
                 durable: true,
                 autoDelete: false);
@@ -118,8 +120,8 @@ public class RabbitMQPaymentPublisher : IPaymentPublisher
 
             // Publicar
             channel.BasicPublish(
-                exchange: ExchangeName,
-                routingKey: PaymentRejectedRoutingKey,
+                exchange: _options.ExchangeName,
+                routingKey: _options.PaymentRejectedRoutingKey,
                 mandatory: false,
                 basicProperties: properties,
                 body: body);
