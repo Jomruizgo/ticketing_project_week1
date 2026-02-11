@@ -1,0 +1,158 @@
+using System.Text;
+using System.Text.Json;
+using Microsoft.Extensions.Options;
+using Producer.Configurations;
+using Producer.Models;
+using RabbitMQ.Client;
+
+namespace Producer.Services;
+
+/// <summary>
+/// Implementación del publicador de eventos de pago usando RabbitMQ
+/// </summary>
+public class RabbitMQPaymentPublisher : IPaymentPublisher
+{
+    private readonly IConnection _connection;
+    private readonly RabbitMQOptions _options;
+    private readonly ILogger<RabbitMQPaymentPublisher> _logger;
+
+    public RabbitMQPaymentPublisher(
+        IConnection connection,
+        IOptions<RabbitMQOptions> options,
+        ILogger<RabbitMQPaymentPublisher> logger)
+    {
+        _connection = connection ?? throw new ArgumentNullException(nameof(connection));
+        _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    /// <summary>
+    /// Publica un evento de pago aprobado a RabbitMQ
+    /// </summary>
+    public async Task PublishPaymentApprovedAsync(PaymentApprovedEvent paymentEvent, CancellationToken cancellationToken = default)
+    {
+        if (paymentEvent == null)
+        {
+            throw new ArgumentNullException(nameof(paymentEvent));
+        }
+
+        try
+        {
+            using var channel = _connection.CreateModel();
+
+            // Declarar exchange (topic)
+            channel.ExchangeDeclare(
+                exchange: _options.ExchangeName,
+                type: ExchangeType.Topic,
+                durable: true,
+                autoDelete: false);
+
+            // Serializar evento
+            var message = JsonSerializer.Serialize(paymentEvent);
+            var body = Encoding.UTF8.GetBytes(message);
+
+            // Propiedades del mensaje
+            var properties = channel.CreateBasicProperties();
+            properties.Persistent = true;   // ️ HUMAN CHECK: Persistencia crítica
+            properties.ContentType = "application/json";
+            properties.Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+
+            // ️ HUMAN CHECK:
+            // La IA sugirió properties.DeliveryMode = DeliveryMode.Transient
+            // Lo rechazamos y pusimos Persistent=true porque:
+            // 1. Los pagos NO PUEDEN perderse. Si RabbitMQ cae, debemos recuperar el evento.
+            // 2. Persistent=true almacena el mensaje en disco (/var/lib/rabbitmq)
+            // 3. Sin persistencia: si algún consumer no procesó el evento antes de la caída, se pierde = inconsistencias = tickets bloqueados = dinero perdido.
+
+            // Publicar
+            channel.BasicPublish(
+                exchange: _options.ExchangeName,
+                routingKey: _options.PaymentApprovedRoutingKey,
+                mandatory: false,
+                basicProperties: properties,
+                body: body);
+
+            _logger.LogInformation(
+                "Evento de pago aprobado publicado: TicketId={TicketId}, EventId={EventId}, Amount={Amount}{Currency}, TransactionRef={TransactionRef}",
+                paymentEvent.TicketId,
+                paymentEvent.EventId,
+                paymentEvent.AmountCents / 100.0,
+                paymentEvent.Currency,
+                paymentEvent.TransactionRef);
+
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Error al publicar evento de pago aprobado: TicketId={TicketId}, EventId={EventId}",
+                paymentEvent.TicketId,
+                paymentEvent.EventId);
+
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Publica un evento de pago rechazado a RabbitMQ
+    /// </summary>
+    public async Task PublishPaymentRejectedAsync(PaymentRejectedEvent paymentEvent, CancellationToken cancellationToken = default)
+    {
+        if (paymentEvent == null)
+        {
+            throw new ArgumentNullException(nameof(paymentEvent));
+        }
+
+        try
+        {
+            using var channel = _connection.CreateModel();
+
+            // Declarar exchange (topic)
+            channel.ExchangeDeclare(
+                exchange: _options.ExchangeName,
+                type: ExchangeType.Topic,
+                durable: true,
+                autoDelete: false);
+
+            // Serializar evento
+            var message = JsonSerializer.Serialize(paymentEvent);
+            var body = Encoding.UTF8.GetBytes(message);
+
+            // Propiedades del mensaje
+            var properties = channel.CreateBasicProperties();
+            properties.Persistent = true;   // ️ HUMAN CHECK: Eventos de rechazo también son críticos
+            properties.ContentType = "application/json";
+            properties.Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+
+            // ️ HUMAN CHECK:
+            // La IA sugirió usar Transient para eventos de rechazo "porque son menos críticos, eechazamos esa lógica porque los rechazos son TAN críticos como los aprobados porque es la manera en la que nosotros liberamos un ticket no pagado. Perder un PaymentRejected = ticket reservado indefinidamente = dinero perdido. Por eso ambos eventos (aprobado y rechazado) deben ser Persistent=true para garantizar que no se pierdan, incluso si RabbitMQ cae. En microservicios, la durabilidad de los mensajes es clave para mantener la integridad del sistema.
+
+            // Publicar
+            channel.BasicPublish(
+                exchange: _options.ExchangeName,
+                routingKey: _options.PaymentRejectedRoutingKey,
+                mandatory: false,
+                basicProperties: properties,
+                body: body);
+
+            _logger.LogWarning(
+                "Evento de pago rechazado publicado: TicketId={TicketId}, EventId={EventId}, Reason={Reason}",
+                paymentEvent.TicketId,
+                paymentEvent.EventId,
+                paymentEvent.RejectionReason);
+
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Error al publicar evento de pago rechazado: TicketId={TicketId}, EventId={EventId}",
+                paymentEvent.TicketId,
+                paymentEvent.EventId);
+
+            throw;
+        }
+    }
+}

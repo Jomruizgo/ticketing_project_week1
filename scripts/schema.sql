@@ -15,30 +15,15 @@ CREATE TYPE payment_status AS ENUM (
   'expired'
 );
 
-CREATE TABLE venues (
-  id BIGSERIAL PRIMARY KEY,
-  name VARCHAR(200) NOT NULL,
-  address VARCHAR(300)
-);
-
 CREATE TABLE events (
   id BIGSERIAL PRIMARY KEY,
-  venue_id BIGINT REFERENCES venues(id),
   name VARCHAR(200) NOT NULL,
   starts_at TIMESTAMPTZ NOT NULL
-);
-
-CREATE TABLE event_sections (
-  id BIGSERIAL PRIMARY KEY,
-  event_id BIGINT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-  name VARCHAR(100) NOT NULL,
-  capacity INT NOT NULL CHECK (capacity > 0)
 );
 
 CREATE TABLE tickets (
   id BIGSERIAL PRIMARY KEY,
   event_id BIGINT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-  section_id BIGINT REFERENCES event_sections(id) ON DELETE SET NULL,
   status ticket_status NOT NULL DEFAULT 'available',
   reserved_at TIMESTAMPTZ,
   expires_at TIMESTAMPTZ,

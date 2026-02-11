@@ -1,5 +1,12 @@
-# Ignorar archivo de notas/plan
-agents.md
+# Ignorar archivos de configuracion de agentes AI (personales)
+**/agents.md
+**/CLAUDE.md
+**/.cursorrules
+
+# Environment files (credenciales, configuración local)
+.env
+.env.local
+.env.*.local
 
 # macOS
 .DS_Store
@@ -87,3 +94,6 @@ temp/
 
 # Keep IDE/editor specific files out
 *.idea/
+
+
+.github/copilot-instructions.md

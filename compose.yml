@@ -1,0 +1,181 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ticketing_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ticketing_network
+
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: ticketing_broker
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    ports:
+      - "${RABBITMQ_AMQP_PORT}:5672"   # AMQP port
+      - "${RABBITMQ_MGMT_PORT}:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./scripts/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ticketing_network
+
+  # RabbitMQ Setup - configura exchanges, colas y bindings automáticamente
+  rabbitmq-setup:
+    image: curlimages/curl:latest
+    container_name: ticketing_setup
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./scripts/setup-rabbitmq.sh:/setup-rabbitmq.sh:ro
+    entrypoint: sh
+    command:
+      - -c
+      - |
+        echo 'Esperando a que RabbitMQ esté disponible...'
+        sleep 5
+        echo 'Ejecutando setup de RabbitMQ...'
+        sh /setup-rabbitmq.sh
+        echo 'Setup completado'
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=15672
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    networks:
+      - ticketing_network
+
+  # Producer Service - Expone API para publicar eventos
+  producer:
+    build:
+      context: ./producer
+      dockerfile: Dockerfile
+    container_name: ticketing_producer
+    depends_on:
+      rabbitmq-setup:
+        condition: service_completed_successfully
+    ports:
+      - "${PRODUCER_PORT}:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORT=8080
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Port=${RABBITMQ_AMQP_PORT}
+      - RabbitMQ__Username=${RABBITMQ_DEFAULT_USER}
+      - RabbitMQ__Password=${RABBITMQ_DEFAULT_PASS}
+      - RabbitMQ__VirtualHost=/
+      - RabbitMQ__ExchangeName=tickets
+      - RabbitMQ__TicketReservedRoutingKey=ticket.reserved
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ticketing_network
+    restart: unless-stopped
+
+  # Payment Service Worker - Consume eventos de pago (approved/rejected) desde RabbitMQ
+  payment:
+    build:
+      context: ./paymentService
+      dockerfile: Dockerfile
+    container_name: ticketing_payment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rabbitmq-setup:
+        condition: service_completed_successfully
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # Override config (convención .NET: Section__Key)
+      - ConnectionStrings__TicketingDb=Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
+      - RabbitMQ__HostName=${RABBITMQ_HOST}
+      - RabbitMQ__Port=${RABBITMQ_AMQP_PORT}
+      - RabbitMQ__UserName=${RABBITMQ_DEFAULT_USER:-guest}
+      - RabbitMQ__Password=${RABBITMQ_DEFAULT_PASS:-guest}
+      - RabbitMQ__VirtualHost=/
+      - RabbitMQ__ApprovedQueueName=q.ticket.payments.approved
+      - RabbitMQ__RejectedQueueName=q.ticket.payments.rejected
+    networks:
+      - ticketing_network
+    restart: unless-stopped
+
+  # CRUD Service - Gestiona datos de eventos, tickets y pagos
+  crud-service:
+    build:
+      context: ./crud_service
+      dockerfile: Dockerfile
+    container_name: ticketing_crud
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${CRUD_PORT}:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORT=8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ticketing_network
+    restart: unless-stopped
+
+  # Reservation Service - Consumer que procesa reservas de tickets
+  reservation-service:
+    build:
+      context: ./ReservationService
+      dockerfile: Dockerfile
+    container_name: ticketing_reservation
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq-setup:
+        condition: service_completed_successfully
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__Username=${RABBITMQ_DEFAULT_USER}
+      - RabbitMQ__Password=${RABBITMQ_DEFAULT_PASS}
+      - RabbitMQ__QueueName=q.ticket.reserved
+    networks:
+      - ticketing_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+
+networks:
+  ticketing_network:
+    driver: bridge
