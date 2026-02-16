@@ -18,4 +18,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="CrudService.Tests/**" />
+    <Content Remove="CrudService.Tests/**" />
+    <None Remove="CrudService.Tests/**" />
+  </ItemGroup>
+
 </Project>
