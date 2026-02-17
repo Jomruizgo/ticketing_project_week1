@@ -39,21 +39,49 @@
 
 ### 1.2 CrudService (EM)
 
-> **TODO (EM):** Documentar smells detectados en CrudService.
-> Archivos a analizar:
-> - `crud_service/Data/RepositoriesImplementation.cs` — God File con 4 repos
-> - `crud_service/Repositories/IRepositories.cs` — Múltiples interfaces en un archivo
-> - `crud_service/Data/TicketingDbContext.cs` — Dependencia concreta en repositorios
->
-> Incluir: archivo, línea, smell, principio SOLID violado, descripción.
+#### Smells estructurales
+
+| # | Archivo | Líneas | Smell | Principio SOLID Violado | Descripción |
+|---|---------|--------|-------|------------------------|-------------|
+| 13 | `crud_service/Data/RepositoriesImplementation.cs` | L1-201 | God File — 4 repos en un solo archivo | **SRP** | `EventRepository`, `TicketRepository`, `PaymentRepository` y `TicketHistoryRepository` viven en el mismo archivo. Dificulta navegación y ownership. |
+| 14 | `crud_service/Repositories/IRepositories.cs` | L1-52 | Múltiples interfaces en un archivo | **ISP / Organización** | 4 interfaces (`IEventRepository`, `ITicketRepository`, `IPaymentRepository`, `ITicketHistoryRepository`) en un solo archivo. Menor gravedad, pero rompe convención 1-tipo-por-archivo. |
+| 15 | `crud_service/Data/RepositoriesImplementation.cs` | L12, L68, L130, L175 | Dependencia concreta de `TicketingDbContext` | **DIP** | Los 4 repos dependen del `TicketingDbContext` concreto en vez de abstraerlo. No es posible hacer un test unitario del repo sin un DbContext real o InMemory. |
+
+#### Clases testeables (tests escritos)
+
+| Clase | Tests | Resultado |
+|-------|-------|-----------|
+| `EventService` | 8 | ✅ 8/8 |
+| `TicketService` | 11 | ✅ 11/11 |
+
+#### Conclusiones de los tests
+
+- **`EventService` y `TicketService` son 100% testeables sin infraestructura.** Gracias a que dependen de interfaces (`IEventRepository`, `ITicketRepository`, `ITicketHistoryRepository`), se pueden mockear completamente con NSubstitute.
+- **Los repositorios NO son testeables sin DB.** Dependen del `TicketingDbContext` concreto. Para testearlos se necesitaría `InMemoryDatabase` o un contenedor PostgreSQL, lo cual viola la premisa "Mock Imposible".
+- **El mapeo DTO funciona correctamente:** los tests verificaron conteo de tickets por estado (Available/Reserved/Paid), actualización parcial de campos, y persistencia de historial.
+- **No hay acoplamiento a messaging:** a diferencia de PaymentService y ReservationService, CrudService no tiene dependencia de RabbitMQ. Su deuda es puramente organizacional (God File, múltiples tipos por archivo).
 
 ### 1.3 ReservationService (EM)
 
-> **TODO (EM):** Documentar smells detectados en ReservationService.
-> Archivos a analizar:
-> - `ReservationService/.../Consumers/TicketReservationConsumer.cs` — ConnectionFactory instanciada internamente (L36-42)
->
-> Incluir: archivo, línea, smell, principio SOLID violado, descripción.
+#### MOCK IMPOSIBLE — Consumer no testeable sin RabbitMQ
+
+| # | Archivo | Líneas | Smell | Principio SOLID Violado | Descripción |
+|---|---------|--------|-------|------------------------|-------------|
+| 16 | `ReservationService/.../Consumers/TicketReservationConsumer.cs` | L36-42 | `ConnectionFactory` instanciada internamente | **DIP** | Crea `new ConnectionFactory { HostName, Port, UserName, Password }` directamente. No se puede sustituir por un mock. |
+| 17 | `ReservationService/.../Consumers/TicketReservationConsumer.cs` | L19-20, L44-45 | Dependencia concreta de `IConnection` e `IChannel` (RabbitMQ) | **DIP** | Campos tipados con tipos concretos de RabbitMQ (`IConnection`, `IChannel`). Acoplado al protocolo AMQP. |
+| 18 | `ReservationService/.../Consumers/TicketReservationConsumer.cs` | L50, L53-86 | Consumer, deserialización y ACK en un solo método | **SRP** | `ExecuteAsync` maneja conexión, suscripción, deserialización JSON, resolución de servicios via scope, procesamiento y ACK. 5 responsabilidades en un método de 60 líneas. |
+| 19 | `ReservationService/.../Consumers/TicketReservationConsumer.cs` | L84 | ACK en caso de error (sin retry) | Code Smell | Hace `BasicAckAsync` incluso cuando falla el procesamiento. El mensaje se pierde sin posibilidad de reintento. |
+
+#### Clases testeables
+
+| Clase | Tests | Resultado |
+|-------|-------|-----------|
+| `ReservationServiceImpl` | 4 (preexistentes) | ✅ 4/4 |
+
+#### Conclusiones de los tests
+
+- **`ReservationServiceImpl` es testeable sin infraestructura.** Depende de `ITicketRepository` (abstracción), por lo que se puede mockear completamente.
+- **`TicketReservationConsumer` es IMPOSIBLE de testear sin RabbitMQ.** Instancia `ConnectionFactory` internamente y depende de tipos concretos de RabbitMQ (`AsyncEventingBasicConsumer`, `BasicDeliverEventArgs`, `IChannel`). Es el caso más claro de "Mock Imposible" en este microservicio.
 
 ### 1.4 Producer (JR)
 
@@ -68,17 +96,17 @@
 
 ## 2. Clasificación de Deuda Técnica
 
-> **TODO (EM):** Completar con los smells de CrudService y ReservationService una vez documentados.
-
-### Por tipo (parcial — solo PaymentService + Producer)
+### Por tipo (completo — todos los servicios)
 
 | Tipo de Deuda | Ocurrencias | Smells # |
 |---------------|-------------|----------|
-| **Acoplamiento a infraestructura (DIP)** | 4 | 1, 3, 4, 5, 6 |
-| **Violación SRP** | 2 | 2, 9 |
+| **Acoplamiento a infraestructura (DIP)** | 7 | 1, 3, 4, 5, 6, 15, 16, 17 |
+| **Violación SRP** | 3 | 2, 9, 18 |
+| **Organización / God File** | 2 | 13, 14 |
 | **Magic Numbers / Config hardcodeada** | 2 | 7, 8 |
 | **Código duplicado (DRY)** | 2 | 11, 12 |
 | **No determinismo en lógica** | 1 | 10 |
+| **Pérdida silenciosa de mensajes** | 1 | 19 |
 
 ---
 
@@ -87,8 +115,9 @@
 | Métrica | Valor |
 |---------|-------|
 | Tests unitarios PaymentService | 25/25 ✅ |
-| Tests unitarios CrudService | Pendiente (EM) |
+| Tests unitarios CrudService | 19/19 ✅ (8 EventService + 11 TicketService) |
 | Tests unitarios ReservationService | 4/4 ✅ (preexistentes) |
+| **Total tests unitarios** | **48/48 ✅** |
 
 ---
 
@@ -116,12 +145,25 @@
 | `RabbitMQTicketPublisher` | **SI — REEMPLAZO** | Se crea `KafkaTicketPublisher`. La interfaz `ITicketPublisher` se mantiene. |
 | `PaymentsController` | **NO** | Depende de `IPaymentPublisher` (interfaz). |
 
-### CrudService y ReservationService (EM)
+### CrudService (EM)
 
-> **TODO (EM):** Evaluar impacto de migración de broker en:
-> - `TicketReservationConsumer`
-> - `ReservationServiceImpl`
-> - `EventService`, `TicketService`
+| Clase | ¿Se ve afectada? | ¿Contiene lógica de negocio mezclada? |
+|-------|-------------------|--------------------------------------|
+| `EventService` | **NO** | Pura lógica de negocio. No depende de messaging. |
+| `TicketService` | **NO** | Pura lógica de negocio. No depende de messaging. |
+| `EventRepository` | **NO** | Solo depende de DB (EF Core). |
+| `TicketRepository` | **NO** | Solo depende de DB (EF Core). |
+
+**CrudService no tiene dependencia de RabbitMQ.** Migrar de broker no requiere tocar ningún archivo.
+
+### ReservationService (EM)
+
+| Clase | ¿Se ve afectada? | ¿Contiene lógica de negocio mezclada? |
+|-------|-------------------|--------------------------------------|
+| `ReservationServiceImpl` | **NO** | Pura lógica de negocio. Depende solo de `ITicketRepository`. |
+| `TicketRepository` | **NO** | Solo depende de DB. |
+| `TicketReservationConsumer` | **SI — REESCRITURA** | Acoplado a `ConnectionFactory`, `IChannel`, `AsyncEventingBasicConsumer`, `BasicAckAsync`. Todo el `ExecuteAsync` (L33-96) es RabbitMQ-específico. |
+| `RabbitMQSettings` | **SI — REEMPLAZO** | Se elimina y se crea `KafkaSettings` equivalente. |
 
 ---
 
