@@ -1,6 +1,6 @@
-using ReservationService.Worker.Models;
+using ReservationService.Domain.Entities;
 
-namespace ReservationService.Worker.Repositories;
+namespace ReservationService.Domain.Interfaces;
 
 public interface ITicketRepository
 {

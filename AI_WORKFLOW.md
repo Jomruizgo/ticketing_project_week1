@@ -55,33 +55,80 @@ Cada herramienta de IA permite definir instrucciones persistentes que se cargan 
 - Usar `scripts/schema.sql`, `compose.yml` y `scripts/rabbitmq-definitions.json` como fuentes de verdad
 - Alcance del trabajo: se le indico que microservicio(s) le correspondia al desarrollador y que el alcance era MVP (funcionalidad minima, sin idempotencia, sin health checks propios, sin tests de integracion). Esto evito que el agente propusiera funcionalidades fuera de scope, aunque en ocasiones igual lo hizo y se tuvo que rechazar.
 
-**Arquitectura base proporcionada al agente:**
+**Arquitectura base:**
 
-Se le indico que todos los microservicios debian seguir una estructura simple sin DDD:
+La arquitectura evoluciono en dos etapas:
+
+**Etapa 1 (MVP - estructura plana):** Se inicio con una estructura simple sin DDD donde todo vivia en un solo proyecto:
 
 ```
 /MicroService
 ├── MicroService.sln
 ├── Dockerfile
 ├── src/
-│   └── MicroService.Api/
+│   └── MicroService.Worker/
 │       ├── Controllers/         # Controladores HTTP (o Consumers/ en Workers)
 │       ├── Models/              # DTOs de entrada/salida
 │       ├── Services/            # Logica de negocio
 │       ├── Repositories/        # Interfaces de acceso a datos
 │       ├── Data/                # Implementaciones (EF Core, DbContext)
 │       ├── Configurations/      # Configuracion de servicios y middlewares
-│       ├── Extensions/          # Metodos de extension
 │       ├── Program.cs           # Punto de entrada
 │       └── appsettings.json
 ├── tests/
-│   ├── MicroService.UnitTests/
-│   └── MicroService.IntegrationTests/
-├── scripts/
+│   └── MicroService.Worker.Tests/
 └── docs/
 ```
 
-Se opto por esta estructura plana (Controllers → Services → Repositories → Data) en lugar de DDD, dado que es un MVP donde la complejidad del dominio no lo justifica. Los Workers adaptan la estructura reemplazando `Controllers/` por `Consumers/` o `Handlers/`.
+**Etapa 2 (Refactorizacion - arquitectura hexagonal):** Tras el ejercicio "Mock Imposible" (intentar tests unitarios puros sin Docker, DB ni RabbitMQ), se identificaron violaciones de DIP y SRP que impedian testear la logica de negocio aisladamente. Se migro hacia arquitectura hexagonal con separacion en 4 capas, cada una en su propio proyecto (.csproj = assembly independiente):
+
+```
+/MicroService
+├── MicroService.sln
+├── Dockerfile
+├── src/
+│   ├── MicroService.Domain/              # Entidades puras, interfaces (puertos)
+│   │   ├── Entities/                     # Entidades de dominio (sin dependencias externas)
+│   │   ├── Interfaces/                   # Puertos de salida (ITicketRepository, etc.)
+│   │   └── Exceptions/                   # Excepciones de dominio
+│   ├── MicroService.Application/         # Casos de uso (logica de negocio)
+│   │   ├── UseCases/
+│   │   │   └── NombreCasoDeUso/
+│   │   │       ├── Command.cs            # Input del caso de uso
+│   │   │       ├── CommandHandler.cs     # Logica (depende solo de Domain)
+│   │   │       └── Response.cs           # Output del caso de uso
+│   │   └── Interfaces/                   # Puertos de entrada (IMessageConsumer, etc.)
+│   ├── MicroService.Infrastructure/      # Adaptadores (EF Core, RabbitMQ, etc.)
+│   │   ├── Persistence/                  # DbContext, implementaciones de repositorios
+│   │   ├── Messaging/                    # Consumer RabbitMQ, configuracion
+│   │   └── DependencyInjection.cs        # Registro de servicios de infraestructura
+│   └── MicroService.Worker/              # Composition Root (solo Program.cs + config)
+│       ├── Program.cs                    # Solo DI y bootstrap
+│       └── appsettings.json
+├── tests/
+│   ├── MicroService.Domain.Tests/
+│   ├── MicroService.Application.Tests/   # Tests unitarios puros (sin DB, sin RabbitMQ)
+│   └── MicroService.Infrastructure.Tests/
+└── docs/
+```
+
+**Regla de dependencias (el compilador la enforce):**
+```
+Domain ← no depende de nada externo
+Application ← depende solo de Domain
+Infrastructure ← depende de Domain + Application + paquetes NuGet (EF, RabbitMQ)
+Worker ← depende de Infrastructure (composition root)
+```
+
+Cada capa es un .csproj separado que compila como DLL independiente. Si alguien importa RabbitMQ en Domain, el codigo no compila. Esto garantiza que un cambio de infraestructura (ej: RabbitMQ → Kafka) solo afecta la capa Infrastructure, sin tocar Domain ni Application.
+
+**Estado de migracion:**
+| Microservicio | Arquitectura | Estado |
+|---------------|-------------|--------|
+| ReservationService | Hexagonal | Migrado |
+| PaymentService | Plana (MVP) | Pendiente |
+| CrudService | Plana (MVP) | Pendiente |
+| Producer | Plana (MVP) | Pendiente |
 
 ## 3. Interacciones Clave
 
@@ -218,6 +265,7 @@ Para codigo generado por IA sin modificaciones significativas:
 | 2026-02-11 | xUnit + NSubstitute para tests | Estandar en .NET, NSubstitute mas legible que Moq para mocks simples | Jorge |
 | 2026-02-11 | Rama separada para fix de Payment Service | `fix/jorge/payment-service-bugs` para no bloquear al companero; descartable si el soluciona primero | Jorge |
 | 2026-02-11 | Detach entity despues de raw SQL | Evita conflicto entre ExecuteSqlRaw y el change tracker de EF Core en la misma transaccion | Jorge |
+| 2026-02-17 | Migrar a arquitectura hexagonal | El ejercicio "Mock Imposible" revelo violaciones DIP/SRP que impedian tests unitarios puros. Se separo cada servicio en Domain, Application, Infrastructure y Worker como proyectos independientes | Jorge |
 
 ---
 

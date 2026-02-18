@@ -1,9 +1,5 @@
-namespace ReservationService.Worker.Models;
+namespace ReservationService.Domain.Entities;
 
-/// <summary>
-/// Entidad que representa un ticket en PostgreSQL.
-/// Se usa con Entity Framework para leer/actualizar la tabla tickets.
-/// </summary>
 public class Ticket
 {
     public long Id { get; set; }

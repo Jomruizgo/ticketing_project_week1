@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using ReservationService.Worker.Data;
-using ReservationService.Worker.Models;
+using Microsoft.Extensions.Logging;
+using ReservationService.Domain.Entities;
+using ReservationService.Domain.Interfaces;
 
-namespace ReservationService.Worker.Repositories;
+namespace ReservationService.Infrastructure.Persistence.Repositories;
 
 public class TicketRepository : ITicketRepository
 {
@@ -20,10 +21,6 @@ public class TicketRepository : ITicketRepository
         return await _context.Tickets.FindAsync([ticketId], cancellationToken);
     }
 
-    // 🛡 HUMAN CHECK:
-    // Se usa optimistic locking con el campo Version para evitar race conditions.
-    // Si dos requests intentan reservar el mismo ticket simultáneamente,
-    // solo uno tendrá éxito (el que tenga la versión correcta).
     public async Task<bool> TryReserveAsync(
         Ticket ticket,
         string reservedBy,
@@ -42,7 +39,6 @@ public class TicketRepository : ITicketRepository
 
         try
         {
-            // UPDATE con WHERE version = currentVersion (optimistic locking)
             var affected = await _context.Tickets
                 .Where(t => t.Id == ticket.Id && t.Version == currentVersion && t.Status == TicketStatus.Available)
                 .ExecuteUpdateAsync(setters => setters
