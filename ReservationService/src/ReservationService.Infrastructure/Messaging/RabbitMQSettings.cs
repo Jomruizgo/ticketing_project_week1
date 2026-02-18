@@ -1,4 +1,4 @@
-namespace ReservationService.Worker.Configurations;
+namespace ReservationService.Infrastructure.Messaging;
 
 public class RabbitMQSettings
 {

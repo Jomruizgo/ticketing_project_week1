@@ -1,4 +1,4 @@
-namespace ReservationService.Worker.Models;
+namespace ReservationService.Domain.Entities;
 
 public enum TicketStatus
 {

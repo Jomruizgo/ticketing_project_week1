@@ -1,8 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using ReservationService.Worker.Models;
+using ReservationService.Domain.Entities;
 
-namespace ReservationService.Worker.Data;
+namespace ReservationService.Infrastructure.Persistence;
 
 public class TicketingDbContext : DbContext
 {
@@ -25,14 +24,13 @@ public class TicketingDbContext : DbContext
 
             entity.Property(t => t.Id).HasColumnName("id");
             entity.Property(t => t.EventId).HasColumnName("event_id");
-entity.Property(t => t.ReservedAt).HasColumnName("reserved_at");
+            entity.Property(t => t.ReservedAt).HasColumnName("reserved_at");
             entity.Property(t => t.ExpiresAt).HasColumnName("expires_at");
             entity.Property(t => t.PaidAt).HasColumnName("paid_at");
             entity.Property(t => t.OrderId).HasColumnName("order_id").HasMaxLength(80);
             entity.Property(t => t.ReservedBy).HasColumnName("reserved_by").HasMaxLength(120);
             entity.Property(t => t.Version).HasColumnName("version");
 
-            // Mapeo del enum a string lowercase para PostgreSQL (usa enum type con valores en minúscula)
             entity.Property(t => t.Status)
                 .HasColumnName("status")
                 .HasConversion(

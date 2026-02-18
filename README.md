@@ -1,4 +1,4 @@
-# Ticketing Project - Week 0
+# Ticketing Project - Week 1
 
 Sistema distribuido de gestión de tickets y eventos usando arquitectura de microservicios con RabbitMQ.
 
@@ -9,6 +9,75 @@ Aplicación que demuestra patrones de arquitectura distribuida:
 - **Event-Driven Architecture** usando RabbitMQ
 - **Microservices Pattern** con servicios independientes
 - **Resilience Patterns** con reintentos y recuperación automática
+
+## 🗺️ Diagrama de Arquitectura
+
+```
+                        ┌──────────────── ─────────────────┐
+                        │           CLIENTE                │
+                        │   Frontend  Next.js  :3000       │
+                        └────────────┬────────────┬────────┘
+                                     │            │
+                          HTTP sync  │            │  HTTP sync
+                    ┌────────────────┘            └──────────────────┐
+                    │  POST /reserve                GET /events      │
+                    │  POST /payments/process       GET /tickets     │
+                    ▼  (202 Accepted)               polling status   ▼
+      ┌─────────────────────────┐            ┌─────────────────────────┐
+      │     Producer Service    │            │      CRUD Service       │
+      │         :8001           │            │         :8002           │
+      │  TicketsController      │            │  EventsController       │
+      │  PaymentsController     │            │  TicketsController      │
+      └────────────┬────────────┘            └────────────┬────────────┘
+                   │                                      │
+                   │  Publish events                      │  SQL queries
+                   │  (async)                             │
+                   ▼                                      │
+      ┌─────────────────────────┐                         │
+      │         RabbitMQ        │                         │
+      │   exchange: tickets     │                         │
+      │      (topic)            │                         │
+      │                         │                        _│
+      │  ticket.reserved ───────┼──►┐                   │
+      │  ticket.payments.*──────┼──►│                   │
+      └─────────────────────────┘   │                   │
+                                    │                   │
+              ┌─────────────────────┘                   │
+              │                                         │
+     ─────────┴─────────────────────                    │
+    │                              │                    │
+    ▼                              ▼                    ▼
+┌──────────────── ──┐  ┌──────────────────┐   ┌────────────────────┐
+│ ReservationService│  │  PaymentService  │   │     PostgreSQL     │
+│     Worker        │  │    Worker        │   │      :5432         │
+│                   │  │                  │   │                    │
+│  Hexagonal arch.  │  │  ProcessApproved │   │  tickets           │
+│  ProcessReserv.   │  │  ProcessRejected │   │  events            │
+│  CommandHandler   │  │  TTL expiration  │   │  payments          │
+│                   │  │                  │   │  ticket_history    │
+└────────┬──────────┘  └────────┬─────────┘   └────────────────────┘
+         │                      │                       ▲
+         │  UPDATE tickets      │  UPDATE tickets       │
+         │  (optimistic lock)   │  INSERT payments      │
+         └──────────────────────┴───────────────────────┘
+```
+
+### Colas y routing keys
+
+| Routing key                    | Cola                          | Consumer             |
+|-------------------------------|-------------------------------|----------------------|
+| `ticket.reserved`             | `q.ticket.reserved`           | ReservationService   |
+| `ticket.payments.approved`    | `q.ticket.payments.approved`  | PaymentService       |
+| `ticket.payments.rejected`    | `q.ticket.payments.rejected`  | PaymentService       |
+
+### Flujo resumido
+
+| Acción                | Ruta                                                              |
+|----------------------|-------------------------------------------------------------------|
+| Ver eventos          | Frontend → CRUD Service → PostgreSQL                             |
+| Reservar ticket      | Frontend → Producer → RabbitMQ → ReservationService → PostgreSQL |
+| Procesar pago        | Frontend → Producer → RabbitMQ → PaymentService → PostgreSQL     |
+| Consultar estado     | Frontend → CRUD Service → PostgreSQL (polling cada 500ms)        |
 
 ## 🎯 Servicios
 
@@ -248,35 +317,39 @@ docker-compose logs -f rabbitmq
 ## 🤝 Estructura del Proyecto
 
 ```
-ticketing_project_week0/
-├── crud_service/                 # CRUD Service (.NET)
+ticketing_project_week1/
+├── ReservationService/              # Worker: procesa reservas (arquitectura hexagonal)
+│   ├── src/
+│   │   ├── ReservationService.Domain/        # Entidades puras + interfaces (puertos)
+│   │   ├── ReservationService.Application/   # Casos de uso (sin dependencias externas)
+│   │   ├── ReservationService.Infrastructure/# EF Core + RabbitMQ (adaptadores)
+│   │   └── ReservationService.Worker/        # Composition root (solo Program.cs)
+│   └── tests/
+│       └── ReservationService.Application.Tests/
+├── paymentService/                  # Worker: procesa pagos (estructura plana - pendiente migrar)
+│   └── MsPaymentService.Worker/
+│       ├── Handlers/
+│       ├── Messaging/
+│       ├── Repositories/
+│       └── Services/
+├── crud_service/                    # API REST: gestión de eventos y tickets
 │   ├── Controllers/
 │   ├── Services/
 │   ├── Repositories/
-│   ├── Data/
-│   └── Models/
-├── producer/                     # Producer Service (.NET)
-│   ├── Controllers/
-│   │   ├── TicketsController.cs
-│   │   └── PaymentsController.cs [NUEVO]
-│   ├── Services/
-│   │   ├── ITicketPublisher.cs
-│   │   ├── RabbitMQTicketPublisher.cs
-│   │   ├── IPaymentPublisher.cs [NUEVO]
-│   │   └── RabbitMQPaymentPublisher.cs [NUEVO]
-│   └── Models/
-├── frontend/                     # Frontend (Next.js)
+│   └── Data/
+├── producer/                        # API REST: publica eventos a RabbitMQ
+│   └── Producer/
+│       ├── Controllers/
+│       └── Services/
+├── frontend/                        # Next.js: interfaz de usuario
 │   ├── app/
-│   │   ├── buy/                 # Buyer view
-│   │   └── admin/               # Admin view (no implementado)
+│   │   ├── buy/                     # Vista comprador
+│   │   └── admin/                   # Vista admin (pendiente)
 │   ├── components/
 │   ├── hooks/
 │   └── lib/
-├── scripts/                      # SQL & setup
-│   ├── schema.sql
-│   ├── setup-rabbitmq.sh
-│   └── rabbitmq-definitions.json
-├── compose.yml                   # Docker Compose config
+├── scripts/                         # SQL, setup RabbitMQ, datos de prueba
+├── compose.yml                      # Docker Compose
 └── README.md
 ```
 
