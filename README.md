@@ -13,76 +13,82 @@ Aplicación que demuestra patrones de arquitectura distribuida:
 ## 🗺️ Diagrama de Arquitectura
 
 ```
-                        ┌──────────────── ─────────────────┐
-                        │           CLIENTE                │
-                        │   Frontend  Next.js  :3000       │
-                        └────────────┬────────────┬────────┘
-                                     │            │
-                          HTTP sync  │            │  HTTP sync
-                    ┌────────────────┘            └──────────────────┐
-                    │  POST /reserve                GET /events      │
-                    │  POST /payments/process       GET /tickets     │
-                    ▼  (202 Accepted)               polling status   ▼
-      ┌─────────────────────────┐            ┌─────────────────────────┐
-      │     Producer Service    │            │      CRUD Service       │
-      │         :8001           │            │         :8002           │
-      │  TicketsController      │            │  EventsController       │
-      │  PaymentsController     │            │  TicketsController      │
-      └────────────┬────────────┘            └────────────┬────────────┘
-                   │                                      │
-                   │  Publish events                      │  SQL queries
-                   │  (async)                             │
-                   ▼                                      │
-      ┌─────────────────────────┐                         │
-      │         RabbitMQ        │                         │
-      │   exchange: tickets     │                         │
-      │      (topic)            │                         │
-      │                         │                        _│
-      │  ticket.reserved ───────┼──►┐                   │
-      │  ticket.payments.*──────┼──►│                   │
-      └─────────────────────────┘   │                   │
-                                    │                   │
-              ┌─────────────────────┘                   │
-              │                                         │
-     ─────────┴─────────────────────                    │
-    │                              │                    │
-    ▼                              ▼                    ▼
-┌──────────────── ──┐  ┌──────────────────┐   ┌────────────────────┐
-│ ReservationService│  │  PaymentService  │   │     PostgreSQL     │
-│     Worker        │  │    Worker        │   │      :5432         │
-│                   │  │                  │   │                    │
-│  Hexagonal arch.  │  │  ProcessApproved │   │  tickets           │
-│  ProcessReserv.   │  │  ProcessRejected │   │  events            │
-│  CommandHandler   │  │  TTL expiration  │   │  payments          │
-│                   │  │                  │   │  ticket_history    │
-└────────┬──────────┘  └────────┬─────────┘   └────────────────────┘
-         │                      │                       ▲
-         │  UPDATE tickets      │  UPDATE tickets       │
-         │  (optimistic lock)   │  INSERT payments      │
-         └──────────────────────┴───────────────────────┘
+┌────────────────────────────────────────────────────────────────────┐
+│                           CLIENTE                                  │
+│                   Frontend  Next.js  :3000                         │
+└──────────────┬──────────────────────────────┬─────── ──────────────┘
+               │ HTTP (sync)                  │ SSE (EventSource)
+               │ POST /reserve                │ ◄── text/event-stream
+               │ POST /payments (202 Accepted)│     (notificación única)
+               ▼                              ▼
+  ┌───────────────────────┐     ┌─────────────────────────────────┐
+  │   Producer  :8001     │     │         CRUD Service  :8002     │
+  │  ─ TicketsController  │     │  ─ EventsController             │
+  │  ─ PaymentsController │     │  ─ TicketsController            │
+  │  (solo publica,       │     │  ─ GET /tickets/{id}/stream     ◄──┐
+  │   no decide pagos)    │     │  ─ TicketStatusConsumer (worker)│  │
+  └───────────┬───────────┘     └────────────────────────────┬────┘  │
+              │                              │ SQL queries   │ SSE   │
+              │ Publish (async)              ▼               │ hub   │
+              │                    ┌─────────────────┐       │       │
+              │                    │   PostgreSQL    │       │       │
+              │                    │     :5432       │       │       │
+              │                    │  tickets        │       │       │
+              │                    │  events         │       │       │
+              │                    │  payments       │       │       │
+              │                    │  ticket_history │       │       │
+              │                    └────────┬────────┘       │       │
+              ▼                             │ UPDATE         │       │
+  ┌───────────────────────────────────────────────────────┐  │       │
+  │               RabbitMQ  (exchange: tickets, topic)    │  │       │
+  │                                                       │  │       │
+  │  ticket.reserved          ──► q.ticket.reserved       │  │       │
+  │  ticket.payment.requested ──► q.ticket.payment.req.   │  │       │
+  │  ticket.payments.approved ──► q.ticket.payments.appr. │  │       │
+  │  ticket.payments.rejected ──► q.ticket.payments.rej.  │  │       │
+  │  ticket.status.changed    ──► q.ticket.status.changed ├──┘       │
+  └──────────┬───────────────────────────┬────────────────┘          │
+             │                           │                           │
+             ▼                           ▼                           │
+  ┌────────────────────┐     ┌───────────────── ──────┐              │
+  │ ReservationService │     │   PaymentService       │              │
+  │     (Worker)       │     │     (Worker)           │              │
+  │  ─ Hexagonal arch  │     │  ─ Consume requested   │              │
+  │  ─ ProcessReserv.  │     │  ─ Decide ✓/✗ pago     │              │
+  │  ─ Update DB       │     │  ─ Consume appr./rej.  │              │
+  │  ─ Publica         │     │  ─ Update DB           │              │
+  │    status.changed  │     │  ─ Publica             │              │
+  └────────┬───────────┘     │    status.changed      │              │
+           │                 └────────────┬───────────┘              │
+           │  ticket.status.changed       │                          │
+           └──────────────┬──────── ──────┘                          │
+                          │                                          │
+                          └─────────────► RabbitMQ ─► CrudService  ──┘
 ```
 
 ### Colas y routing keys
 
-| Routing key                    | Cola                          | Consumer             |
-|-------------------------------|-------------------------------|----------------------|
-| `ticket.reserved`             | `q.ticket.reserved`           | ReservationService   |
-| `ticket.payments.approved`    | `q.ticket.payments.approved`  | PaymentService       |
-| `ticket.payments.rejected`    | `q.ticket.payments.rejected`  | PaymentService       |
+| Routing key                    | Cola                             | Consumer                         |
+|-------------------------------|----------------------------------|----------------------------------|
+| `ticket.reserved`             | `q.ticket.reserved`              | ReservationService               |
+| `ticket.payment.requested`    | `q.ticket.payment.requested`     | PaymentService                   |
+| `ticket.payments.approved`    | `q.ticket.payments.approved`     | PaymentService                   |
+| `ticket.payments.rejected`    | `q.ticket.payments.rejected`     | PaymentService                   |
+| `ticket.status.changed`       | `q.ticket.status.changed`        | CrudService (notifica SSE)       |
 
 ### Flujo resumido
 
-| Acción                | Ruta                                                              |
-|----------------------|-------------------------------------------------------------------|
-| Ver eventos          | Frontend → CRUD Service → PostgreSQL                             |
-| Reservar ticket      | Frontend → Producer → RabbitMQ → ReservationService → PostgreSQL |
-| Procesar pago        | Frontend → Producer → RabbitMQ → PaymentService → PostgreSQL     |
-| Consultar estado     | Frontend → CRUD Service → PostgreSQL (polling cada 500ms)        |
+| Acción                | Ruta                                                                                     |
+|----------------------|------------------------------------------------------------------------------------------|
+| Ver eventos          | Frontend → CRUD Service → PostgreSQL                                                     |
+| Reservar ticket      | Frontend → Producer → RabbitMQ → ReservationService → PostgreSQL → `status.changed` → SSE |
+| Procesar pago        | Frontend → Producer → RabbitMQ → PaymentService → PostgreSQL → `status.changed` → SSE   |
+| Notificación estado  | CrudService consume `ticket.status.changed` → SSE push → Frontend (EventSource)         |
 
 ## 🎯 Servicios
 
 ### 1. CRUD Service (Puerto 8002)
-- **Responsabilidad**: Persistencia de datos
+- **Responsabilidad**: Persistencia de datos + notificaciones SSE
 - **Database**: PostgreSQL 15
 - **Endpoints**:
   - `GET /api/events` - Listar eventos
@@ -90,14 +96,16 @@ Aplicación que demuestra patrones de arquitectura distribuida:
   - `GET /api/tickets/{eventId}` - Listar tickets
   - `POST /api/tickets` - Crear tickets
   - `PATCH /api/tickets/{id}` - Actualizar ticket
+  - `GET /api/tickets/{id}/stream` - Stream SSE del estado del ticket
   - `GET /health` - Health check
+- **BackgroundService**: `TicketStatusConsumer` consume `q.ticket.status.changed` y notifica a los clientes SSE conectados vía `TicketStatusHub` (in-memory)
 
 ### 2. Producer Service (Puerto 8001)
-- **Responsabilidad**: Publicación de eventos
+- **Responsabilidad**: Publicación de eventos a RabbitMQ (solo publica, no decide)
 - **Message Broker**: RabbitMQ 3.12
 - **Endpoints**:
-  - `POST /api/tickets/reserve` - Reservar ticket (→ 202 Accepted)
-  - `POST /api/payments/process` - Procesar pago (→ 202 Accepted) **[NUEVO]**
+  - `POST /api/tickets/reserve` - Publica `ticket.reserved` (→ 202 Accepted)
+  - `POST /api/payments/process` - Publica `ticket.payment.requested` (→ 202 Accepted)
   - `GET /health` - Health check
 
 ### 3. Frontend (Puerto 3000)
@@ -115,34 +123,40 @@ Frontend
   ├─ Crea tickets (CRUD Service)
   └─ Reserva ticket
      │
-     └─► Producer Service (async)
-         ├─ Publica: ticket.reserved
-         │
-         └─► RabbitMQ
-             │
-             └─► CRUD Service (Consumer)
-                 └─ Actualiza: status = "reserved"
+     ├─► Producer Service: POST /api/tickets/reserve (202 Accepted)
+     │       └─ Publica: ticket.reserved
+     │               └─► RabbitMQ ──► ReservationService
+     │                                   ├─ Actualiza DB: status = "reserved"
+     │                                   └─ Publica: ticket.status.changed
+     │                                               └─► RabbitMQ ──► CrudService
+     │                                                                   └─ SSE push
+     └─► Frontend abre EventSource GET /api/tickets/{id}/stream
+             └─ Recibe evento SSE con status = "reserved"
 ```
 
-### Flujo 2: Pago de Ticket **[NUEVO]**
+### Flujo 2: Pago de Ticket
 ```
 Frontend (después de reserva)
   │
-  └─► Producer Service: POST /api/payments/process (async)
-      │
-      ├─ 80% éxito
-      │  └─► PaymentApprovedEvent
-      │      ├─ Routing: ticket.payments.approved
-      │      └─► RabbitMQ
-      │          └─► CRUD Service
-      │              └─ status = "paid"
-      │
-      └─ 20% fallo
-         └─► PaymentRejectedEvent
-             ├─ Routing: ticket.payments.rejected
-             └─► RabbitMQ
-                 └─► CRUD Service
-                     └─ status = "available"
+  ├─► Producer Service: POST /api/payments/process (202 Accepted)
+  │       └─ Publica: ticket.payment.requested
+  │               └─► RabbitMQ ──► PaymentService (decide)
+  │                                   │
+  │                                   ├─ 80% éxito → Publica ticket.payments.approved
+  │                                   │               └─► RabbitMQ ──► PaymentService
+  │                                   │                                   ├─ INSERT payment (DB)
+  │                                   │                                   ├─ UPDATE ticket: status = "paid"
+  │                                   │                                   └─ Publica ticket.status.changed
+  │                                   │
+  │                                   └─ 20% fallo → Publica ticket.payments.rejected
+  │                                                   └─► RabbitMQ ──► PaymentService
+  │                                                                       ├─ UPDATE ticket: status = "released"
+  │                                                                       └─ Publica ticket.status.changed
+  │
+  │      ticket.status.changed ──► CrudService consumer ──► SSE push
+  │
+  └─► Frontend abre EventSource GET /api/tickets/{id}/stream
+          └─ Recibe evento SSE con status = "paid" | "released"
 ```
 
 ## 🚀 Inicio Rápido
@@ -223,7 +237,7 @@ curl -X POST http://localhost:8001/api/tickets/reserve \
   }'
 ```
 
-**4. Procesar Pago (NUEVO)**
+**4. Procesar Pago**
 ```bash
 curl -X POST http://localhost:8001/api/payments/process \
   -H "Content-Type: application/json" \
@@ -235,6 +249,13 @@ curl -X POST http://localhost:8001/api/payments/process \
     "paymentBy":"user@email.com",
     "paymentMethodId":"card_1234"
   }'
+# Respuesta: 202 Accepted - el resultado llega vía SSE
+```
+
+**5. Escuchar estado por SSE**
+```bash
+curl -N http://localhost:8002/api/tickets/1/stream
+# Espera hasta recibir: data: {"ticketId":1,"status":"paid"}
 ```
 
 ### Ver Logs
@@ -257,24 +278,27 @@ docker-compose logs -f rabbitmq
 | **Async/Await** | 202 Accepted responses | Producer endpoints |
 | **Circuit Breaker** | Health checks | `/health` endpoints |
 | **Message Persistence** | Durable queues | RabbitMQ config |
-| **Polling** | Ticket status check | Frontend |
-| **Microservices** | CRUD + Producer | Separate ports |
+| **SSE (push)** | EventSource / `text/event-stream` | CrudService + Frontend |
+| **Microservices** | CRUD + Producer + Workers | Separate ports |
 | **Idempotency** | TransactionRef | Payment events |
+| **In-process pub/sub** | `Channel<T>` (bounded) | `TicketStatusHub` |
 
 ## 📊 RabbitMQ Topics
 
-| Topic | Routing Key | Descripción |
-|-------|---|---|
-| `tickets` | `ticket.reserved` | Cuando se reserva un ticket |
-| `tickets` | `ticket.payments.approved` | Cuando pago es aprobado |
-| `tickets` | `ticket.payments.rejected` | Cuando pago es rechazado |
+| Topic | Routing Key | Publicado por | Consumido por |
+|-------|---|---|---|
+| `tickets` | `ticket.reserved` | Producer | ReservationService |
+| `tickets` | `ticket.payment.requested` | Producer | PaymentService |
+| `tickets` | `ticket.payments.approved` | PaymentService | PaymentService |
+| `tickets` | `ticket.payments.rejected` | PaymentService | PaymentService |
+| `tickets` | `ticket.status.changed` | ReservationService / PaymentService | CrudService |
 
 ## 🎓 Conceptos Demostrados
 
 ### 1. Comunicación Asincrónica
 - Requests devuelven 202 Accepted inmediatamente
 - Procesamiento ocurre en background
-- Frontend usa polling para saber resultado
+- El Producer no decide resultados de negocio: solo publica eventos
 
 ### 2. Event Sourcing
 - Cada acción genera un evento
@@ -338,9 +362,13 @@ ticketing_project_week1/
 │   ├── Repositories/
 │   └── Data/
 ├── producer/                        # API REST: publica eventos a RabbitMQ
-│   └── Producer/
-│       ├── Controllers/
-│       └── Services/
+│   ├── src/
+│   │   ├── Producer.Domain/
+│   │   ├── Producer.Application/
+│   │   ├── Producer.Infrastructure/
+│   │   └── Producer.Api/
+│   └── tests/
+│       └── Producer.Application.Tests/
 ├── frontend/                        # Next.js: interfaz de usuario
 │   ├── app/
 │   │   ├── buy/                     # Vista comprador
@@ -405,7 +433,7 @@ policy.AllowAnyOrigin()  // Permite requests de cualquier dominio
 
 3. **CRUD Consumer**: El CRUD Service necesita implementar el consumer de pagos.
 
-4. **Polling**: Frontend hace polling cada 500ms con exponential backoff (máx 10 segundos).
+4. **SSE**: Frontend abre una conexión `EventSource` a `GET /api/tickets/{id}/stream`. CrudService cierra el stream en cuanto publica el primer evento de estado (máx 30s de timeout). No hay polling.
 
 ## 🚨 Troubleshooting
 
@@ -431,9 +459,8 @@ Registramos varias validaciones manuales (`// HUMAN CHECK`) en el código donde 
 - `ReservationService` (optimistic locking) — [ReservationService/src/ReservationService.Worker/Services/ReservationService.cs](ReservationService/src/ReservationService.Worker/Services/ReservationService.cs#L17)
 - `TicketRepository` (optimistic locking, reserva) — [ReservationService/src/ReservationService.Worker/Repositories/TicketRepository.cs](ReservationService/src/ReservationService.Worker/Repositories/TicketRepository.cs#L23)
 - `CrudService` DI / DbContext scope — [crud_service/Extensions/ServiceExtensions.cs](crud_service/Extensions/ServiceExtensions.cs#L21)
-- `RabbitMQPaymentPublisher` (mensajes persistentes) — [producer/Producer/Services/RabbitMQPaymentPublisher.cs](producer/Producer/Services/RabbitMQPaymentPublisher.cs#L56)
-- `RabbitMQPaymentPublisher` (rechazo persistente) — [producer/Producer/Services/RabbitMQPaymentPublisher.cs](producer/Producer/Services/RabbitMQPaymentPublisher.cs#L124)
-- `Producer` CORS (policy para desarrollo vs producción) — [producer/Producer/Program.cs](producer/Producer/Program.cs#L24)
-- `Producer` RabbitMQ config (nota sobre secrets) — [producer/Producer/Configurations/RabbitMQOptions.cs](producer/Producer/Configurations/RabbitMQOptions.cs#L6)
+- `RabbitMQPaymentPublisher` (mensajes persistentes) — [producer/src/Producer.Infrastructure/Messaging/RabbitMQPaymentPublisher.cs](producer/src/Producer.Infrastructure/Messaging/RabbitMQPaymentPublisher.cs#L30)
+- `Producer` CORS (policy para desarrollo vs producción) — [producer/src/Producer.Api/Program.cs](producer/src/Producer.Api/Program.cs#L19)
+- `Producer` RabbitMQ config (nota sobre secrets) — [producer/src/Producer.Infrastructure/Messaging/RabbitMQSettings.cs](producer/src/Producer.Infrastructure/Messaging/RabbitMQSettings.cs#L1)
 
 Por favor revise esas ubicaciones al integrarse al proyecto; cada `// HUMAN CHECK` explica la decisión del equipo y el riesgo que se mitigó.

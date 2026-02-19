@@ -1,3 +1,5 @@
+using System.Text.Json;
+using CrudService.Messaging;
 using CrudService.Models.DTOs;
 using CrudService.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -12,12 +14,50 @@ namespace CrudService.Controllers;
 public class TicketsController : ControllerBase
 {
     private readonly ITicketService _ticketService;
+    private readonly TicketStatusHub _statusHub;
     private readonly ILogger<TicketsController> _logger;
 
-    public TicketsController(ITicketService ticketService, ILogger<TicketsController> logger)
+    public TicketsController(
+        ITicketService ticketService,
+        TicketStatusHub statusHub,
+        ILogger<TicketsController> logger)
     {
         _ticketService = ticketService;
+        _statusHub = statusHub;
         _logger = logger;
+    }
+
+    /// <summary>
+    /// SSE stream: emite un evento cuando el ticket cambia de estado y cierra la conexion.
+    /// El cliente se suscribe antes de enviar la solicitud al Producer.
+    /// Timeout de 30 segundos si el evento no llega.
+    /// </summary>
+    [HttpGet("{id}/stream")]
+    public async Task StreamStatus(long id, CancellationToken clientDisconnected)
+    {
+        Response.Headers["Content-Type"] = "text/event-stream";
+        Response.Headers["Cache-Control"] = "no-cache";
+        Response.Headers["X-Accel-Buffering"] = "no";
+
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        using var combined = CancellationTokenSource.CreateLinkedTokenSource(clientDisconnected, timeout.Token);
+
+        var reader = _statusHub.Subscribe(id);
+
+        try
+        {
+            await foreach (var update in reader.ReadAllAsync(combined.Token))
+            {
+                var data = JsonSerializer.Serialize(new { ticketId = update.TicketId, status = update.NewStatus });
+                await Response.WriteAsync($"data: {data}\n\n", combined.Token);
+                await Response.Body.FlushAsync(combined.Token);
+                break; // Un solo evento por conexion
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Timeout o cliente desconectado — normal
+        }
     }
 
     /// <summary>

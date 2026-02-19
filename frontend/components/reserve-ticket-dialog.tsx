@@ -2,10 +2,11 @@
 
 import React from "react"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { useSWRConfig } from "swr"
 import { toast } from "sonner"
 import { Loader2, CheckCircle2, XCircle } from "lucide-react"
+import { useTicketStatusSse } from "@/hooks/use-ticket-status-sse"
 import {
   Dialog,
   DialogContent,
@@ -38,6 +39,7 @@ export function ReserveTicketDialog({
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState("")
   const { mutate } = useSWRConfig()
+  const { waitForStatus, cancel } = useTicketStatusSse()
 
   // Reset when dialog opens
   useEffect(() => {
@@ -46,39 +48,10 @@ export function ReserveTicketDialog({
       setEmail("")
       setExpiresIn("300")
       setErrorMsg("")
+    } else {
+      cancel()
     }
-  }, [open])
-
-  const pollForReservation = useCallback(
-    async (ticketId: number) => {
-      const maxAttempts = 20
-      for (let i = 0; i < maxAttempts; i++) {
-        await new Promise((r) => setTimeout(r, 500))
-        try {
-          const t = await api.getTicket(ticketId)
-          const status = (t.status as string).toLowerCase()
-          if (status === "reserved") {
-            setStep("success")
-            mutate(`tickets-${eventId}`)
-            mutate(`event-${eventId}`)
-            mutate("events")
-            return
-          }
-          if (status !== "available") {
-            setStep("error")
-            setErrorMsg(`El ticket cambio a estado: ${status}`)
-            return
-          }
-        } catch {
-          // continue polling
-        }
-      }
-      // Después de 10 segundos, mostrar estado "encolado" en lugar de error
-      // La reserva ya fue aceptada por RabbitMQ, solo esperar más tiempo
-      setStep("queued")
-    },
-    [eventId, mutate]
-  )
+  }, [open, cancel])
 
   async function handleReserve(e: React.FormEvent) {
     e.preventDefault()
@@ -105,7 +78,21 @@ export function ReserveTicketDialog({
       })
 
       setStep("polling")
-      pollForReservation(ticket.id)
+      waitForStatus(
+        ticket.id,
+        (status) => {
+          if (status === "reserved") {
+            setStep("success")
+            mutate(`tickets-${eventId}`)
+            mutate(`event-${eventId}`)
+            mutate("events")
+          } else {
+            setStep("error")
+            setErrorMsg(`El ticket cambió a estado inesperado: ${status}`)
+          }
+        },
+        () => setStep("queued")
+      )
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Error al enviar reserva"

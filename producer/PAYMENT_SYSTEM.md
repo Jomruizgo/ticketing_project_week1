@@ -154,7 +154,7 @@ Características:
 
 ### 1. Terminal 1: Ver logs del Producer
 ```bash
-cd producer && dotnet run
+dotnet run --project producer/src/Producer.Api/Producer.Api.csproj
 ```
 
 ### 2. Terminal 2: Hacer llamadas HTTP

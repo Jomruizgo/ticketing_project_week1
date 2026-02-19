@@ -128,7 +128,7 @@ Cada capa es un .csproj separado que compila como DLL independiente. Si alguien 
 | ReservationService | Hexagonal | Migrado |
 | PaymentService | Plana (MVP) | Pendiente |
 | CrudService | Plana (MVP) | Pendiente |
-| Producer | Plana (MVP) | Pendiente |
+| Producer | Hexagonal | Migrado |
 
 ## 3. Interacciones Clave
 
@@ -201,9 +201,11 @@ Microservicios:
 - Frontend: Next.js con interfaz para seleccion y compra de tickets
 
 Eventos RabbitMQ (exchange: tickets, tipo: topic):
-- ticket.reserved -> q.ticket.reserved
-- ticket.payments.approved -> q.ticket.payments.approved
-- ticket.payments.rejected -> q.ticket.payments.rejected
+- ticket.reserved              -> q.ticket.reserved              (consumer: ReservationService)
+- ticket.payment.requested     -> q.ticket.payment.requested     (consumer: PaymentService)
+- ticket.payments.approved     -> q.ticket.payments.approved     (consumer: PaymentService)
+- ticket.payments.rejected     -> q.ticket.payments.rejected     (consumer: PaymentService)
+- ticket.status.changed        -> q.ticket.status.changed        (consumer: CrudService → SSE)
 
 Base de datos: PostgreSQL con enums nativos (ticket_status, payment_status)
 en lowercase (available, reserved, paid, released, cancelled).
@@ -266,6 +268,9 @@ Para codigo generado por IA sin modificaciones significativas:
 | 2026-02-11 | Rama separada para fix de Payment Service | `fix/jorge/payment-service-bugs` para no bloquear al companero; descartable si el soluciona primero | Jorge |
 | 2026-02-11 | Detach entity despues de raw SQL | Evita conflicto entre ExecuteSqlRaw y el change tracker de EF Core en la misma transaccion | Jorge |
 | 2026-02-17 | Migrar a arquitectura hexagonal | El ejercicio "Mock Imposible" revelo violaciones DIP/SRP que impedian tests unitarios puros. Se separo cada servicio en Domain, Application, Infrastructure y Worker como proyectos independientes | Jorge |
+| 2026-02-19 | Corregir responsabilidad del Producer | El Producer simulaba aprobacion de pagos (80/20) y publicaba `PaymentApprovedEvent` / `PaymentRejectedEvent` directamente. Viola SRP: un gateway de publicacion no debe contener logica de negocio. Se movio la decision al PaymentService, que consume `ticket.payment.requested` y decide el resultado | Jorge |
+| 2026-02-19 | Reemplazar polling por SSE | El frontend llamaba a la API cada 500ms hasta 20 veces para saber si el estado cambio. Se sustituyo por SSE (`EventSource`): el CrudService expone `GET /api/tickets/{id}/stream` y notifica una unica vez cuando el consumer recibe `ticket.status.changed`. Razones: menos trafico, sin race condition entre notificacion y escritura en DB, sin dependencia de WebSocket | Jorge |
+| 2026-02-19 | Publicar `ticket.status.changed` despues del UPDATE en DB | Para evitar race condition (cliente recibe notificacion antes de que la BD este actualizada), se publico el evento de notificacion siempre despues del UPDATE exitoso en el consumer (ReservationService y PaymentService), no en el Producer ni en paralelo | Jorge |
 
 ---
 

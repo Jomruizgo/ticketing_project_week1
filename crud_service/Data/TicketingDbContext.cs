@@ -1,5 +1,6 @@
 using CrudService.Models.Entities;
 using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 namespace CrudService.Data;
 
@@ -46,6 +47,9 @@ public class TicketingDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.HasPostgresEnum<TicketStatus>("ticket_status");
+        modelBuilder.HasPostgresEnum<PaymentStatus>("payment_status");
+
         // Eventos
         modelBuilder.Entity<Event>()
             .HasKey(e => e.Id);
@@ -59,7 +63,7 @@ public class TicketingDbContext : DbContext
             .HasKey(t => t.Id);
         modelBuilder.Entity<Ticket>()
             .Property(t => t.Status)
-            .HasConversion<string>();
+            .HasColumnType("ticket_status");
         modelBuilder.Entity<Ticket>()
             .Property(t => t.OrderId)
             .HasMaxLength(80);
@@ -85,7 +89,7 @@ public class TicketingDbContext : DbContext
             .HasKey(p => p.Id);
         modelBuilder.Entity<Payment>()
             .Property(p => p.Status)
-            .HasConversion<string>();
+            .HasColumnType("payment_status");
         modelBuilder.Entity<Payment>()
             .Property(p => p.ProviderRef)
             .HasMaxLength(120);
@@ -113,10 +117,10 @@ public class TicketingDbContext : DbContext
             .HasKey(h => h.Id);
         modelBuilder.Entity<TicketHistory>()
             .Property(h => h.OldStatus)
-            .HasConversion<string>();
+            .HasColumnType("ticket_status");
         modelBuilder.Entity<TicketHistory>()
             .Property(h => h.NewStatus)
-            .HasConversion<string>();
+            .HasColumnType("ticket_status");
         modelBuilder.Entity<TicketHistory>()
             .Property(h => h.Reason)
             .HasMaxLength(200);

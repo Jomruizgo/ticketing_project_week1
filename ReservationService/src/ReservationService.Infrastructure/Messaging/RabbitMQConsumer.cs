@@ -18,6 +18,7 @@ public class RabbitMQConsumer : BackgroundService
 
     private IConnection? _connection;
     private IChannel? _channel;
+    private IChannel? _publishChannel;
 
     public RabbitMQConsumer(
         IServiceScopeFactory scopeFactory,
@@ -41,6 +42,7 @@ public class RabbitMQConsumer : BackgroundService
 
         _connection = await factory.CreateConnectionAsync(stoppingToken);
         _channel = await _connection.CreateChannelAsync(cancellationToken: stoppingToken);
+        _publishChannel = await _connection.CreateChannelAsync(cancellationToken: stoppingToken);
 
         _logger.LogInformation("Connected to RabbitMQ. Listening on queue: {Queue}", _settings.QueueName);
 
@@ -63,6 +65,8 @@ public class RabbitMQConsumer : BackgroundService
                     using var scope = _scopeFactory.CreateScope();
                     var handler = scope.ServiceProvider.GetRequiredService<ProcessReservationCommandHandler>();
                     await handler.HandleAsync(message, stoppingToken);
+
+                    await PublishStatusChangedAsync(message.TicketId, "reserved", stoppingToken);
                 }
 
                 await _channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false, stoppingToken);
@@ -82,10 +86,37 @@ public class RabbitMQConsumer : BackgroundService
         }
     }
 
+    private async Task PublishStatusChangedAsync(long ticketId, string newStatus, CancellationToken cancellationToken)
+    {
+        if (_publishChannel is null) return;
+
+        var payload = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(new
+        {
+            TicketId = ticketId,
+            NewStatus = newStatus,
+            ChangedAt = DateTime.UtcNow
+        });
+
+        var props = new RabbitMQ.Client.BasicProperties
+        {
+            Persistent = true,
+            ContentType = "application/json"
+        };
+
+        await _publishChannel.BasicPublishAsync(
+            exchange: _settings.ExchangeName,
+            routingKey: _settings.StatusChangedRoutingKey,
+            mandatory: false,
+            basicProperties: props,
+            body: payload,
+            cancellationToken: cancellationToken);
+    }
+
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Stopping consumer...");
 
+        if (_publishChannel is not null) await _publishChannel.CloseAsync(cancellationToken);
         if (_channel is not null) await _channel.CloseAsync(cancellationToken);
         if (_connection is not null) await _connection.CloseAsync(cancellationToken);
 

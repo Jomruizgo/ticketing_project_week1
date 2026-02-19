@@ -13,12 +13,18 @@ public class RabbitMQSettings
     public string Password { get; set; } = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD") ?? "guest";
     public string VirtualHost { get; set; } = Environment.GetEnvironmentVariable("RABBITMQ_VHOST") ?? "/";
 
-    /// <summary>Nombre de la cola de pagos aprobados. Valor en appsettings.json (RabbitMQ:ApprovedQueueName) o env RabbitMQ__ApprovedQueueName.</summary>
+    /// <summary>Nombre del exchange.</summary>
+    public string ExchangeName { get; set; } = "tickets";
+
+    /// <summary>Nombre de la cola de pagos aprobados.</summary>
     public string ApprovedQueueName { get; set; } = string.Empty;
 
-    /// <summary>Nombre de la cola de pagos rechazados. Valor en appsettings.json (RabbitMQ:RejectedQueueName) o env RabbitMQ__RejectedQueueName.</summary>
+    /// <summary>Nombre de la cola de pagos rechazados.</summary>
     public string RejectedQueueName { get; set; } = string.Empty;
 
-    /// <summary>Prefetch por canal (cuántos mensajes sin ACK puede tener en vuelo el consumer).</summary>
+    /// <summary>Nombre de la cola de solicitudes de pago.</summary>
+    public string RequestedQueueName { get; set; } = string.Empty;
+
+    /// <summary>Prefetch por canal.</summary>
     public ushort PrefetchCount { get; set; } = 10;
 }
