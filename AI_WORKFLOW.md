@@ -128,7 +128,7 @@ Cada capa es un .csproj separado que compila como DLL independiente. Si alguien 
 | ReservationService | Hexagonal | Migrado |
 | PaymentService | Plana (MVP) | Pendiente |
 | CrudService | Plana (MVP) | Pendiente |
-| Producer | Plana (MVP) | Pendiente |
+| Producer | Hexagonal | Migrado |
 
 ## 3. Interacciones Clave
 

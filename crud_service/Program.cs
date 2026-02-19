@@ -1,8 +1,13 @@
 using CrudService.Data;
 using CrudService.Extensions;
 using CrudService.Messaging;
+using CrudService.Models.Entities;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
+
+NpgsqlConnection.GlobalTypeMapper.MapEnum<TicketStatus>("ticket_status");
+NpgsqlConnection.GlobalTypeMapper.MapEnum<PaymentStatus>("payment_status");
 
 // Cargar variables de entorno
 builder.Configuration

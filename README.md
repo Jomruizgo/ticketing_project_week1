@@ -16,7 +16,7 @@ Aplicación que demuestra patrones de arquitectura distribuida:
 ┌────────────────────────────────────────────────────────────────────┐
 │                           CLIENTE                                  │
 │                   Frontend  Next.js  :3000                         │
-└──────────────┬──────────────────────────────┬─────────────────────┘
+└──────────────┬──────────────────────────────┬─────── ──────────────┘
                │ HTTP (sync)                  │ SSE (EventSource)
                │ POST /reserve                │ ◄── text/event-stream
                │ POST /payments (202 Accepted)│     (notificación única)
@@ -25,11 +25,11 @@ Aplicación que demuestra patrones de arquitectura distribuida:
   │   Producer  :8001     │     │         CRUD Service  :8002     │
   │  ─ TicketsController  │     │  ─ EventsController             │
   │  ─ PaymentsController │     │  ─ TicketsController            │
-  │  (solo publica,       │     │  ─ GET /tickets/{id}/stream ◄──────┐
+  │  (solo publica,       │     │  ─ GET /tickets/{id}/stream     ◄──┐
   │   no decide pagos)    │     │  ─ TicketStatusConsumer (worker)│  │
   └───────────┬───────────┘     └────────────────────────────┬────┘  │
-              │                              │ SQL queries    │ SSE   │
-              │ Publish (async)              ▼                │ hub   │
+              │                              │ SQL queries   │ SSE   │
+              │ Publish (async)              ▼               │ hub   │
               │                    ┌─────────────────┐       │       │
               │                    │   PostgreSQL    │       │       │
               │                    │     :5432       │       │       │
@@ -50,7 +50,7 @@ Aplicación que demuestra patrones de arquitectura distribuida:
   └──────────┬───────────────────────────┬────────────────┘          │
              │                           │                           │
              ▼                           ▼                           │
-  ┌────────────────────┐     ┌───────────────────────┐              │
+  ┌────────────────────┐     ┌───────────────── ──────┐              │
   │ ReservationService │     │   PaymentService       │              │
   │     (Worker)       │     │     (Worker)           │              │
   │  ─ Hexagonal arch  │     │  ─ Consume requested   │              │
@@ -61,9 +61,9 @@ Aplicación que demuestra patrones de arquitectura distribuida:
   └────────┬───────────┘     │    status.changed      │              │
            │                 └────────────┬───────────┘              │
            │  ticket.status.changed       │                          │
-           └──────────────┬──────────────┘                          │
+           └──────────────┬──────── ──────┘                          │
                           │                                          │
-                          └─────────────► RabbitMQ ─► CrudService ──┘
+                          └─────────────► RabbitMQ ─► CrudService  ──┘
 ```
 
 ### Colas y routing keys
@@ -362,9 +362,13 @@ ticketing_project_week1/
 │   ├── Repositories/
 │   └── Data/
 ├── producer/                        # API REST: publica eventos a RabbitMQ
-│   └── Producer/
-│       ├── Controllers/
-│       └── Services/
+│   ├── src/
+│   │   ├── Producer.Domain/
+│   │   ├── Producer.Application/
+│   │   ├── Producer.Infrastructure/
+│   │   └── Producer.Api/
+│   └── tests/
+│       └── Producer.Application.Tests/
 ├── frontend/                        # Next.js: interfaz de usuario
 │   ├── app/
 │   │   ├── buy/                     # Vista comprador
@@ -455,9 +459,8 @@ Registramos varias validaciones manuales (`// HUMAN CHECK`) en el código donde 
 - `ReservationService` (optimistic locking) — [ReservationService/src/ReservationService.Worker/Services/ReservationService.cs](ReservationService/src/ReservationService.Worker/Services/ReservationService.cs#L17)
 - `TicketRepository` (optimistic locking, reserva) — [ReservationService/src/ReservationService.Worker/Repositories/TicketRepository.cs](ReservationService/src/ReservationService.Worker/Repositories/TicketRepository.cs#L23)
 - `CrudService` DI / DbContext scope — [crud_service/Extensions/ServiceExtensions.cs](crud_service/Extensions/ServiceExtensions.cs#L21)
-- `RabbitMQPaymentPublisher` (mensajes persistentes) — [producer/Producer/Services/RabbitMQPaymentPublisher.cs](producer/Producer/Services/RabbitMQPaymentPublisher.cs#L56)
-- `RabbitMQPaymentPublisher` (rechazo persistente) — [producer/Producer/Services/RabbitMQPaymentPublisher.cs](producer/Producer/Services/RabbitMQPaymentPublisher.cs#L124)
-- `Producer` CORS (policy para desarrollo vs producción) — [producer/Producer/Program.cs](producer/Producer/Program.cs#L24)
-- `Producer` RabbitMQ config (nota sobre secrets) — [producer/Producer/Configurations/RabbitMQOptions.cs](producer/Producer/Configurations/RabbitMQOptions.cs#L6)
+- `RabbitMQPaymentPublisher` (mensajes persistentes) — [producer/src/Producer.Infrastructure/Messaging/RabbitMQPaymentPublisher.cs](producer/src/Producer.Infrastructure/Messaging/RabbitMQPaymentPublisher.cs#L30)
+- `Producer` CORS (policy para desarrollo vs producción) — [producer/src/Producer.Api/Program.cs](producer/src/Producer.Api/Program.cs#L19)
+- `Producer` RabbitMQ config (nota sobre secrets) — [producer/src/Producer.Infrastructure/Messaging/RabbitMQSettings.cs](producer/src/Producer.Infrastructure/Messaging/RabbitMQSettings.cs#L1)
 
 Por favor revise esas ubicaciones al integrarse al proyecto; cada `// HUMAN CHECK` explica la decisión del equipo y el riesgo que se mitigó.
