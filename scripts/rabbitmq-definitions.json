@@ -49,6 +49,20 @@
         "x-dead-letter-exchange": "tickets",
         "x-dead-letter-routing-key": "ticket.expired"
       }
+    },
+    {
+      "name": "q.ticket.payment.requested",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "q.ticket.status.changed",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
     }
   ],
   "bindings": [
@@ -78,6 +92,20 @@
       "destination": "q.ticket.expired",
       "destination_type": "queue",
       "routing_key": "ticket.expired",
+      "vhost": "/"
+    },
+    {
+      "source": "tickets",
+      "destination": "q.ticket.payment.requested",
+      "destination_type": "queue",
+      "routing_key": "ticket.payment.requested",
+      "vhost": "/"
+    },
+    {
+      "source": "tickets",
+      "destination": "q.ticket.status.changed",
+      "destination_type": "queue",
+      "routing_key": "ticket.status.changed",
       "vhost": "/"
     }
   ]

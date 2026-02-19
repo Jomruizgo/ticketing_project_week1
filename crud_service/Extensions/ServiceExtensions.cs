@@ -1,4 +1,5 @@
 using CrudService.Data;
+using CrudService.Messaging;
 using CrudService.Repositories;
 using CrudService.Services;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +33,9 @@ public static class ServiceExtensions
         // Servicios (Scoped: dependen de repositorios)
         services.AddScoped<IEventService, EventService>();
         services.AddScoped<ITicketService, TicketService>();
+
+        // SSE hub (Singleton: correlaciona ticketId con conexiones activas)
+        services.AddSingleton<TicketStatusHub>();
 
         return services;
     }

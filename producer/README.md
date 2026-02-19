@@ -1,35 +1,42 @@
-# Producer - Microservicio de Publicación de Tickets
+# Producer - API de publicación de eventos
 
 ## 📋 Descripción
 
-El **Producer** es un microservicio .NET que expone un endpoint HTTP para recibir solicitudes de reserva de tickets y las publica como eventos en **RabbitMQ**.
+El **Producer** es una API HTTP en .NET 8 que recibe solicitudes de reserva y pago, y publica eventos en RabbitMQ.
 
-No realiza consultas a base de datos, solo orquesta la publicación de mensajes.
+- No tiene base de datos.
+- Responde `202 Accepted` y delega el procesamiento a los consumers.
 
 ---
 
-## 🏗️ Arquitectura
-
-Sigue los principios SOLID y está estructurado como:
+## 🏗️ Arquitectura actual (hexagonal)
 
 ```
-Producer/
-├── Models/
-│   ├── ReserveTicketRequest.cs       # DTO de entrada
-│   └── TicketReservedEvent.cs        # Evento publicado a RabbitMQ
-├── Services/
-│   ├── ITicketPublisher.cs           # Interfaz del publicador
-│   └── RabbitMQTicketPublisher.cs    # Implementación
-├── Controllers/
-│   └── TicketsController.cs          # Expone endpoints HTTP
-├── Extensions/
-│   └── RabbitMQExtensions.cs         # Registro de servicios
-├── Configurations/
-│   └── RabbitMQOptions.cs            # Opciones de configuración
-├── Program.cs                        # Bootstrap
-├── appsettings.json                  # Configuración producción
-└── appsettings.Development.json      # Configuración desarrollo
+producer/
+├── src/
+│   ├── Producer.Domain/
+│   │   ├── Events/
+│   │   └── Ports/
+│   ├── Producer.Application/
+│   │   └── UseCases/
+│   │       ├── ReserveTicket/
+│   │       └── RequestPayment/
+│   ├── Producer.Infrastructure/
+│   │   ├── Messaging/
+│   │   └── DependencyInjection.cs
+│   └── Producer.Api/
+│       ├── Controllers/
+│       ├── Models/
+│       ├── Program.cs
+│       └── appsettings.json
+├── tests/
+│   └── Producer.Application.Tests/
+└── Dockerfile
 ```
+
+Regla de dependencias:
+
+`Producer.Domain` ← `Producer.Application` ← `Producer.Infrastructure` ← `Producer.Api`
 
 ---
 
@@ -37,28 +44,31 @@ Producer/
 
 ### Requisitos
 
-- .NET 8.0 o superior
-- RabbitMQ corriendo (en el compose del proyecto)
+- .NET 8.0+
+- RabbitMQ activo (idealmente con `docker compose` del repo)
 
 ### Compilar
 
 ```bash
-cd producer/Producer
-dotnet build
+dotnet build producer/src/Producer.Api/Producer.Api.csproj
 ```
 
 ### Ejecutar en desarrollo
 
 ```bash
-dotnet run
+dotnet run --project producer/src/Producer.Api/Producer.Api.csproj
 ```
 
-La API estará disponible en `https://localhost:7001` (o `http://localhost:5001` si no usas HTTPS).
+### Tests de Application
+
+```bash
+dotnet test producer/tests/Producer.Application.Tests/Producer.Application.Tests.csproj
+```
 
 ### Con Docker
 
 ```bash
-docker build -t producer:latest .
+docker build -t producer:latest producer
 docker run -p 8080:8080 producer:latest
 ```
 
@@ -68,156 +78,41 @@ docker run -p 8080:8080 producer:latest
 
 ### `POST /api/tickets/reserve`
 
-Reserva un ticket y publica el evento a RabbitMQ.
+Publica `ticket.reserved`.
 
-**Request:**
-```json
-{
-  "eventId": 123,
-  "ticketId": 456,
-  "orderId": "ORD-2026-001",
-  "reservedBy": "usuario@example.com",
-  "expiresInSeconds": 300
-}
-```
+### `POST /api/payments/process`
 
-**Response (202 Accepted):**
-```json
-{
-  "message": "Reserva procesada",
-  "ticketId": 456
-}
-```
+Publica `ticket.payment.requested`.
+
+### `GET /health`
+
+Health check general del servicio.
 
 ### `GET /api/tickets/health`
 
-Health check del servicio.
-
-**Response:**
-```json
-{
-  "status": "healthy",
-  "timestamp": "2026-02-10T17:50:00Z"
-}
-```
+Health check compatible con Dockerfile actual.
 
 ---
 
-## ⚙️ Configuración
+## ⚙️ RabbitMQ
 
-### `appsettings.json` (Producción)
+Configuración en `Producer.Api/appsettings.json` bajo sección `RabbitMQ`.
 
-```json
-{
-  "RabbitMQ": {
-    "Host": "rabbitmq",           // Hostname de RabbitMQ
-    "Port": 5672,                 // Puerto AMQP
-    "Username": "guest",          // Usuario
-    "Password": "guest",          // Contraseña
-    "VirtualHost": "/",           // VirtualHost
-    "ExchangeName": "tickets",    // Exchange donde publica
-    "TicketReservedRoutingKey": "ticket.reserved"  // Routing key
-  }
-}
-```
+Eventos publicados por el Producer:
 
-### `appsettings.Development.json` (Desarrollo Local)
+- `ticket.reserved`
+- `ticket.payment.requested`
 
-```json
-{
-  "RabbitMQ": {
-    "Host": "localhost"           // Para conectar a RabbitMQ local
-  }
-}
-```
+No se declaran exchanges/colas aquí; la topología la centraliza `scripts/setup-rabbitmq.sh`.
 
 ---
 
-## 🔌 RabbitMQ
+## ✅ Principios de diseño aplicados
 
-El producer publica mensajes en:
-- **Exchange:** `tickets` (tipo: topic)
-- **Routing Key:** `ticket.reserved`
-- **Cola:** `q.ticket.reserved` (creada automáticamente por rabbitmq-setup)
-
-### Estructura del mensaje
-
-```json
-{
-  "ticketId": 456,
-  "eventId": 123,
-  "orderId": "ORD-2026-001",
-  "reservedBy": "usuario@example.com",
-  "expiresAt": "2026-02-10T18:00:00Z",
-  "createdAt": "2026-02-10T17:55:00Z"
-}
-```
-
----
-
-## 🛠️ Principios Aplicados
-
-- **Single Responsibility (SRP):** Cada clase tiene una única responsabilidad
-  - `TicketsController` → Maneja HTTP
-  - `RabbitMQTicketPublisher` → Publica a RabbitMQ
-  
-- **Open/Closed (OCP):** El código es extensible
-  - `ITicketPublisher` permite agregar nuevos publicadores
-
-- **Dependency Inversion (DIP):** Todo se inyecta por constructor
-  - Usa interfaces, no implementaciones concretas
-
-- **Single Source of Truth:** Configuración centralizada en `RabbitMQOptions`
-
----
-
-## ✅ Validaciones
-
-El endpoint valida:
-- `EventId > 0`
-- `TicketId > 0`
-- `OrderId` no está vacío
-- `ReservedBy` no está vacío
-- `ExpiresInSeconds > 0`
-
-Devuelve `400 Bad Request` si alguna validación falla.
-
----
-
-## 📊 Logging
-
-El servicio registra:
-- ✅ Publicaciones exitosas
-- ❌ Errores y excepciones
-- 📝 Detalles del ticket y orden
-
-Ej:
-```
-Evento de ticket reservado publicado. TicketId: 456, OrderId: ORD-2026-001
-```
-
----
-
-## 🔧 Extensibilidad
-
-Para agregar un nuevo tipo de evento:
-
-1. Crear modelo en `Models/` (ej: `TicketPaymentEvent.cs`)
-2. Crear interfaz en `Services/` (ej: `IPaymentPublisher.cs`)
-3. Implementar servicio (ej: `RabbitMQPaymentPublisher.cs`)
-4. Registrar en `RabbitMQExtensions.cs`
-5. Agregar endpoint en `TicketsController.cs`
-
----
-
-## 📚 Tecnologías
-
-- **.NET 8.0**
-- **ASP.NET Core** Web API
-- **RabbitMQ.Client 6.8.1**
-- **Microsoft.Extensions** para DI y Logging
-
----
+- Validación HTTP en controllers (`Producer.Api`).
+- Casos de uso y mapeos en handlers (`Producer.Application`).
+- Publicación RabbitMQ en adaptadores (`Producer.Infrastructure`).
+- Puertos y eventos sin dependencias externas (`Producer.Domain`).
 
 ## 🧪 Testing (Recomendado)
 

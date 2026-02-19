@@ -1,312 +1,68 @@
-# 📐 Arquitectura del Producer
+# 📐 Arquitectura del Producer (Hexagonal)
 
-## Diagrama de Flujo
+## Resumen
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        CLIENT / API CONSUMER                     │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                  POST /api/tickets/reserve
-                    (ReserveTicketRequest)
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      TICKETS CONTROLLER                          │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │  • Valida entrada (EventId, TicketId, OrderId, etc.)     │  │
-│  │  • Crea TicketReservedEvent                              │  │
-│  │  • Inyecta: ITicketPublisher                             │  │
-│  └──────────────────────────────────────────────────────────┘  │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                 PublishTicketReservedAsync()
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│               ITICKETPUBLISHER (INTERFACE)                      │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │  Task PublishTicketReservedAsync(event)                  │  │
-│  └──────────────────────────────────────────────────────────┘  │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             │ implementado por
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│            RABBITMQTICKETPUBLISHER (IMPLEMENTATION)             │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │  • Serializa evento a JSON                               │  │
-│  │  • Crea canal HabbitMQ                                   │  │
-│  │  • BasicPublish al exchange 'tickets'                    │  │
-│  │  • Routing key: 'ticket.reserved'                        │  │
-│  │  • Inyecta: IConnection, IOptions<RabbitMQOptions>       │  │
-│  └──────────────────────────────────────────────────────────┘  │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                   canal.BasicPublish()
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                       RABBITMQ                                   │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │  Exchange: 'tickets' (type: topic)                       │  │
-│  │  Routing Key: 'ticket.reserved'                          │  │
-│  │                                                           │  │
-│  │  Binding → Queue: 'q.ticket.reserved'                    │  │
-│  │          → Queue: 'q.ticket.payments.approved'           │  │
-│  │          → Queue: 'q.ticket.payments.rejected'           │  │
-│  │          → Queue: 'q.ticket.expired'                     │  │
-│  └──────────────────────────────────────────────────────────┘  │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-        ┌────────────────────┼────────────────────┐
-        │                    │                    │
-        ▼                    ▼                    ▼
-    CONSUMER 1           CONSUMER 2           CONSUMER 3
-  ms_reserve_        ms_payments_            ms_expiration_
-   consumer          consumer                 consumer
-```
+El Producer está dividido en cuatro capas para separar responsabilidades y aplicar DIP:
 
----
+- `Producer.Domain`: eventos y puertos.
+- `Producer.Application`: casos de uso (`ReserveTicket`, `RequestPayment`).
+- `Producer.Infrastructure`: adaptadores RabbitMQ + wiring DI.
+- `Producer.Api`: controllers HTTP, DTOs y composition root.
 
-## Estructura de Dependencias
+## Regla de dependencias
 
 ```
-┌────────────────────────────────────┐
-│   DEPENDENCY INJECTION (DI)        │
-├────────────────────────────────────┤
-│                                    │
-│  Services.AddRabbitMQ()            │
-│    ├── IOptions<RabbitMQOptions>   │
-│    ├── IConnection                 │
-│    │   └── ConnectionFactory       │
-│    └── ITicketPublisher            │
-│        └── RabbitMQTicketPublisher │
-│                                    │
-└────────────────────────────────────┘
+Producer.Domain <- Producer.Application <- Producer.Infrastructure <- Producer.Api
 ```
 
----
-
-## Flujo de Datos
+## Estructura
 
 ```
-REQUEST:
-{
-  eventId: 123,
-  ticketId: 456,
-  orderId: "ORD-2026-001",
-  reservedBy: "user@example.com",
-  expiresInSeconds: 300
-}
-
-           ↓ (validado en Controller)
-
-INTERNAL EVENT:
-{
-  ticketId: 456,
-  eventId: 123,
-  orderId: "ORD-2026-001",
-  reservedBy: "user@example.com",
-  expiresAt: "2026-02-10T18:00:00Z",    ← DateTime.UtcNow.AddSeconds(300)
-  createdAt: "2026-02-10T17:55:00Z"
-}
-
-           ↓ (serializado a JSON por JsonSerializer)
-
-RABBITMQ MESSAGE:
-{
-  "ticketId":456,
-  "eventId":123,
-  "orderId":"ORD-2026-001",
-  "reservedBy":"user@example.com",
-  "expiresAt":"2026-02-10T18:00:00Z",
-  "createdAt":"2026-02-10T17:55:00Z"
-}
-
-           ↓ (publicado a q.ticket.reserved)
-
-CONSUMERS:
-- ms_reserve_consumer → Procesa la reserva
-- ms_payments_consumer → Inicia pago
-- ... otros consumers
+producer/
+├── src/
+│   ├── Producer.Domain/
+│   │   ├── Events/
+│   │   │   ├── TicketReservedEvent.cs
+│   │   │   └── PaymentRequestedEvent.cs
+│   │   └── Ports/
+│   │       ├── ITicketEventPublisher.cs
+│   │       └── IPaymentEventPublisher.cs
+│   ├── Producer.Application/
+│   │   └── UseCases/
+│   │       ├── ReserveTicket/
+│   │       └── RequestPayment/
+│   ├── Producer.Infrastructure/
+│   │   ├── Messaging/
+│   │   │   ├── RabbitMQSettings.cs
+│   │   │   ├── RabbitMQTicketPublisher.cs
+│   │   │   └── RabbitMQPaymentPublisher.cs
+│   │   └── DependencyInjection.cs
+│   └── Producer.Api/
+│       ├── Controllers/
+│       ├── Models/
+│       └── Program.cs
+└── tests/
+    └── Producer.Application.Tests/
 ```
 
----
+## Flujo de reserva
 
-## Capas Arquitectónicas
+1. `POST /api/tickets/reserve` llega a `TicketsController`.
+2. Controller valida entrada y crea `ReserveTicketCommand`.
+3. `ReserveTicketCommandHandler` mapea a `TicketReservedEvent`.
+4. `ITicketEventPublisher` publica vía `RabbitMQTicketPublisher`.
+5. Mensaje sale por exchange `tickets` con routing key `ticket.reserved`.
 
-```
-┌─────────────────────────────────────────────┐
-│  PRESENTACIÓN                               │
-│  .Controllers                               │
-│  - TicketsController                        │
-└────────────────┬────────────────────────────┘
-                 │
-┌─────────────────────────────────────────────┐
-│  LÓGICA DE NEGOCIO / ORQUESTACIÓN          │
-│  .Services                                  │
-│  - ITicketPublisher (interfaz)              │
-│  - RabbitMQTicketPublisher (implementación) │
-└────────────────┬────────────────────────────┘
-                 │
-┌─────────────────────────────────────────────┐
-│  CONFIGURACIÓN E INYECCIÓN                  │
-│  .Extensions                                │
-│  .Configurations                            │
-│  - RabbitMQExtensions                       │
-│  - RabbitMQOptions                          │
-└────────────────┬────────────────────────────┘
-                 │
-┌─────────────────────────────────────────────┐
-│  MODELOS                                    │
-│  .Models                                    │
-│  - ReserveTicketRequest (DTO entrada)       │
-│  - TicketReservedEvent (DTO salida)         │
-└────────────────┬────────────────────────────┘
-                 │
-┌─────────────────────────────────────────────┐
-│  INFRAESTRUCTURA EXTERNA                    │
-│  RabbitMQ, ConnectionFactory                │
-│  Plugins de Logging                         │
-└─────────────────────────────────────────────┘
-```
+## Flujo de pago
 
----
+1. `POST /api/payments/process` llega a `PaymentsController`.
+2. Controller valida entrada y crea `RequestPaymentCommand`.
+3. `RequestPaymentCommandHandler` mapea a `PaymentRequestedEvent`.
+4. Si `TransactionRef` viene null, se genera `TXN-{Guid}`.
+5. `IPaymentEventPublisher` publica por routing key `ticket.payment.requested`.
 
-## Patrones de Diseño
+## Notas operativas
 
-### 1️⃣ Dependency Injection Pattern
-```csharp
-public TicketsController(
-    ITicketPublisher publisher,      // ← Inyectado
-    ILogger<TicketsController> logger) // ← Inyectado
-{
-    // No usar 'new', confiar en DI
-}
-```
-
-### 2️⃣ Repository Pattern (Adaptado)
-```csharp
-ITicketPublisher                          // Abstracción
-    ↑
-    └─ RabbitMQTicketPublisher           // Implementación
-       └─ IConnection (RabbitMQ)         // Infraestructura
-```
-
-### 3️⃣ Options Pattern
-```csharp
-services.Configure<RabbitMQOptions>(configuration.GetSection("RabbitMQ"));
-// IOptions<RabbitMQOptions> inyectado automáticamente
-```
-
-### 4️⃣ Factory Pattern
-```csharp
-var factory = new ConnectionFactory { ... };
-var connection = factory.CreateConnection(); // Factory
-```
-
----
-
-## Principios SOLID Aplicados
-
-### S - Single Responsibility
-```
-✅ TicketsController      → Solo maneja HTTP
-✅ RabbitMQPublisher      → Solo publica a RabbitMQ
-✅ RabbitMQOptions        → Solo configura
-```
-
-### O - Open/Closed
-```
-✅ ITicketPublisher interface permite agregar nuevas implementaciones
-   sin modificar código existente
-```
-
-### L - Liskov Substitution
-```
-✅ RabbitMQTicketPublisher puede reemplazar a ITicketPublisher
-   sin romper el contrato
-```
-
-### I - Interface Segregation
-```
-✅ ITicketPublisher es pequeña y específica (solo 1 método)
-✅ No hay métodos innecesarios
-```
-
-### D - Dependency Inversion
-```
-✅ TicketsController depende de ITicketPublisher (abstracción)
-✅ No depende de RabbitMQTicketPublisher (implementación)
-```
-
----
-
-## Escalabilidad Futura
-
-```
-Hoy (Producer):
-Client → API → RabbitMQ → Consumers
-
-Futuro (Agregando nuevos eventos):
-Client → API → RabbitMQ → Consumers
-              ├─ ticket.reserved
-              ├─ payment.approved      ← Nuevo
-              ├─ payment.rejected      ← Nuevo
-              └─ ticket.expired
-
-Implementación:
-1. Crear PaymentPublisher (implementa IPaymentPublisher)
-2. Registrar en RabbitMQExtensions
-3. Agregar endpoint en Controller
-4. Consumers suscriben a los nuevos eventos
-```
-
----
-
-## Resumen Gráfico
-
-```
-                    ┌──────────────┐
-                    │   HTTP API   │
-                    │   :5000      │
-                    └──────┬───────┘
-                           │
-                 ┌─────────┴─────────┐
-                 │                   │
-           POST /reserve      GET /health
-                 │                   │
-                 ▼                   ▼
-        ┌──────────────────────────────┐
-        │   TicketsController          │
-        │   - Valida                   │
-        │   - Crea evento              │
-        └──────────────┬───────────────┘
-                       │
-                       ▼
-        ┌──────────────────────────────┐
-        │   ITicketPublisher           │
-        └──────────────┬───────────────┘
-                       │
-                       ▼
-        ┌──────────────────────────────┐
-        │   RabbitMQTicketPublisher    │
-        │   - Serializa                │
-        │   - Publica                  │
-        └──────────────┬───────────────┘
-                       │
-                       ▼
-        ┌──────────────────────────────┐
-        │   RabbitMQ Broker            │
-        │   Exchange: tickets          │
-        │   Queue: q.ticket.reserved   │
-        └──────────────┬───────────────┘
-                       │
-        ┌──────────────┼──────────────┐
-        │              │              │
-        ▼              ▼              ▼
-  Reserve        Payments        Expiration
-  Consumer       Consumer        Consumer
-```
-
+- La topología RabbitMQ sigue centralizada en `scripts/setup-rabbitmq.sh`.
+- `Program.cs` conserva CORS `AllowAll` para MVP (con `// HUMAN CHECK`).
+- El Producer no contiene lógica de decisión de pago ni persistencia.

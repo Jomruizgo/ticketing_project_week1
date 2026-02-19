@@ -11,7 +11,7 @@ RUN dotnet restore ReservationService.Worker/ReservationService.Worker.csproj
 # Copy source code and publish
 COPY src/. ./
 WORKDIR /src/ReservationService.Worker
-RUN dotnet publish -c Release -o /app/publish --no-restore
+RUN dotnet publish -c Release -o /app/publish
 
 # Final image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime

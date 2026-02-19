@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Options;
 using MsPaymentService.Worker.Configurations;
 using MsPaymentService.Worker.Handlers;
+using MsPaymentService.Worker.Messaging;
 using MsPaymentService.Worker.Models.DTOs;
 using MsPaymentService.Worker.Models.Events;
 using MsPaymentService.Worker.Services;
@@ -13,17 +14,19 @@ namespace MsPaymentService.Worker.Tests;
 public class PaymentApprovedEventHandlerTests
 {
     private readonly IPaymentValidationService _validationService;
+    private readonly IStatusChangedPublisher _statusPublisher;
     private readonly PaymentApprovedEventHandler _sut;
 
     public PaymentApprovedEventHandlerTests()
     {
         _validationService = Substitute.For<IPaymentValidationService>();
+        _statusPublisher = Substitute.For<IStatusChangedPublisher>();
         var settings = Options.Create(new RabbitMQSettings
         {
             ApprovedQueueName = "ticket.payments.approved",
             RejectedQueueName = "ticket.payments.rejected"
         });
-        _sut = new PaymentApprovedEventHandler(_validationService, settings);
+        _sut = new PaymentApprovedEventHandler(_validationService, _statusPublisher, settings);
     }
 
     [Fact]

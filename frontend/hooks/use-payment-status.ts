@@ -1,84 +1,69 @@
 /**
- * Hook para monitorear el estado de pago
- * Usa polling para esperar a que el estado del ticket cambie a "paid"
+ * Hook para monitorear el estado de pago via SSE.
+ * Reemplaza el polling anterior por una conexion SSE a GET /api/tickets/{id}/stream.
+ * El servidor notifica cuando el ticket cambia a "paid" o "released".
  */
 
-import { useEffect, useState } from "react"
+"use client"
+
+import { useCallback, useRef, useState } from "react"
+import { useTicketStatusSse } from "./use-ticket-status-sse"
 
 interface UsePaymentStatusOptions {
   ticketId?: number
   onPaymentConfirmed?: () => void
   onPaymentRejected?: (reason: string) => void
-  maxDuration?: number // en segundos, default 10
 }
 
 export function usePaymentStatus({
   ticketId,
   onPaymentConfirmed,
   onPaymentRejected,
-  maxDuration = 10,
 }: UsePaymentStatusOptions) {
   const [isPolling, setIsPolling] = useState(false)
-  const [elapsedTime, setElapsedTime] = useState(0)
+  const { waitForStatus, cancel } = useTicketStatusSse()
+  const startedRef = useRef(false)
 
-  useEffect(() => {
-    if (!ticketId || !isPolling) {
-      return
-    }
+  const startPolling = useCallback(() => {
+    if (!ticketId || startedRef.current) return
 
-    const startTime = Date.now()
-    const maxTime = maxDuration * 1000
-    let pollInterval: NodeJS.Timeout | null = null
+    startedRef.current = true
+    setIsPolling(true)
 
-    const pollPaymentStatus = async () => {
-      try {
-        const response = await fetch(`/api/tickets/${ticketId}`)
-        if (!response.ok) {
-          throw new Error("Failed to fetch ticket")
-        }
-
-        const ticket = await response.json()
-        const elapsed = Date.now() - startTime
-
-        setElapsedTime(Math.round(elapsed / 1000))
-
-        // Si el pago fue aprobado
-        if (ticket.status === "paid") {
-          if (pollInterval) clearInterval(pollInterval)
-          setIsPolling(false)
-          onPaymentConfirmed?.()
-          return
-        }
-
-        // Si pasó el tiempo máximo, asumimos que fue rechazado
-        if (elapsed > maxTime) {
-          if (pollInterval) clearInterval(pollInterval)
-          setIsPolling(false)
-          onPaymentRejected?.("El pago tardó demasiado en confirmarse")
-          return
-        }
-      } catch (error) {
-        console.error("Error polling payment status:", error)
-        if (pollInterval) clearInterval(pollInterval)
+    waitForStatus(
+      ticketId,
+      (status) => {
         setIsPolling(false)
-        onPaymentRejected?.("Error verificando estado del pago")
+        startedRef.current = false
+
+        if (status === "paid") {
+          onPaymentConfirmed?.()
+        } else {
+          onPaymentRejected?.(
+            status === "released"
+              ? "Pago rechazado. El ticket ha sido liberado."
+              : `Estado inesperado: ${status}`
+          )
+        }
+      },
+      () => {
+        setIsPolling(false)
+        startedRef.current = false
+        onPaymentRejected?.("El pago tardó demasiado en confirmarse")
       }
-    }
+    )
+  }, [ticketId, waitForStatus, onPaymentConfirmed, onPaymentRejected])
 
-    pollInterval = setInterval(pollPaymentStatus, 500) // Poll cada 500ms
-    
-    // Hacer una llamada inmediata
-    pollPaymentStatus()
-
-    return () => {
-      if (pollInterval) clearInterval(pollInterval)
-    }
-  }, [ticketId, isPolling, onPaymentConfirmed, onPaymentRejected, maxDuration])
+  const stopPolling = useCallback(() => {
+    cancel()
+    setIsPolling(false)
+    startedRef.current = false
+  }, [cancel])
 
   return {
     isPolling,
-    startPolling: () => setIsPolling(true),
-    stopPolling: () => setIsPolling(false),
-    elapsedTime,
+    startPolling,
+    stopPolling,
+    elapsedTime: 0, // Mantenemos la interfaz compatible
   }
 }
