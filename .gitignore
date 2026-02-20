@@ -95,6 +95,14 @@ temp/
 # Keep IDE/editor specific files out
 *.idea/
 
+# Parametros de la empresa para el desarrollo con arquitectura hexagonal
+.parametrosNET.pdf
+
+# Documentos internos / evaluación (no se suben al repo)
+"Guía de Evaluación - Semana 1.pdf"
+explicacion.md
+explicacionRefactorizacion.md
+RESUMEN_EXPOSICION.md
 
 .github/copilot-instructions.md
 

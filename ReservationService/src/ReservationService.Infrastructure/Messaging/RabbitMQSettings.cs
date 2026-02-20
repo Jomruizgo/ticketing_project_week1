@@ -11,4 +11,5 @@ public class RabbitMQSettings
     public string QueueName { get; set; } = "q.ticket.reserved";
     public string ExchangeName { get; set; } = "tickets";
     public string RoutingKey { get; set; } = "ticket.reserved";
+    public string StatusChangedRoutingKey { get; set; } = "ticket.status.changed";
 }

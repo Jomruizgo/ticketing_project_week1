@@ -1,14 +1,21 @@
 namespace CrudService.Models.Entities;
 
+using NpgsqlTypes;
+
 /// <summary>
 /// Estados posibles de un ticket
 /// </summary>
 public enum TicketStatus
 {
+    [PgName("available")]
     Available,
+    [PgName("reserved")]
     Reserved,
+    [PgName("paid")]
     Paid,
+    [PgName("released")]
     Released,
+    [PgName("cancelled")]
     Cancelled
 }
 

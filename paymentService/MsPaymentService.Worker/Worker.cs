@@ -34,6 +34,7 @@ public class Worker : BackgroundService
 
             try
             {
+                _consumer.Start(_rabbitSettings.RequestedQueueName);
                 _consumer.Start(_rabbitSettings.ApprovedQueueName);
                 _consumer.Start(_rabbitSettings.RejectedQueueName);
                 _logger.LogInformation("Worker connected to RabbitMQ and consuming at: {Time}", DateTimeOffset.Now);
