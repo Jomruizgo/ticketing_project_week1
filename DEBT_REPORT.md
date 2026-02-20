@@ -167,7 +167,9 @@
 
 ---
 
-## 5. Priorización de Resolución
+## 5. Resolución Aplicada
 
-> Ver `docs/REFACTORING_PLAN.md` para el backlog completo (P0/P1/P2).
-> La Fase 2 está bloqueada hasta definir la arquitectura hexagonal.
+> La refactorización a arquitectura hexagonal se completó en todos los servicios (ver historial de commits y `AI_WORKFLOW.md`).
+> Los smells identificados en este reporte fueron la base del plan de refactor: cada violación DIP/SRP documentada aquí tiene su corrección en la capa correspondiente de la arquitectura hexagonal.
+>
+> **Resultado:** Domain y Application son ahora 100% independientes de infraestructura. Los 50 tests unitarios pasando sin Docker ni DB lo demuestran.
