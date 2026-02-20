@@ -30,10 +30,14 @@ public class PaymentApprovedEventHandlerTests
         _stateService = Substitute.For<ITicketStateService>();
         _statusPublisher = Substitute.For<IStatusChangedPublisher>();
 
+        var config = Substitute.For<IPaymentConfiguration>();
+        config.ReservationTtlMinutes.Returns(5);
+
         var commandHandler = new ProcessApprovedPaymentCommandHandler(
             _ticketRepository,
             _paymentRepository,
             _stateService,
+            config,
             Substitute.For<ILogger<ProcessApprovedPaymentCommandHandler>>());
 
         var settings = Options.Create(new RabbitMQSettings

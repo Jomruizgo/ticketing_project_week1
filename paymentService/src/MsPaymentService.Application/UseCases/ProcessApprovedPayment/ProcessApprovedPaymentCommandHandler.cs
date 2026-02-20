@@ -11,17 +11,20 @@ public class ProcessApprovedPaymentCommandHandler
     private readonly ITicketRepository _ticketRepository;
     private readonly IPaymentRepository _paymentRepository;
     private readonly ITicketStateService _stateService;
+    private readonly IPaymentConfiguration _config;
     private readonly ILogger<ProcessApprovedPaymentCommandHandler> _logger;
 
     public ProcessApprovedPaymentCommandHandler(
         ITicketRepository ticketRepository,
         IPaymentRepository paymentRepository,
         ITicketStateService stateService,
+        IPaymentConfiguration config,
         ILogger<ProcessApprovedPaymentCommandHandler> logger)
     {
         _ticketRepository = ticketRepository;
         _paymentRepository = paymentRepository;
         _stateService = stateService;
+        _config = config;
         _logger = logger;
     }
 
@@ -93,7 +96,7 @@ public class ProcessApprovedPaymentCommandHandler
 
     public bool IsWithinTimeLimit(DateTime reservedAt, DateTime paymentReceivedAt)
     {
-        var expirationTime = reservedAt.AddMinutes(5);
+        var expirationTime = reservedAt.AddMinutes(_config.ReservationTtlMinutes);
         return paymentReceivedAt <= expirationTime;
     }
 }
