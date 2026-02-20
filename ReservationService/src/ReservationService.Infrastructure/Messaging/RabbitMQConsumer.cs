@@ -66,6 +66,10 @@ public class RabbitMQConsumer : BackgroundService
                     var handler = scope.ServiceProvider.GetRequiredService<ProcessReservationCommandHandler>();
                     await handler.HandleAsync(message, stoppingToken);
 
+                    // HUMAN CHECK:
+                    // El evento status.changed debe publicarse solo después de procesar
+                    // la reserva para evitar notificar al cliente un estado que aún no fue
+                    // persistido. Mantener este orden reduce race conditions con SSE.
                     await PublishStatusChangedAsync(message.TicketId, "reserved", stoppingToken);
                 }
 
