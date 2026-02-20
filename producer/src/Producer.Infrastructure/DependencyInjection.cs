@@ -30,6 +30,9 @@ public static class DependencyInjection
             {
                 HostName = settings.Host,
                 Port = settings.Port,
+                // HUMAN CHECK:
+                // Credenciales y host se consumen desde configuración externa
+                // (appsettings + env vars). No hardcodear secretos en código.
                 UserName = settings.Username,
                 Password = settings.Password,
                 VirtualHost = settings.VirtualHost,
