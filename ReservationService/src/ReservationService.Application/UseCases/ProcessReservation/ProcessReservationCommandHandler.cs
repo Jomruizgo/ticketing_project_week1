@@ -1,10 +1,12 @@
 using Microsoft.Extensions.Logging;
+using ReservationService.Application.DTOs.ProcessReservation;
+using ReservationService.Application.Interfaces;
 using ReservationService.Domain.Entities;
 using ReservationService.Domain.Interfaces;
 
 namespace ReservationService.Application.UseCases.ProcessReservation;
 
-public class ProcessReservationCommandHandler
+public class ProcessReservationCommandHandler : IProcessReservationUseCase
 {
     private readonly ITicketRepository _ticketRepository;
     private readonly ILogger<ProcessReservationCommandHandler> _logger;

@@ -1,9 +1,11 @@
+using Producer.Application.DTOs.ReserveTicket;
+using Producer.Application.Interfaces;
 using Producer.Domain.Events;
 using Producer.Domain.Ports;
 
 namespace Producer.Application.UseCases.ReserveTicket;
 
-public class ReserveTicketCommandHandler
+public class ReserveTicketCommandHandler : IReserveTicketUseCase
 {
     private readonly ITicketEventPublisher _ticketEventPublisher;
 

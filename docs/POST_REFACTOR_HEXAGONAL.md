@@ -31,8 +31,14 @@ Regla de dependencias aplicada:
 
 Puertos definidos y usados por casos de uso:
 
+- Puerto de entrada de aplicación: [ReservationService/src/ReservationService.Application/Interfaces/IProcessReservationUseCase.cs](ReservationService/src/ReservationService.Application/Interfaces/IProcessReservationUseCase.cs)
 - Puerto de salida de dominio: [ReservationService/src/ReservationService.Domain/Interfaces/ITicketRepository.cs](ReservationService/src/ReservationService.Domain/Interfaces/ITicketRepository.cs)
 - Caso de uso desacoplado de infraestructura: [ReservationService/src/ReservationService.Application/UseCases/ProcessReservation/ProcessReservationCommandHandler.cs](ReservationService/src/ReservationService.Application/UseCases/ProcessReservation/ProcessReservationCommandHandler.cs)
+
+DTOs de Application definidos al mismo nivel de Interfaces/UseCases:
+
+- [ReservationService/src/ReservationService.Application/DTOs/ProcessReservation/ProcessReservationCommand.cs](ReservationService/src/ReservationService.Application/DTOs/ProcessReservation/ProcessReservationCommand.cs)
+- [ReservationService/src/ReservationService.Application/DTOs/ProcessReservation/ProcessReservationResponse.cs](ReservationService/src/ReservationService.Application/DTOs/ProcessReservation/ProcessReservationResponse.cs)
 
 ### 1.2 Evidencia SOLID (definición + ejemplo + aplicación real)
 
@@ -90,49 +96,28 @@ Si `OrderService` instancia directamente `SqlConnection`, la lógica queda atada
 - Application depende de [ITicketRepository](ReservationService/src/ReservationService.Domain/Interfaces/ITicketRepository.cs) (abstracción del dominio).
 - Infrastructure implementa ese puerto con EF/Npgsql en [TicketRepository](ReservationService/src/ReservationService.Infrastructure/Persistence/Repositories/TicketRepository.cs).
 
-### 1.3 Patrones de diseño aplicados (definición + ejemplo + aplicación real)
+### 1.3 Patrones de diseño GoF aplicados (definición + ejemplo + aplicación real)
 
-#### Patrón arquitectónico: Ports & Adapters (Hexagonal)
-**Definición:** El dominio y los casos de uso se diseñan como núcleo aislado; todo acceso a infraestructura ocurre a través de puertos.
-
-**Ejemplo clave:**
-Si la lógica de reserva dependiera directamente de RabbitMQ o EF Core, cada cambio técnico obligaría a tocar negocio.
-
-**Cómo cumple nuestra implementación:**
-- `Application` procesa la reserva sin conocer detalles de broker o base de datos.
-- `Infrastructure` conecta ese núcleo mediante adaptadores concretos:
-  - [ReservationService/src/ReservationService.Infrastructure/Messaging/RabbitMQConsumer.cs](ReservationService/src/ReservationService.Infrastructure/Messaging/RabbitMQConsumer.cs)
-  - [ReservationService/src/ReservationService.Infrastructure/Persistence/Repositories/TicketRepository.cs](ReservationService/src/ReservationService.Infrastructure/Persistence/Repositories/TicketRepository.cs)
-
-#### Patrón creacional: Dependency Injection (Composition Root)
-**Definición:** La creación y ensamblaje de dependencias se centraliza en un punto de composición, fuera de la lógica de negocio.
+#### Patrón estructural: Adapter
+**Definición:** Adapter traduce una interfaz/protocolo externo hacia una interfaz útil para el núcleo de negocio.
 
 **Ejemplo clave:**
-Sin DI, un handler podría instanciar su repositorio y su logger; eso acopla construcción y comportamiento.
+RabbitMQ entrega bytes y metadatos de transporte, pero el caso de uso necesita un comando tipado y una invocación de puerto de entrada.
 
 **Cómo cumple nuestra implementación:**
-- El registro de servicios está centralizado en [ReservationService/src/ReservationService.Infrastructure/DependencyInjection.cs](ReservationService/src/ReservationService.Infrastructure/DependencyInjection.cs).
-- Los casos de uso reciben dependencias por constructor, lo que facilita sustitución en tests.
+- [ReservationService/src/ReservationService.Infrastructure/Messaging/RabbitMQConsumer.cs](ReservationService/src/ReservationService.Infrastructure/Messaging/RabbitMQConsumer.cs) adapta el mensaje RabbitMQ a `ProcessReservationCommand` y delega al puerto `IProcessReservationUseCase`.
 
-#### Patrón estructural: Repository
-**Definición:** Se encapsula el acceso a persistencia detrás de una abstracción orientada al dominio.
+#### Patrón de comportamiento: Command
+**Definición:** Command encapsula una solicitud como objeto para separar quien invoca de quien ejecuta.
 
 **Ejemplo clave:**
-La regla de concurrencia optimista (`version` + `status`) no debería dispersarse en handlers y consumers.
+La reserva se encapsula en `ProcessReservationCommand`; el invocador (consumer) no conoce la lógica interna de ejecución.
 
 **Cómo cumple nuestra implementación:**
-- `ITicketRepository` define operaciones del dominio.
-- `TicketRepository` concentra SQL/EF y semántica de concurrencia en [ReservationService/src/ReservationService.Infrastructure/Persistence/Repositories/TicketRepository.cs](ReservationService/src/ReservationService.Infrastructure/Persistence/Repositories/TicketRepository.cs).
+- Comando: [ReservationService/src/ReservationService.Application/DTOs/ProcessReservation/ProcessReservationCommand.cs](ReservationService/src/ReservationService.Application/DTOs/ProcessReservation/ProcessReservationCommand.cs)
+- Ejecutor del comando: [ReservationService/src/ReservationService.Application/UseCases/ProcessReservation/ProcessReservationCommandHandler.cs](ReservationService/src/ReservationService.Application/UseCases/ProcessReservation/ProcessReservationCommandHandler.cs)
 
-#### Patrón de comportamiento: Command Handler + Event-Driven Consumer
-**Definición:** Un command handler encapsula el caso de uso; un consumidor de eventos actúa como disparador asíncrono.
-
-**Ejemplo clave:**
-Si el consumer mezclara parsing del mensaje, reglas de reserva y persistencia en un solo bloque, crecería la complejidad y bajaría la testabilidad.
-
-**Cómo cumple nuestra implementación:**
-- El flujo de negocio se ejecuta en [ReservationService/src/ReservationService.Application/UseCases/ProcessReservation/ProcessReservationCommandHandler.cs](ReservationService/src/ReservationService.Application/UseCases/ProcessReservation/ProcessReservationCommandHandler.cs).
-- RabbitMQ sólo activa el caso de uso y publica resultado en [ReservationService/src/ReservationService.Infrastructure/Messaging/RabbitMQConsumer.cs](ReservationService/src/ReservationService.Infrastructure/Messaging/RabbitMQConsumer.cs).
+No se evidencia un patrón creacional GoF explícito en el flujo actual de ReservationService.
 
 ### 1.4 Tests unitarios puros y cobertura lógica
 
@@ -158,6 +143,7 @@ Se marcaron decisiones críticas en código:
 
 - Optimistic locking (filtro por `version` + `status`) en [ReservationService/src/ReservationService.Infrastructure/Persistence/Repositories/TicketRepository.cs](ReservationService/src/ReservationService.Infrastructure/Persistence/Repositories/TicketRepository.cs).
 - Orden de publicación `status.changed` después del procesamiento de reserva en [ReservationService/src/ReservationService.Infrastructure/Messaging/RabbitMQConsumer.cs](ReservationService/src/ReservationService.Infrastructure/Messaging/RabbitMQConsumer.cs).
+- Dependencia de infraestructura hacia puerto de entrada (y no handler concreto) en [ReservationService/src/ReservationService.Infrastructure/DependencyInjection.cs](ReservationService/src/ReservationService.Infrastructure/DependencyInjection.cs).
 
 ---
 
@@ -184,6 +170,11 @@ Puertos de salida del dominio bien definidos:
 - [producer/src/Producer.Domain/Ports/ITicketEventPublisher.cs](producer/src/Producer.Domain/Ports/ITicketEventPublisher.cs)
 - [producer/src/Producer.Domain/Ports/IPaymentEventPublisher.cs](producer/src/Producer.Domain/Ports/IPaymentEventPublisher.cs)
 
+Puertos de entrada de aplicación definidos:
+
+- [producer/src/Producer.Application/Interfaces/IReserveTicketUseCase.cs](producer/src/Producer.Application/Interfaces/IReserveTicketUseCase.cs)
+- [producer/src/Producer.Application/Interfaces/IRequestPaymentUseCase.cs](producer/src/Producer.Application/Interfaces/IRequestPaymentUseCase.cs)
+
 Casos de uso desacoplados:
 
 - Reserva: [producer/src/Producer.Application/UseCases/ReserveTicket/ReserveTicketCommandHandler.cs](producer/src/Producer.Application/UseCases/ReserveTicket/ReserveTicketCommandHandler.cs)
@@ -199,6 +190,7 @@ Si un controller también decide reglas de negocio y además persiste, cualquier
 
 **Cómo cumple nuestra implementación:**
 - Controllers HTTP en [producer/src/Producer.Api/Controllers](producer/src/Producer.Api/Controllers) validan y mapean request.
+- Controllers consumen puertos de entrada de Application (`IReserveTicketUseCase`, `IRequestPaymentUseCase`) y no handlers concretos.
 - Casos de uso en [producer/src/Producer.Application/UseCases](producer/src/Producer.Application/UseCases) construyen eventos y ejecutan el flujo de negocio.
 - Adaptadores RabbitMQ en [producer/src/Producer.Infrastructure/Messaging](producer/src/Producer.Infrastructure/Messaging) encapsulan publicación.
 
@@ -241,34 +233,23 @@ Si el caso de uso instancia `IConnection` de RabbitMQ, queda acoplado a infraest
 
 **Cómo cumple nuestra implementación:**
 - `Producer.Application` depende solo de puertos en `Producer.Domain`.
+- `Producer.Api` depende de puertos de entrada en `Producer.Application/Interfaces`, no de implementaciones concretas de casos de uso.
 - `Producer.Infrastructure` contiene RabbitMQ, DI y configuración concreta.
 
-### 2.3 Patrones de diseño aplicados (definición + ejemplo + aplicación real)
+### 2.3 Patrones de diseño GoF aplicados (definición + ejemplo + aplicación real)
 
-#### Patrón arquitectónico: Ports & Adapters (Hexagonal)
-**Definición:** Se separa el núcleo de negocio de los detalles de entrada/salida mediante puertos y adaptadores.
-
-**Ejemplo clave:**
-Si `ReserveTicketCommandHandler` conociera exchange, routing key y serialización, cualquier cambio de mensajería rompería Application.
-
-**Cómo cumple nuestra implementación:**
-- Los handlers dependen de puertos de dominio:
-  - [producer/src/Producer.Domain/Ports/ITicketEventPublisher.cs](producer/src/Producer.Domain/Ports/ITicketEventPublisher.cs)
-  - [producer/src/Producer.Domain/Ports/IPaymentEventPublisher.cs](producer/src/Producer.Domain/Ports/IPaymentEventPublisher.cs)
-- Los detalles RabbitMQ viven en Infrastructure.
-
-#### Patrón creacional: Dependency Injection + Factory
-**Definición:** DI resuelve dependencias por contrato; Factory encapsula construcción compleja de objetos técnicos.
+#### Patrón creacional: Factory Method
+**Definición:** Factory Method encapsula la creación de un objeto complejo detrás de una fábrica concreta.
 
 **Ejemplo clave:**
-Si cada publisher creara su propia conexión con parámetros hardcodeados, habría duplicación y riesgo de configuración inconsistente.
+Si cada publisher creara conexión a RabbitMQ manualmente con parámetros hardcodeados, habría duplicación y alto riesgo de inconsistencia.
 
 **Cómo cumple nuestra implementación:**
-- El wiring se centraliza en [producer/src/Producer.Infrastructure/DependencyInjection.cs](producer/src/Producer.Infrastructure/DependencyInjection.cs).
-- `ConnectionFactory` de RabbitMQ encapsula creación de conexiones/canales según configuración.
+- `ConnectionFactory` de RabbitMQ centraliza la creación de conexiones/canales según configuración.
+- El wiring y ciclo de vida de esas dependencias se centraliza en [producer/src/Producer.Infrastructure/DependencyInjection.cs](producer/src/Producer.Infrastructure/DependencyInjection.cs).
 
 #### Patrón estructural: Adapter
-**Definición:** Un adapter traduce una interfaz esperada por negocio a una API externa concreta.
+**Definición:** Adapter traduce una interfaz esperada por negocio a una API externa concreta.
 
 **Ejemplo clave:**
 Application necesita "publicar evento"; RabbitMQ exige exchange/routing key/body/propiedades. El adapter convierte entre ambos mundos.
@@ -277,15 +258,15 @@ Application necesita "publicar evento"; RabbitMQ exige exchange/routing key/body
 - [producer/src/Producer.Infrastructure/Messaging/RabbitMQTicketPublisher.cs](producer/src/Producer.Infrastructure/Messaging/RabbitMQTicketPublisher.cs) adapta `ITicketEventPublisher`.
 - [producer/src/Producer.Infrastructure/Messaging/RabbitMQPaymentPublisher.cs](producer/src/Producer.Infrastructure/Messaging/RabbitMQPaymentPublisher.cs) adapta `IPaymentEventPublisher`.
 
-#### Patrón de comportamiento: Command Handler
-**Definición:** Cada comando tiene un handler que encapsula una intención de negocio única y su flujo.
+#### Patrón de comportamiento: Command
+**Definición:** Command encapsula una solicitud como objeto para separar invocador y ejecutor.
 
 **Ejemplo clave:**
-Separar `ReserveTicket` y `RequestPayment` evita handlers genéricos con condicionales por tipo de operación.
+Controllers crean comandos (`ReserveTicketCommand`, `RequestPaymentCommand`) y delegan su ejecución a los casos de uso.
 
 **Cómo cumple nuestra implementación:**
-- Reserva en [producer/src/Producer.Application/UseCases/ReserveTicket/ReserveTicketCommandHandler.cs](producer/src/Producer.Application/UseCases/ReserveTicket/ReserveTicketCommandHandler.cs).
-- Pago en [producer/src/Producer.Application/UseCases/RequestPayment/RequestPaymentCommandHandler.cs](producer/src/Producer.Application/UseCases/RequestPayment/RequestPaymentCommandHandler.cs).
+- Comandos: [producer/src/Producer.Application/DTOs/ReserveTicket/ReserveTicketCommand.cs](producer/src/Producer.Application/DTOs/ReserveTicket/ReserveTicketCommand.cs), [producer/src/Producer.Application/DTOs/RequestPayment/RequestPaymentCommand.cs](producer/src/Producer.Application/DTOs/RequestPayment/RequestPaymentCommand.cs)
+- Ejecutores: [producer/src/Producer.Application/UseCases/ReserveTicket/ReserveTicketCommandHandler.cs](producer/src/Producer.Application/UseCases/ReserveTicket/ReserveTicketCommandHandler.cs), [producer/src/Producer.Application/UseCases/RequestPayment/RequestPaymentCommandHandler.cs](producer/src/Producer.Application/UseCases/RequestPayment/RequestPaymentCommandHandler.cs)
 
 ### 2.4 Tests unitarios puros y cobertura lógica
 
@@ -309,6 +290,7 @@ Cobertura lógica de `Application` en Producer:
 
 - Política CORS de desarrollo y advertencia de hardening en [producer/src/Producer.Api/Program.cs](producer/src/Producer.Api/Program.cs).
 - Gestión de secretos y configuración de conexión RabbitMQ en [producer/src/Producer.Infrastructure/DependencyInjection.cs](producer/src/Producer.Infrastructure/DependencyInjection.cs).
+- Registro explícito de puertos de entrada para evitar acoplamiento de controllers a handlers concretos en [producer/src/Producer.Infrastructure/DependencyInjection.cs](producer/src/Producer.Infrastructure/DependencyInjection.cs).
 
 ---
 
@@ -321,6 +303,11 @@ Para evitar sobreafirmaciones, estos puntos quedan explícitos:
 - OCP y LSP se justifican por diseño y contratos declarados, pero no se demuestran con pruebas específicas de sustitución/extensión.
 - Existen `HUMAN CHECK` en puntos críticos identificados, pero no hay inventario formal de "todo código crítico" del servicio.
 - El repositorio aún no define un umbral formal obligatorio de coverage en CI/CD para estos servicios.
+
+Brechas cerradas durante la última iteración (2026-02-20):
+
+- Se eliminó acoplamiento de adapters de entrada a handlers concretos en ReservationService y Producer (ahora usan puertos de entrada).
+- Se eliminaron abstracciones/código huérfano detectado en ReservationService (`IMessageConsumer`, `TicketNotAvailableException`).
 
 ### 3.1 Evidencia ejecutada (2026-02-19)
 

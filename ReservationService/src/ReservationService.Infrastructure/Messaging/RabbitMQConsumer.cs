@@ -6,7 +6,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using ReservationService.Application.UseCases.ProcessReservation;
+using ReservationService.Application.DTOs.ProcessReservation;
+using ReservationService.Application.Interfaces;
 
 namespace ReservationService.Infrastructure.Messaging;
 
@@ -63,8 +64,11 @@ public class RabbitMQConsumer : BackgroundService
                 if (message is not null)
                 {
                     using var scope = _scopeFactory.CreateScope();
-                    var handler = scope.ServiceProvider.GetRequiredService<ProcessReservationCommandHandler>();
-                    await handler.HandleAsync(message, stoppingToken);
+                    // HUMAN CHECK:
+                    // El adapter de infraestructura debe invocar el caso de uso por su
+                    // puerto de entrada para evitar acoplamiento al handler concreto.
+                    var useCase = scope.ServiceProvider.GetRequiredService<IProcessReservationUseCase>();
+                    await useCase.HandleAsync(message, stoppingToken);
 
                     // HUMAN CHECK:
                     // El evento status.changed debe publicarse solo después de procesar
