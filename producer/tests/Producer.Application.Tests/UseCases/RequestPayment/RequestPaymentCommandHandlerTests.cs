@@ -1,4 +1,5 @@
 using NSubstitute;
+using Producer.Application.DTOs.RequestPayment;
 using Producer.Application.UseCases.RequestPayment;
 using Producer.Domain.Events;
 using Producer.Domain.Ports;

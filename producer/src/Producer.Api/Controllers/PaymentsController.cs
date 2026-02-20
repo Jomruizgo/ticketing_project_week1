@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Producer.Api.Models;
-using Producer.Application.UseCases.RequestPayment;
+using Producer.Application.DTOs.RequestPayment;
+using Producer.Application.Interfaces;
 
 namespace Producer.Api.Controllers;
 
@@ -8,11 +9,11 @@ namespace Producer.Api.Controllers;
 [Route("api/[controller]")]
 public class PaymentsController : ControllerBase
 {
-    private readonly RequestPaymentCommandHandler _handler;
+    private readonly IRequestPaymentUseCase _handler;
     private readonly ILogger<PaymentsController> _logger;
 
     public PaymentsController(
-        RequestPaymentCommandHandler handler,
+        IRequestPaymentUseCase handler,
         ILogger<PaymentsController> logger)
     {
         _handler = handler;
