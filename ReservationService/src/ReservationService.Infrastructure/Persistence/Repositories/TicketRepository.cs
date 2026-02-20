@@ -39,6 +39,10 @@ public class TicketRepository : ITicketRepository
 
         try
         {
+            // HUMAN CHECK:
+            // Esta actualización debe permanecer atómica con filtro por versión + estado.
+            // Si se elimina cualquiera de estas condiciones se rompe el optimistic locking
+            // y pueden confirmarse reservas duplicadas bajo concurrencia.
             var affected = await _context.Tickets
                 .Where(t => t.Id == ticket.Id && t.Version == currentVersion && t.Status == TicketStatus.Available)
                 .ExecuteUpdateAsync(setters => setters
