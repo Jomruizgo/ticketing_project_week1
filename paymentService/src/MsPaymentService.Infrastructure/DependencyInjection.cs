@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using MsPaymentService.Application.Interfaces;
 using MsPaymentService.Application.UseCases.ProcessApprovedPayment;
 using MsPaymentService.Application.UseCases.ProcessRejectedPayment;
@@ -53,6 +54,8 @@ public static class DependencyInjection
         // RabbitMQ configuration and connection
         services.Configure<RabbitMQSettings>(configuration.GetSection("RabbitMQ"));
         services.Configure<PaymentSettings>(configuration.GetSection("PaymentSettings"));
+        services.AddSingleton<IPaymentConfiguration>(sp =>
+            sp.GetRequiredService<IOptions<PaymentSettings>>().Value);
         services.AddSingleton<RabbitMQConnection>();
         services.AddSingleton<TicketPaymentConsumer>();
 

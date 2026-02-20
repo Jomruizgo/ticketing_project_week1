@@ -3,8 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MsPaymentService.Application.Dtos;
+using MsPaymentService.Application.Interfaces;
 using MsPaymentService.Infrastructure.Configurations;
-using MsPaymentService.Infrastructure.Handlers;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 

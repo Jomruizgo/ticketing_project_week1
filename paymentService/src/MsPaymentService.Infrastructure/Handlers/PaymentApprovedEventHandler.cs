@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Options;
 using MsPaymentService.Application.Dtos;
 using MsPaymentService.Application.Events;
+using MsPaymentService.Application.Interfaces;
 using MsPaymentService.Application.UseCases.ProcessApprovedPayment;
 using MsPaymentService.Infrastructure.Configurations;
 using MsPaymentService.Infrastructure.Messaging;
