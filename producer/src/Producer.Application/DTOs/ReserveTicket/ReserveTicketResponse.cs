@@ -1,3 +1,3 @@
-namespace Producer.Application.UseCases.ReserveTicket;
+namespace Producer.Application.DTOs.ReserveTicket;
 
 public record ReserveTicketResponse(long TicketId, string Message);

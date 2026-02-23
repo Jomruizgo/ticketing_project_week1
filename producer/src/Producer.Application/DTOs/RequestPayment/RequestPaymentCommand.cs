@@ -1,4 +1,4 @@
-namespace Producer.Application.UseCases.RequestPayment;
+namespace Producer.Application.DTOs.RequestPayment;
 
 public record RequestPaymentCommand(
     int TicketId,

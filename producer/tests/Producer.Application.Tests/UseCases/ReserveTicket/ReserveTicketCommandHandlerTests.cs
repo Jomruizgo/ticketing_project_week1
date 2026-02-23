@@ -1,4 +1,5 @@
 using NSubstitute;
+using Producer.Application.DTOs.ReserveTicket;
 using Producer.Application.UseCases.ReserveTicket;
 using Producer.Domain.Events;
 using Producer.Domain.Ports;

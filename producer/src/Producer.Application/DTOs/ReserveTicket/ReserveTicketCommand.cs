@@ -1,4 +1,4 @@
-namespace Producer.Application.UseCases.ReserveTicket;
+namespace Producer.Application.DTOs.ReserveTicket;
 
 public record ReserveTicketCommand(
     long EventId,

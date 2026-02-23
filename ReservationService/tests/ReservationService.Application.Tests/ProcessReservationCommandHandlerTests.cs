@@ -1,6 +1,7 @@
 using Xunit;
 using NSubstitute;
 using Microsoft.Extensions.Logging;
+using ReservationService.Application.DTOs.ProcessReservation;
 using ReservationService.Application.UseCases.ProcessReservation;
 using ReservationService.Domain.Entities;
 using ReservationService.Domain.Interfaces;

@@ -423,6 +423,10 @@ policy.AllowAnyOrigin()  // Permite requests de cualquier dominio
 **Situación:** En varias propuestas la IA generó cambios que ignoraban la inyección de dependencias (`IOptions<T>` en .NET) y en su lugar recomendó embebecer valores o leer `.env` directamente dentro del código de producción.
 **Por qué rechazamos:** Esto rompe la abstracción de DI, dificulta pruebas unitarias y copia secretos en lugares no gestionados. En este repo mantenemos la convención: registrar opciones/configuraciones por DI y poblarlas desde `appsettings.json` + variables de entorno o un secret manager. Cualquier cambio propuesto por la IA que modifique el flujo de configuración debe revisarse manualmente (`// HUMAN CHECK`) antes de integrarlo.
 
+### Rechazo 7: Acoplar adapters de entrada a handlers concretos
+**Situación:** La IA dejó adapters de entrada consumiendo clases concretas de casos de uso (por ejemplo, controllers de `Producer` y el consumer de `ReservationService`) en lugar de depender de puertos de entrada.
+**Por qué rechazamos:** En hexagonal estricto, la capa de infraestructura/API debe depender de contratos (interfaces), no de implementaciones concretas. Se corrigió introduciendo puertos de entrada (`IProcessReservationUseCase`, `IReserveTicketUseCase`, `IRequestPaymentUseCase`) y actualizando DI para resolver interfaz -> handler. En la misma revisión se eliminaron abstracciones huérfanas (`IMessageConsumer`) y código muerto (`TicketNotAvailableException`).
+
 ---
 
 ## �📝 Notas Importantes
