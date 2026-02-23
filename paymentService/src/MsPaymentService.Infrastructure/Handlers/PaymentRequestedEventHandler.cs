@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MsPaymentService.Application.Dtos;
 using MsPaymentService.Application.Events;
+using MsPaymentService.Application.Interfaces;
 using MsPaymentService.Infrastructure.Configurations;
 using MsPaymentService.Infrastructure.Messaging.RabbitMQ;
 

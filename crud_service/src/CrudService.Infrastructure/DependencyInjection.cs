@@ -9,6 +9,7 @@ using CrudService.Application.UseCases.Tickets.GetTicketById;
 using CrudService.Application.UseCases.Tickets.GetTicketsByEvent;
 using CrudService.Application.UseCases.Tickets.ReleaseTicket;
 using CrudService.Application.UseCases.Tickets.UpdateTicketStatus;
+using CrudService.Domain.Entities;
 using CrudService.Domain.Interfaces;
 using CrudService.Infrastructure.Messaging;
 using CrudService.Infrastructure.Persistence;
@@ -17,6 +18,7 @@ using CrudService.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 
 namespace CrudService.Infrastructure;
 
@@ -26,6 +28,10 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        // Registro de enums de PostgreSQL (debe ejecutarse antes de abrir conexiones)
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<TicketStatus>("ticket_status");
+        NpgsqlConnection.GlobalTypeMapper.MapEnum<PaymentStatus>("payment_status");
+
         // DbContext (Scoped: nueva instancia por request)
         services.AddDbContext<TicketingDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));

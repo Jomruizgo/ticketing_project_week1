@@ -1,4 +1,5 @@
 using MsPaymentService.Application.Dtos;
+using MsPaymentService.Application.Interfaces;
 using MsPaymentService.Infrastructure.Handlers;
 using NSubstitute;
 using Xunit;

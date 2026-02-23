@@ -1,6 +1,8 @@
+using MsPaymentService.Application.Interfaces;
+
 namespace MsPaymentService.Infrastructure.Configurations;
 
-public class PaymentSettings
+public class PaymentSettings : IPaymentConfiguration
 {
     public int ReservationTtlMinutes { get; set; } = 5;
     public int MaxRetryAttempts { get; set; } = 3;

@@ -1,12 +1,7 @@
-using CrudService.Domain.Entities;
 using CrudService.Infrastructure;
 using CrudService.Infrastructure.Messaging;
-using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
-
-NpgsqlConnection.GlobalTypeMapper.MapEnum<TicketStatus>("ticket_status");
-NpgsqlConnection.GlobalTypeMapper.MapEnum<PaymentStatus>("payment_status");
 
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)

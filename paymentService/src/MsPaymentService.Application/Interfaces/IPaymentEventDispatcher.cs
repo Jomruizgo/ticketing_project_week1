@@ -1,6 +1,6 @@
 using MsPaymentService.Application.Dtos;
 
-namespace MsPaymentService.Infrastructure.Handlers;
+namespace MsPaymentService.Application.Interfaces;
 
 public interface IPaymentEventDispatcher
 {

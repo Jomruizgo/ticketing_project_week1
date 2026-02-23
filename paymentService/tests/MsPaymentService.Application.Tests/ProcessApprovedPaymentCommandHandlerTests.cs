@@ -14,6 +14,7 @@ public class ProcessApprovedPaymentCommandHandlerTests
     private readonly ITicketRepository _ticketRepository;
     private readonly IPaymentRepository _paymentRepository;
     private readonly ITicketStateService _stateService;
+    private readonly IPaymentConfiguration _config;
     private readonly ProcessApprovedPaymentCommandHandler _sut;
 
     public ProcessApprovedPaymentCommandHandlerTests()
@@ -21,8 +22,10 @@ public class ProcessApprovedPaymentCommandHandlerTests
         _ticketRepository = Substitute.For<ITicketRepository>();
         _paymentRepository = Substitute.For<IPaymentRepository>();
         _stateService = Substitute.For<ITicketStateService>();
+        _config = Substitute.For<IPaymentConfiguration>();
+        _config.ReservationTtlMinutes.Returns(5);
         var logger = Substitute.For<ILogger<ProcessApprovedPaymentCommandHandler>>();
-        _sut = new ProcessApprovedPaymentCommandHandler(_ticketRepository, _paymentRepository, _stateService, logger);
+        _sut = new ProcessApprovedPaymentCommandHandler(_ticketRepository, _paymentRepository, _stateService, _config, logger);
     }
 
     private static ProcessApprovedPaymentCommand CreateCommand(long ticketId = 1) => new(
