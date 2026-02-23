@@ -183,7 +183,7 @@ MsPaymentService.Infrastructure/
 Punto de entrada del servicio. Solo contiene el `BackgroundService` y la configuración del host.
 
 ```
-MsPaymentService.Worker/
+src/MsPaymentService.Worker/
 ├── Worker.cs       ← inicia los consumidores de las 3 colas con retry
 ├── Program.cs      ← composición: AddInfrastructureServices() + AddHostedService
 └── appsettings.json
@@ -264,7 +264,7 @@ UseCases/ProcessExpiredPayment/
 
 **Paso 2 — Infrastructure:** crear el handler adaptador.
 ```csharp
-// Handlers/PaymentExpiredEventHandler.cs
+// Infrastructure/Handlers/PaymentExpiredEventHandler.cs
 public class PaymentExpiredEventHandler : IPaymentEventHandler
 {
     public string QueueName => _settings.ExpiredQueueName;

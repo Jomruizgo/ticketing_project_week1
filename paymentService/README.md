@@ -21,7 +21,8 @@ Microservicio **Worker** del dominio de pagos del sistema de ticketing. Consume 
 
 El Worker es un **Background Service** (.NET 8) que:
 
-1. **Escucha** dos colas de RabbitMQ (definidas en `scripts/setup-rabbitmq.sh`):
+1. **Escucha** colas de RabbitMQ (definidas en `scripts/setup-rabbitmq.sh`):
+   - `q.ticket.payments.requested` — solicitud de procesamiento de pago.
    - `q.ticket.payments.approved` — pagos aprobados por el proveedor.
    - `q.ticket.payments.rejected` — pagos rechazados.
 
@@ -48,42 +49,33 @@ Todo se hace dentro de **transacciones** con bloqueo pesimista donde aplica, y c
 ## Arquitectura
 
 ```
-                    RabbitMQ
-                        │
-    ┌───────────────────┼───────────────────┐
-    │                   │                   │
-    ▼                   ▼                   │
-q.ticket.payments.approved   q.ticket.payments.rejected
-    │                   │                   │
-    └───────────────────┼───────────────────┘
-                        │
-                        ▼
-              TicketPaymentConsumer
-                        │
-                        ▼
-              PaymentValidationService
-                        │
-            ┌───────────┴───────────┐
-            ▼                       ▼
-  ValidateAndProcessApproved   ValidateAndProcessRejected
-            │                       │
-            └───────────┬───────────┘
-                        ▼
-              TicketStateService
-                        │
-        ┌───────────────┼───────────────┐
-        ▼               ▼               ▼
-  TransitionToPaid   TransitionToReleased   RecordHistory
-        │               │               │
-        └───────────────┴───────────────┘
-                        │
-                        ▼
-              Repositories → PaymentDbContext (PostgreSQL)
+RabbitMQ (tickets exchange)
+ ├─ q.ticket.payments.requested
+ ├─ q.ticket.payments.approved
+ └─ q.ticket.payments.rejected
+                  │
+                  ▼
+TicketPaymentConsumer
+                  │
+                  ▼
+IPaymentEventDispatcher
+ ├─ PaymentRequestedEventHandler
+ ├─ PaymentApprovedEventHandler → ProcessApprovedPaymentCommandHandler
+ └─ PaymentRejectedEventHandler → ProcessRejectedPaymentCommandHandler
+                                                       │
+                                                       ▼
+                                           TicketStateService
+                                                       │
+                                                       ▼
+                     Repositories → PaymentDbContext (PostgreSQL)
+                                                       │
+                                                       ▼
+                                  StatusChangedPublisher (ticket.status.changed)
 ```
 
 - **Worker:** mantiene el proceso vivo y arranca los consumers.
-- **TicketPaymentConsumer:** deserializa mensajes, delega en `IPaymentValidationService` y hace ACK/NACK según resultado.
-- **PaymentValidationService:** reglas de negocio (idempotencia, TTL, estados).
+- **TicketPaymentConsumer:** deserializa mensajes, delega en `IPaymentEventDispatcher` y hace ACK/NACK según resultado.
+- **Handlers + CommandHandlers:** aplican reglas de negocio (idempotencia, TTL, estados) por tipo de evento.
 - **TicketStateService:** transacciones de base de datos y cambios de estado (paid/released) + historial.
 
 ---
@@ -139,7 +131,7 @@ Los enums `TicketStatus` y `PaymentStatus` se persisten como tipos enum de Postg
 
 ## Configuración
 
-Archivo principal: `MsPaymentService.Worker/appsettings.json`.
+Archivo principal: `src/MsPaymentService.Worker/appsettings.json`.
 
 ### ConnectionStrings
 
@@ -152,13 +144,15 @@ Ejemplo:
 
 ### RabbitMQ
 
-La **topología** (exchange `tickets`, colas, bindings) se define y crea en **`scripts/`**: `setup-rabbitmq.sh` y `rabbitmq-definitions.json`. Este Worker **solo consume**; no declara colas ni exchanges. La config incluye solo conexión y nombres de colas a escuchar (deben coincidir con los del script).
+La **topología** (exchange `tickets`, colas, bindings) se define y crea en **`scripts/`**: `setup-rabbitmq.sh` y `rabbitmq-definitions.json`. Este Worker **consume** eventos de pago y también **publica** `ticket.status.changed` cuando una transición de estado se confirma. La config incluye conexión, exchange y nombres de colas a escuchar (deben coincidir con los del script).
 
 | Clave                 | Descripción                                      |
 |-----------------------|--------------------------------------------------|
 | `HostName`, `Port`    | Servidor y puerto RabbitMQ                       |
 | `UserName`, `Password`| Credenciales                                     |
 | `VirtualHost`         | Virtual host (por defecto `/`)                   |
+| `ExchangeName`        | Exchange usado para publish/consume (default: `tickets`) |
+| `RequestedQueueName`  | Cola de solicitud de pago (default en entorno)   |
 | `ApprovedQueueName`   | Cola de pagos aprobados (default: `q.ticket.payments.approved`) |
 | `RejectedQueueName`   | Cola de pagos rechazados (default: `q.ticket.payments.rejected`) |
 | `PrefetchCount`       | Mensajes sin ACK en vuelo por canal (default: 10) |
@@ -171,7 +165,7 @@ La **topología** (exchange `tickets`, colas, bindings) se define y crea en **`s
 | `MaxRetryAttempts`     | Reintentos (referencia)               | 3                 |
 | `RetryDelaySeconds`    | Delay entre reintentos (referencia)  | 5                 |
 
-El TTL real usado en validación está fijo en 5 minutos en `PaymentValidationService.IsWithinTimeLimit`. La configuración permite documentar/ajustar en el futuro.
+El TTL real usado en validación se toma de configuración (`ReservationTtlMinutes`) a través de `IPaymentConfiguration`.
 
 ---
 
@@ -180,14 +174,14 @@ El TTL real usado en validación está fijo en 5 minutos en `PaymentValidationSe
 Desde la raíz del repositorio:
 
 ```bash
-cd paymentService/MsPaymentService.Worker
+cd paymentService/src/MsPaymentService.Worker
 dotnet run
 ```
 
 O desde la raíz de la solución:
 
 ```bash
-dotnet run --project paymentService/MsPaymentService.Worker
+dotnet run --project paymentService/src/MsPaymentService.Worker
 ```
 
 Variables de entorno útiles:
@@ -200,36 +194,14 @@ Variables de entorno útiles:
 ## Estructura del proyecto
 
 ```
-MsPaymentService.Worker/
-├── Configurations/           # Opciones de configuración
-│   ├── DatabaseConfiguration.cs
-│   ├── PaymentSettings.cs
-│   └── RabbitMQSettings.cs
-├── Data/                     # Persistencia
-│   ├── EntityConfigurations/
-│   ├── PaymentDbContext.cs
-├── Extensions/               # Registro de servicios
-│   ├── ConsumerExtensions.cs
-│   ├── DatabaseExtensions.cs
-│   └── ServiceExtensions.cs
-├── Messaging/                # RabbitMQ
-│   ├── RabbitMQConfiguration.cs
-│   ├── RabbitMQConnection.cs
-│   └── TicketPaymentConsumer.cs
-├── Models/
-│   ├── DTOs/                 # PaymentResponse, ValidationResult
-│   ├── Entities/             # Ticket, Payment, Event, TicketHistory + enums
-│   └── Events/               # PaymentApprovedEvent, PaymentRejectedEvent, TicketPaymentEvent
-├── Repositories/             # Acceso a datos
-│   ├── IPaymentRepository, PaymentRepository
-│   ├── ITicketRepository, TicketRepository
-│   └── ITicketHistoryRepository, TicketHistoryRepository
-├── Services/                 # Lógica de negocio
-│   ├── IPaymentValidationService, PaymentValidationService
-│   └── ITicketStateService, TicketStateService
-├── appsettings.json
-├── Program.cs
-└── Worker.cs
+paymentService/
+├── src/
+│   ├── MsPaymentService.Domain/          # Entidades + contratos de dominio
+│   ├── MsPaymentService.Application/     # Casos de uso, DTOs, puertos
+│   ├── MsPaymentService.Infrastructure/  # EF Core + RabbitMQ (adaptadores)
+│   └── MsPaymentService.Worker/          # Composition root + BackgroundService
+└── tests/
+   └── MsPaymentService.Application.Tests/
 ```
 
 ---
