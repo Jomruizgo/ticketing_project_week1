@@ -34,6 +34,7 @@ public static class DependencyInjection
         // no de la clase concreta del handler, para mantener el boundary hexagonal.
         services.AddScoped<IProcessReservationUseCase, ProcessReservationCommandHandler>();
         services.AddScoped<IProcessExpirationUseCase, ProcessExpirationCommandHandler>();
+        services.AddScoped<IStatusChangedPublisher, RabbitMqStatusChangedPublisher>();
 
         // Messaging consumer
         services.AddHostedService<RabbitMQConsumer>();

@@ -13,21 +13,28 @@ namespace ReservationService.Infrastructure.Messaging;
 
 public class RabbitMQConsumer : BackgroundService
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly RabbitMQSettings _settings;
     private readonly ILogger<RabbitMQConsumer> _logger;
+    private readonly IStatusChangedPublisher _statusChangedPublisher;
 
     private IConnection? _connection;
     private IChannel? _channel;
-    private IChannel? _publishChannel;
 
     public RabbitMQConsumer(
         IServiceScopeFactory scopeFactory,
         IOptions<RabbitMQSettings> settings,
+        IStatusChangedPublisher statusChangedPublisher,
         ILogger<RabbitMQConsumer> logger)
     {
         _scopeFactory = scopeFactory;
         _settings = settings.Value;
+        _statusChangedPublisher = statusChangedPublisher;
         _logger = logger;
     }
 
@@ -43,7 +50,6 @@ public class RabbitMQConsumer : BackgroundService
 
         _connection = await factory.CreateConnectionAsync(stoppingToken);
         _channel = await _connection.CreateChannelAsync(cancellationToken: stoppingToken);
-        _publishChannel = await _connection.CreateChannelAsync(cancellationToken: stoppingToken);
 
         _logger.LogInformation("Connected to RabbitMQ. Listening on queue: {Queue}", _settings.QueueName);
 
@@ -56,10 +62,7 @@ public class RabbitMQConsumer : BackgroundService
 
             try
             {
-                var message = JsonSerializer.Deserialize<ProcessReservationCommand>(json, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                var message = JsonSerializer.Deserialize<ProcessReservationCommand>(json, JsonOptions);
 
                 if (message is not null)
                 {
@@ -74,7 +77,7 @@ public class RabbitMQConsumer : BackgroundService
                     // El evento status.changed debe publicarse solo después de procesar
                     // la reserva para evitar notificar al cliente un estado que aún no fue
                     // persistido. Mantener este orden reduce race conditions con SSE.
-                    await PublishStatusChangedAsync(message.TicketId, "reserved", stoppingToken);
+                    await _statusChangedPublisher.PublishAsync(message.TicketId, "reserved", stoppingToken);
                 }
 
                 await _channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false, stoppingToken);
@@ -94,37 +97,10 @@ public class RabbitMQConsumer : BackgroundService
         }
     }
 
-    private async Task PublishStatusChangedAsync(long ticketId, string newStatus, CancellationToken cancellationToken)
-    {
-        if (_publishChannel is null) return;
-
-        var payload = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(new
-        {
-            TicketId = ticketId,
-            NewStatus = newStatus,
-            ChangedAt = DateTime.UtcNow
-        });
-
-        var props = new RabbitMQ.Client.BasicProperties
-        {
-            Persistent = true,
-            ContentType = "application/json"
-        };
-
-        await _publishChannel.BasicPublishAsync(
-            exchange: _settings.ExchangeName,
-            routingKey: _settings.StatusChangedRoutingKey,
-            mandatory: false,
-            basicProperties: props,
-            body: payload,
-            cancellationToken: cancellationToken);
-    }
-
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Stopping consumer...");
 
-        if (_publishChannel is not null) await _publishChannel.CloseAsync(cancellationToken);
         if (_channel is not null) await _channel.CloseAsync(cancellationToken);
         if (_connection is not null) await _connection.CloseAsync(cancellationToken);
 

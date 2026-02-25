@@ -13,37 +13,42 @@ namespace ReservationService.Infrastructure.Messaging;
 
 public class TicketExpiredConsumer : BackgroundService
 {
+    private const int MaxConnectionRetries = 24;
+    private const int RetrySeconds = 5;
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly RabbitMQSettings _settings;
     private readonly ILogger<TicketExpiredConsumer> _logger;
+    private readonly IStatusChangedPublisher _statusChangedPublisher;
 
     private IConnection? _connection;
     private IChannel? _channel;
-    private IChannel? _publishChannel;
 
     public TicketExpiredConsumer(
         IServiceScopeFactory scopeFactory,
         IOptions<RabbitMQSettings> settings,
+        IStatusChangedPublisher statusChangedPublisher,
         ILogger<TicketExpiredConsumer> logger)
     {
         _scopeFactory = scopeFactory;
         _settings = settings.Value;
+        _statusChangedPublisher = statusChangedPublisher;
         _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var factory = new ConnectionFactory
+        var connected = await ConnectWithRetryAsync(stoppingToken);
+        if (!connected || _channel is null)
         {
-            HostName = _settings.Host,
-            Port = _settings.Port,
-            UserName = _settings.Username,
-            Password = _settings.Password
-        };
-
-        _connection = await factory.CreateConnectionAsync(stoppingToken);
-        _channel = await _connection.CreateChannelAsync(cancellationToken: stoppingToken);
-        _publishChannel = await _connection.CreateChannelAsync(cancellationToken: stoppingToken);
+            _logger.LogError("TicketExpiredConsumer could not connect to RabbitMQ after retries.");
+            return;
+        }
 
         _logger.LogInformation("Connected to RabbitMQ. Listening on queue: {Queue}", _settings.ExpiredQueueName);
 
@@ -56,10 +61,7 @@ public class TicketExpiredConsumer : BackgroundService
 
             try
             {
-                var message = JsonSerializer.Deserialize<ProcessExpirationCommand>(json, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                var message = JsonSerializer.Deserialize<ProcessExpirationCommand>(json, JsonOptions);
 
                 if (message is not null)
                 {
@@ -69,7 +71,7 @@ public class TicketExpiredConsumer : BackgroundService
 
                     if (result.Success && result.StatusChanged)
                     {
-                        await PublishStatusChangedAsync(message.TicketId, "released", stoppingToken);
+                        await _statusChangedPublisher.PublishAsync(message.TicketId, "released", stoppingToken);
                     }
                 }
 
@@ -90,37 +92,45 @@ public class TicketExpiredConsumer : BackgroundService
         }
     }
 
-    private async Task PublishStatusChangedAsync(long ticketId, string newStatus, CancellationToken cancellationToken)
+    private async Task<bool> ConnectWithRetryAsync(CancellationToken stoppingToken)
     {
-        if (_publishChannel is null) return;
-
-        var payload = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(new
+        for (var attempt = 1; attempt <= MaxConnectionRetries; attempt++)
         {
-            TicketId = ticketId,
-            NewStatus = newStatus,
-            ChangedAt = DateTime.UtcNow
-        });
+            if (stoppingToken.IsCancellationRequested) return false;
 
-        var props = new RabbitMQ.Client.BasicProperties
-        {
-            Persistent = true,
-            ContentType = "application/json"
-        };
+            try
+            {
+                var factory = new ConnectionFactory
+                {
+                    HostName = _settings.Host,
+                    Port = _settings.Port,
+                    UserName = _settings.Username,
+                    Password = _settings.Password
+                };
 
-        await _publishChannel.BasicPublishAsync(
-            exchange: _settings.ExchangeName,
-            routingKey: _settings.StatusChangedRoutingKey,
-            mandatory: false,
-            basicProperties: props,
-            body: payload,
-            cancellationToken: cancellationToken);
+                _connection = await factory.CreateConnectionAsync(stoppingToken);
+                _channel = await _connection.CreateChannelAsync(cancellationToken: stoppingToken);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "RabbitMQ not ready for TicketExpiredConsumer (attempt {Attempt}/{Max}). Retrying in {Seconds}s...",
+                    attempt,
+                    MaxConnectionRetries,
+                    RetrySeconds);
+
+                await Task.Delay(TimeSpan.FromSeconds(RetrySeconds), stoppingToken);
+            }
+        }
+
+        return false;
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Stopping TicketExpiredConsumer...");
 
-        if (_publishChannel is not null) await _publishChannel.CloseAsync(cancellationToken);
         if (_channel is not null) await _channel.CloseAsync(cancellationToken);
         if (_connection is not null) await _connection.CloseAsync(cancellationToken);
 

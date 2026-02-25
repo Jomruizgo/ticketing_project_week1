@@ -35,9 +35,12 @@ public class ProcessExpirationCommandHandler : IProcessExpirationUseCase
                 return new ProcessExpirationResponse(true, false);
             }
 
-            if (ticket.Status == TicketStatus.Paid)
+            if (ticket.Status is TicketStatus.Paid or TicketStatus.Released)
             {
-                _logger.LogInformation("Ticket {TicketId} already paid. Expiration ignored.", command.TicketId);
+                _logger.LogInformation(
+                    "Ticket {TicketId} in final status {Status}. Expiration ignored.",
+                    command.TicketId,
+                    ticket.Status);
                 return new ProcessExpirationResponse(true, false);
             }
 
