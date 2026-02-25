@@ -42,6 +42,24 @@ Se validó el flujo integrado levantando contenedores (`docker compose up -d --b
    - `Ticket <id> released successfully`
    - `Ticket <id> released due to expiration`
 
+### Verificación automatizada (repetible)
+
+Se dejó versionado el script:
+
+- `scripts/verify-devA-expiration.sh`
+
+Ejecución:
+
+```bash
+docker compose up -d --build
+./scripts/verify-devA-expiration.sh
+```
+
+Salida esperada al finalizar:
+
+- `Verification SUCCESS`
+- `final_status=released`
+
 ### Dependencia pendiente de Dev B
 
 Queda fuera de este alcance la validación final del relay SSE/read-model en `crud_service` (Dev B).
