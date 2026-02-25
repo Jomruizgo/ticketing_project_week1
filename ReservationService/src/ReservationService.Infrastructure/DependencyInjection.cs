@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ReservationService.Application.Interfaces;
+using ReservationService.Application.UseCases.ProcessExpiration;
 using ReservationService.Application.UseCases.ProcessReservation;
 using ReservationService.Domain.Interfaces;
 using ReservationService.Infrastructure.Messaging;
@@ -32,9 +33,12 @@ public static class DependencyInjection
         // Infrastructure debe depender del puerto de entrada del caso de uso,
         // no de la clase concreta del handler, para mantener el boundary hexagonal.
         services.AddScoped<IProcessReservationUseCase, ProcessReservationCommandHandler>();
+        services.AddScoped<IProcessExpirationUseCase, ProcessExpirationCommandHandler>();
+        services.AddScoped<IStatusChangedPublisher, RabbitMqStatusChangedPublisher>();
 
         // Messaging consumer
         services.AddHostedService<RabbitMQConsumer>();
+        services.AddHostedService<TicketExpiredConsumer>();
 
         return services;
     }

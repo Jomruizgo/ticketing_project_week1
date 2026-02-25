@@ -75,4 +75,50 @@ public class TicketRepository : ITicketRepository
             return false;
         }
     }
+
+    public async Task<bool> TryReleaseAsync(
+        Ticket ticket,
+        CancellationToken cancellationToken = default)
+    {
+        var currentVersion = ticket.Version;
+
+        try
+        {
+            var affected = await _context.Tickets
+                .Where(t => t.Id == ticket.Id && t.Version == currentVersion && t.Status == TicketStatus.Reserved)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(t => t.Status, TicketStatus.Released)
+                    .SetProperty(t => t.ReservedBy, (string?)null)
+                    .SetProperty(t => t.OrderId, (string?)null)
+                    .SetProperty(t => t.ReservedAt, (DateTime?)null)
+                    .SetProperty(t => t.ExpiresAt, (DateTime?)null)
+                    .SetProperty(t => t.Version, currentVersion + 1),
+                cancellationToken);
+
+            if (affected == 0)
+            {
+                _logger.LogWarning(
+                    "Failed to release ticket {TicketId}: concurrent modification or not reserved",
+                    ticket.Id);
+                return false;
+            }
+
+            ticket.Status = TicketStatus.Released;
+            ticket.ReservedBy = null;
+            ticket.OrderId = null;
+            ticket.ReservedAt = null;
+            ticket.ExpiresAt = null;
+            ticket.Version = currentVersion + 1;
+
+            _logger.LogInformation("Ticket {TicketId} released successfully", ticket.Id);
+            return true;
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            _logger.LogWarning(ex,
+                "Concurrency conflict releasing ticket {TicketId}",
+                ticket.Id);
+            return false;
+        }
+    }
 }

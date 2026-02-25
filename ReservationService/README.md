@@ -5,10 +5,64 @@ Microservicio responsable de procesar las reservas de tickets consumiendo mensaj
 ## Responsabilidad
 
 - Consumir mensajes de la cola `q.ticket.reserved`
+- Consumir mensajes de la cola `q.ticket.expired`
 - Validar disponibilidad del ticket (debe estar en estado `available`)
 - Actualizar estado del ticket a `reserved` en PostgreSQL con optimistic locking
 - Registrar `reserved_at` y calcular `expires_at` (reserva + duracion en segundos)
 - Rechazar reservas si el ticket ya no esta disponible o hay conflicto de concurrencia
+- Liberar tickets expirados con transicion segura `reserved -> released`
+
+## Actualización Feature A (Dev A) — 2026-02-24
+
+Implementación completada en `feature/expiry-core-reservation`:
+
+- Nuevo caso de uso de expiración:
+  - `ReservationService.Application/Interfaces/IProcessExpirationUseCase.cs`
+  - `ReservationService.Application/UseCases/ProcessExpiration/ProcessExpirationCommandHandler.cs`
+- Nuevo consumer de expiración:
+  - `ReservationService.Infrastructure/Messaging/TicketExpiredConsumer.cs`
+  - Escucha `q.ticket.expired` y publica `ticket.status.changed` con `released` cuando aplica.
+- Repositorio extendido con liberación segura:
+  - `ReservationService.Domain/Interfaces/ITicketRepository.cs` agrega `TryReleaseAsync(...)`
+  - `ReservationService.Infrastructure/Persistence/Repositories/TicketRepository.cs` implementa `TryReleaseAsync(...)` con optimistic locking (`id + version + status=reserved`).
+- Configuración:
+  - `ReservationService.Infrastructure/Messaging/RabbitMQSettings.cs` agrega `ExpiredQueueName`.
+  - `ReservationService.Worker/appsettings.json` incorpora `RabbitMQ:ExpiredQueueName`.
+
+### Verificación realizada en entorno real (Docker)
+
+Se validó el flujo integrado levantando contenedores (`docker compose up -d --build`):
+
+1. Crear evento y ticket en `crud_service`.
+2. Reservar ticket vía `producer` (`/api/tickets/reserve`).
+3. Publicar evento `ticket.expired` en exchange `tickets` (RabbitMQ Management API).
+4. Verificar transición a `Released` vía `crud_service` (`/api/tickets/{id}`).
+5. Confirmar logs en `reservation-service`:
+   - `Expiration message received`
+   - `Ticket <id> released successfully`
+   - `Ticket <id> released due to expiration`
+
+### Verificación automatizada (repetible)
+
+Se dejó versionado el script:
+
+- `scripts/verify-devA-expiration.sh`
+
+Ejecución:
+
+```bash
+docker compose up -d --build
+./scripts/verify-devA-expiration.sh
+```
+
+Salida esperada al finalizar:
+
+- `Verification SUCCESS`
+- `final_status=released`
+
+### Dependencia pendiente de Dev B
+
+Queda fuera de este alcance la validación final del relay SSE/read-model en `crud_service` (Dev B).
 
 ## Stack
 
