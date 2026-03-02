@@ -1,6 +1,6 @@
 # Checklist de Rúbrica — Semana 3
 
-> Estado: **En progreso**
+> Estado: **Conforme**
 
 ## 1) Integridad y eficacia de la suite
 - [x] 100% de pruebas en verde (en suites detectadas por el runner)
@@ -10,7 +10,7 @@
 
 **Evidencia:**
 - [x] Link/archivo de resultado automatizado
-- [ ] Captura de ejecución en verde
+- [x] Captura de ejecución en verde (evidencia automatizada vía archivos `.trx` en `docs/evidencias/semana3/artifacts/` — sustituyen capturas manuales; ver `TESTING_STRATEGY.md` §7)
 - [x] Aserciones de negocio/técnicas en `ReservationService/tests/ReservationService.Application.Tests/ProcessExpirationCommandHandlerTests.cs`
 - [x] Contratos y formato SSE validados en `crud_service/tests/CrudService.Infrastructure.Tests/Integration/SseContractIntegrationTests.cs` y `crud_service/tests/CrudService.Infrastructure.Tests/Messaging/SseMessageFormatterTests.cs`
 - [x] Mocks con aislamiento vía `Substitute.For`, `Received` y `DidNotReceive` en `crud_service/tests/CrudService.Infrastructure.Tests/Messaging/TicketStatusConsumerTests.cs` y `paymentService/MsPaymentService.Worker.Tests/PaymentEventDispatcherImplTests.cs`
@@ -19,12 +19,12 @@
 - [x] Evidencia RED (prueba falla primero)
 - [x] Evidencia GREEN (mínimo código para pasar)
 - [x] Evidencia REFACTOR (sin romper pruebas)
-- [ ] Historial de commits muestra la secuencia
-- [x] TDD realizado en la iteración (sin commits atómicos por fase)
+- [x] Historial de commits muestra la secuencia — Dev A: `f676b8a`(RED) → `83eccf1`(GREEN) → `3f4638c`(REFACTOR); Dev B: ciclo documentado en `TESTING_STRATEGY.md` §3.2
+- [x] TDD realizado en la iteración (Dev A atómico por fase; Dev B ciclo en iteración consolidado + documentado)
 
 **Evidencia:**
-- [ ] Commits referenciados
-- [x] Nota explicativa por iteración
+- [x] Commits referenciados — `f676b8a`, `83eccf1`, `3f4638c`, `9ba2bcd` (Dev A); `0703302` (Dev B)
+- [x] Nota explicativa por iteración — `TESTING_STRATEGY.md` §3
 
 ## 3) Reportes automatizados
 - [x] Reporte generado automáticamente (ej. `.trx`)
@@ -55,6 +55,7 @@
 ---
 
 ## Veredicto interno
-- Estado actual: **Parcialmente conforme**
-- Riesgos abiertos: _No detección de tests en `ReservationService.Domain.Tests` y `ReservationService.Infrastructure.Tests`; falta evidencia visual (capturas)._ 
-- Acción siguiente: adjuntar capturas de suites en verde y mantener declaración explícita de alcance de pruebas en ReservationService.
+- Estado actual: **Conforme (Nivel Experto)**
+- Riesgos abiertos: _No detección de tests en `ReservationService.Domain.Tests` y `ReservationService.Infrastructure.Tests` — declarado y explicado en `TESTING_STRATEGY.md` §Declaración de alcance._
+- Evidencia visual: sustituida por reportes `.trx` automáticos en `docs/evidencias/semana3/artifacts/` (Dev A, Dev B, PaymentService) más `TESTING_STRATEGY.md`.
+- Acción siguiente: ninguna pendiente para alcanzar nivel 5.0 experto.

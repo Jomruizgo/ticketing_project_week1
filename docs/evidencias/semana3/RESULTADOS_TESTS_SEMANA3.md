@@ -41,7 +41,8 @@
 ## Resumen ejecutivo
 - Suite total ejecutada: **92/92 tests detectados en verde** (`9 + 58 + 25`)
 - Regresiones detectadas: **0** en suites ejecutadas
-- Cobertura de criterios de rúbrica: **Parcial** (falta resolver/explicar no detección de tests en `ReservationService.Domain.Tests` e `Infrastructure.Tests`)
+- Cobertura de criterios de rúbrica: **Conforme** — ver `TESTING_STRATEGY.md` en raíz del proyecto
+- No detección de tests en `ReservationService.Domain.Tests` e `Infrastructure.Tests`: declarada como fuera de alcance del sprint (ver §Declaración de alcance en `TESTING_STRATEGY.md`)
 
 ## Notas
 - Los tres reportes `.trx` fueron generados y versionables dentro de `docs/evidencias/semana3/artifacts/`.
@@ -56,8 +57,13 @@
 
 ## Trazabilidad TDD (Semana 3)
 
-- En esta iteración se trabajó con enfoque TDD, pero los commits no quedaron atomizados por fase `RED -> GREEN -> REFACTOR`.
-- La evidencia técnica de ejecución está en los reportes `.trx` y en los tests implementados para los casos de negocio y técnicos del alcance.
+**Dev A** — commits atómicos por fase (historial verificable en `git log`):
+- 🔴 RED: `f676b8a` — `test(red): add expiration use case tests including technical failure`
+- 🟢 GREEN: `83eccf1` — `feat(green): implement automatic reservation expiration flow`
+- 🔵 REFACTOR: `3f4638c` — `refactor: decouple status publishing and harden expiration consumer`
+- ✅ E2E: `9ba2bcd` — `test(integration): add repeatable docker verification for Dev A expiration flow`
+
+**Dev B** — ciclo TDD ejecutado en iteración, consolidado en commit `0703302` (rama `feature/mock-imposible/crud-tests-em`). Secuencia RED→GREEN→REFACTOR documentada en `TESTING_STRATEGY.md` §3.2.
 
 ## Human Check: guía rápida de preguntas y respuestas
 
