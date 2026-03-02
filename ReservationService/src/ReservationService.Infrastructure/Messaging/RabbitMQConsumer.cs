@@ -21,7 +21,6 @@ public class RabbitMQConsumer : BackgroundService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly RabbitMQSettings _settings;
     private readonly ILogger<RabbitMQConsumer> _logger;
-    private readonly IStatusChangedPublisher _statusChangedPublisher;
 
     private IConnection? _connection;
     private IChannel? _channel;
@@ -29,12 +28,10 @@ public class RabbitMQConsumer : BackgroundService
     public RabbitMQConsumer(
         IServiceScopeFactory scopeFactory,
         IOptions<RabbitMQSettings> settings,
-        IStatusChangedPublisher statusChangedPublisher,
         ILogger<RabbitMQConsumer> logger)
     {
         _scopeFactory = scopeFactory;
         _settings = settings.Value;
-        _statusChangedPublisher = statusChangedPublisher;
         _logger = logger;
     }
 
@@ -71,13 +68,14 @@ public class RabbitMQConsumer : BackgroundService
                     // El adapter de infraestructura debe invocar el caso de uso por su
                     // puerto de entrada para evitar acoplamiento al handler concreto.
                     var useCase = scope.ServiceProvider.GetRequiredService<IProcessReservationUseCase>();
+                    var publisher = scope.ServiceProvider.GetRequiredService<IStatusChangedPublisher>();
                     await useCase.HandleAsync(message, stoppingToken);
 
                     // HUMAN CHECK:
                     // El evento status.changed debe publicarse solo después de procesar
                     // la reserva para evitar notificar al cliente un estado que aún no fue
                     // persistido. Mantener este orden reduce race conditions con SSE.
-                    await _statusChangedPublisher.PublishAsync(message.TicketId, "reserved", stoppingToken);
+                    await publisher.PublishAsync(message.TicketId, "reserved", stoppingToken);
                 }
 
                 await _channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false, stoppingToken);

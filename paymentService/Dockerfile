@@ -23,18 +23,15 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0
 
 WORKDIR /app
 
-# Instalar curl para healthcheck
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-
 # Copiar artefactos compilados
 COPY --from=build /app/publish .
 
 # Exponer puerto
 EXPOSE 8080
 
-# Health check
+# Health check — Worker sin HTTP: verifica que el proceso principal (PID 1) esté vivo
 HEALTHCHECK --interval=10s --timeout=5s --retries=5 \
-  CMD curl -f http://localhost:8080/api/tickets/health || exit 1
+  CMD kill -0 1 || exit 1
 
 # Inicializar aplicación
 ENTRYPOINT ["dotnet", "MsPaymentService.Worker.dll"]
