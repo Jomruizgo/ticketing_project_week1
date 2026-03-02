@@ -24,7 +24,6 @@ public class TicketExpiredConsumer : BackgroundService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly RabbitMQSettings _settings;
     private readonly ILogger<TicketExpiredConsumer> _logger;
-    private readonly IStatusChangedPublisher _statusChangedPublisher;
 
     private IConnection? _connection;
     private IChannel? _channel;
@@ -32,12 +31,10 @@ public class TicketExpiredConsumer : BackgroundService
     public TicketExpiredConsumer(
         IServiceScopeFactory scopeFactory,
         IOptions<RabbitMQSettings> settings,
-        IStatusChangedPublisher statusChangedPublisher,
         ILogger<TicketExpiredConsumer> logger)
     {
         _scopeFactory = scopeFactory;
         _settings = settings.Value;
-        _statusChangedPublisher = statusChangedPublisher;
         _logger = logger;
     }
 
@@ -67,11 +64,12 @@ public class TicketExpiredConsumer : BackgroundService
                 {
                     using var scope = _scopeFactory.CreateScope();
                     var useCase = scope.ServiceProvider.GetRequiredService<IProcessExpirationUseCase>();
+                    var publisher = scope.ServiceProvider.GetRequiredService<IStatusChangedPublisher>();
                     var result = await useCase.HandleAsync(message, stoppingToken);
 
                     if (result.Success && result.StatusChanged)
                     {
-                        await _statusChangedPublisher.PublishAsync(message.TicketId, "released", stoppingToken);
+                        await publisher.PublishAsync(message.TicketId, "released", stoppingToken);
                     }
                 }
 
