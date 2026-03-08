@@ -42,9 +42,9 @@ Usar una **Épica Operativa Semana 4** con paquetes de trabajo trazables.
 |---|---|---|---|---|
 | W4-01 | Informe de pruebas | Entregable | consolidar plan y casos en `TEST_PLAN.md` | Completado |
 | W4-02 | Estructura de evidencias | Entregable | centralizar evidencia en `docs/evidencias/semana4/` | Completado |
-| W4-03 | Hardening Docker | Plataforma | revisar y endurecer Dockerfiles según rúbrica | Pendiente |
+| W4-03 | Hardening Docker | Plataforma | revisar y endurecer Dockerfiles según rúbrica | En progreso |
 | W4-04 | Workflow CI/CD | Plataforma | crear pipeline con jobs separados por nivel | Pendiente |
-| W4-05 | Caja Negra en contenedores | Calidad | ejecutar al menos una prueba black-box sobre entorno orquestado | Pendiente |
+| W4-05 | Caja Negra en contenedores | Calidad | ejecutar al menos una prueba black-box sobre entorno orquestado | En progreso |
 | W4-06 | Escaneo de imagen | Seguridad | incorporar análisis de vulnerabilidades en pipeline | Pendiente |
 | W4-07 | Evidencia de pipeline | Evidencia | guardar capturas, artifacts y resultados del workflow | Pendiente |
 | W4-08 | Release GitFlow | Release | preparar evidencia de PR y release `develop -> main` | Pendiente |
@@ -77,6 +77,14 @@ Ejemplo:
   - impacto funcional: `HU-R06`
   - seguimiento operativo: `W4-04`, `W4-05`, `W4-07`
 
+### Principio adicional: paridad local antes de CI
+
+Para esta semana se adopta una regla operativa explícita:
+
+- **nada debería entrar al workflow si antes no funciona localmente con el mismo comando o con un equivalente directo**;
+- el workflow futuro debe ser una formalización de ejecuciones locales confiables, no un lugar para descubrir por primera vez si algo compila, construye o prueba;
+- por eso, antes de construir `W4-04`, debe existir una matriz local mínima de build y suites ejecutables.
+
 ## 6. Orden recomendado de ejecución
 
 1. W4-03 Hardening Docker
@@ -93,3 +101,11 @@ Para esta semana, el seguimiento correcto no es forzar todo como HU. Lo más só
 
 - **HUs reconstruidas** para trazabilidad funcional,
 - y **workstreams W4** para ejecución, evidencia y defensa del entregable.
+
+En consecuencia, el paso previo inmediato al workflow es dejar estabilizado el comportamiento local esperado de build, suites y scripts candidatos a caja negra.
+
+Estado actual de esa precondición:
+
+- build local backend validado,
+- suites mínimas por nivel validadas localmente,
+- caja negra general y caja negra de expiración ejecutadas con éxito en entorno compose local.

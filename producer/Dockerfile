@@ -1,6 +1,8 @@
 # Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
+ARG BUILD_CONFIGURATION=Release
+
 WORKDIR /src
 
 # Copiar archivos de proyecto
@@ -15,29 +17,36 @@ RUN dotnet restore "src/Producer.Api/Producer.Api.csproj"
 # Copiar código fuente
 COPY src/ src/
 
-# Compilar
-RUN dotnet build "src/Producer.Api/Producer.Api.csproj" -c Release -o /app/build
-
 # Publicar
-RUN dotnet publish "src/Producer.Api/Producer.Api.csproj" -c Release -o /app/publish
+RUN dotnet publish "src/Producer.Api/Producer.Api.csproj" \
+  -c ${BUILD_CONFIGURATION} \
+  --no-restore \
+  -p:UseAppHost=false \
+  -o /app/publish
 
 # Stage 2: Runtime
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
 WORKDIR /app
 
-# Instalar curl para healthcheck
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Instalar curl para healthcheck y crear usuario no root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system appgroup \
+    && useradd --system --gid appgroup --create-home --home-dir /home/appuser appuser
 
 # Copiar artefactos compilados
-COPY --from=build /app/publish .
+COPY --from=build --chown=appuser:appgroup /app/publish .
 
 # Exponer puerto
 EXPOSE 8080
 
+USER appuser
+
 # Health check
 HEALTHCHECK --interval=10s --timeout=5s --retries=5 \
-  CMD curl -f http://localhost:8080/api/tickets/health || exit 1
+  CMD curl -fsS http://localhost:8080/health || exit 1
 
 # Inicializar aplicación
 ENTRYPOINT ["dotnet", "Producer.Api.dll"]

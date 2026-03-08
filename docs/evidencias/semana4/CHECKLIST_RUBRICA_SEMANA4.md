@@ -14,12 +14,13 @@
 
 ## 2) Infraestructura como código
 - [ ] Dockerfile alineado al entregable esperado por la guía
-- [ ] Endurecimiento mínimo de imágenes
-- [ ] Ejecución sin privilegios donde aplique
-- [ ] Evidencia de build reproducible
+- [x] Endurecimiento mínimo de imágenes backend en progreso validado localmente
+- [x] Ejecución sin privilegios donde aplique en imágenes backend
+- [x] Evidencia de build reproducible en entorno local documentada
 
 **Evidencia objetivo:**
 - [ ] Dockerfile(s) finales
+- [x] matriz local en `MATRIZ_LOCAL_PREWORKFLOW_SEMANA4.md`
 - [ ] log o salida resumida de build en `RESULTADOS_PIPELINE_SEMANA4.md`
 
 ## 3) Pipeline CI/CD multinivel
@@ -36,13 +37,13 @@
 
 ## 4) Caja Blanca y Caja Negra
 - [ ] Existe evidencia clara de Caja Blanca en pipeline
-- [ ] Existe al menos una Caja Negra ejecutada sobre entorno orquestado
-- [ ] Se puede defender por qué la prueba elegida es realmente Caja Negra
+- [x] Existe al menos una Caja Negra ejecutada sobre entorno orquestado
+- [x] Se puede defender por qué la prueba elegida es realmente Caja Negra
 
 **Evidencia objetivo:**
-- [ ] suites unit/component/integration referenciadas
-- [ ] script E2E o equivalente registrado
-- [ ] resultados de ejecución documentados
+- [x] suites unit/component/integration referenciadas
+- [x] script E2E o equivalente registrado
+- [x] resultados de ejecución documentados en `MATRIZ_LOCAL_PREWORKFLOW_SEMANA4.md`
 
 ## 5) Seguridad y calidad continua
 - [ ] Existe análisis de vulnerabilidades de imagen
@@ -76,5 +77,5 @@
 ## Veredicto interno provisional
 
 - Fuerte en testing documental.
-- Pendiente en DevOps/CI/CD, seguridad de imagen y evidencia de release.
+- Mejorado en precondiciones locales de contenedores; pendiente en CI/CD, seguridad de imagen y evidencia de release.
 - La brecha principal de Semana 4 no es de teoría de pruebas; es de automatización y evidencia ejecutable.

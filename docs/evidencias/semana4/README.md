@@ -17,6 +17,7 @@ Organizar en un solo lugar los entregables y evidencias solicitadas por la guía
 - `TEST_PLAN.md`: copia del plan de pruebas entregable para la semana.
 - `CHECKLIST_RUBRICA_SEMANA4.md`: checklist interno de cumplimiento contra la guía.
 - `PLAN_SEGUIMIENTO_SEMANA4.md`: seguimiento operativo del trabajo de Semana 4.
+- `MATRIZ_LOCAL_PREWORKFLOW_SEMANA4.md`: comandos y validaciones locales que deben funcionar antes de construir el workflow.
 - `RESULTADOS_PIPELINE_SEMANA4.md`: registro de ejecuciones, jobs, enlaces, capturas y artifacts del pipeline.
 - `capturas/`: screenshots del pipeline, jobs, PRs, scans o releases.
 - `artifacts/`: reportes exportados (`.trx`, logs, reportes de scan, salidas resumidas) cuando aplique.
