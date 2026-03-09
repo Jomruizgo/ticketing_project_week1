@@ -36,7 +36,7 @@ jobs:
         run: dotnet restore ReservationService/src/ReservationService.Worker/ReservationService.Worker.csproj
 
       - name: Restore PaymentService
-        run: dotnet restore paymentService/MsPaymentService.Worker/MsPaymentService.Worker.csproj
+        run: dotnet restore paymentService/src/MsPaymentService.Worker/MsPaymentService.Worker.csproj
 
       - name: Build CrudService
         run: dotnet build crud_service/src/CrudService.Api/CrudService.Api.csproj --no-restore -c Release
@@ -48,7 +48,7 @@ jobs:
         run: dotnet build ReservationService/src/ReservationService.Worker/ReservationService.Worker.csproj --no-restore -c Release
 
       - name: Build PaymentService
-        run: dotnet build paymentService/MsPaymentService.Worker/MsPaymentService.Worker.csproj --no-restore -c Release
+        run: dotnet build paymentService/src/MsPaymentService.Worker/MsPaymentService.Worker.csproj --no-restore -c Release
 
   # ──────────────────────────────────────────────
   # JOB 2 — UNIT TESTS: Pruebas de Caja Blanca (lógica de dominio/aplicación)
@@ -81,7 +81,7 @@ jobs:
 
       - name: Run Unit Tests — PaymentService
         run: |
-          dotnet test paymentService/MsPaymentService.Worker.Tests/MsPaymentService.Worker.Tests.csproj \
+          dotnet test paymentService/tests/MsPaymentService.Application.Tests/MsPaymentService.Application.Tests.csproj \
             --logger "trx;LogFileName=unit-payment.trx" \
             --results-directory ./test-results/unit \
             -c Release
