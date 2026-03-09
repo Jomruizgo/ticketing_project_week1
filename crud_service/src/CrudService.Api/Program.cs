@@ -57,3 +57,6 @@ app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = Dat
     .Produces(StatusCodes.Status200OK);
 
 app.Run();
+
+// Expone la clase Program para WebApplicationFactory en tests de Caja Negra
+public partial class Program { }
