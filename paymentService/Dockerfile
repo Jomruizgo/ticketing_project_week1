@@ -1,6 +1,8 @@
 # Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
+ARG BUILD_CONFIGURATION=Release
+
 WORKDIR /src
 
 # Copiar archivos de proyecto
@@ -12,22 +14,25 @@ RUN dotnet restore "MsPaymentService.Worker/MsPaymentService.Worker.csproj"
 # Copiar código fuente
 COPY MsPaymentService.Worker/ MsPaymentService.Worker/
 
-# Compilar
-RUN dotnet build "MsPaymentService.Worker/MsPaymentService.Worker.csproj" -c Release -o /app/build
-
 # Publicar
-RUN dotnet publish "MsPaymentService.Worker/MsPaymentService.Worker.csproj" -c Release -o /app/publish
+RUN dotnet publish "MsPaymentService.Worker/MsPaymentService.Worker.csproj" \
+    -c ${BUILD_CONFIGURATION} \
+    --no-restore \
+    -p:UseAppHost=false \
+    -o /app/publish
 
 # Stage 2: Runtime
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
 WORKDIR /app
 
-# Copiar artefactos compilados
-COPY --from=build /app/publish .
+RUN groupadd --system appgroup \
+    && useradd --system --gid appgroup --create-home --home-dir /home/appuser appuser
 
-# Exponer puerto
-EXPOSE 8080
+# Copiar artefactos compilados
+COPY --from=build --chown=appuser:appgroup /app/publish .
+
+USER appuser
 
 # Health check — Worker sin HTTP: verifica que el proceso principal (PID 1) esté vivo
 HEALTHCHECK --interval=10s --timeout=5s --retries=5 \
