@@ -1,10 +1,13 @@
 using CrudService.Infrastructure.Messaging;
-using CrudService.Application.DTOs;
+using CrudService.Application.Dtos;
 using CrudService.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CrudService.Api.Controllers;
 
+/// <summary>
+/// Controlador para gestionar tickets
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class TicketsController : ControllerBase
@@ -52,15 +55,21 @@ public class TicketsController : ControllerBase
                 break;
             }
         }
-        catch (OperationCanceledException) { }
+        catch (OperationCanceledException)
+        {
+            // Timeout o cliente desconectado — normal
+        }
     }
 
+    /// <summary>
+    /// Obtener todos los tickets de un evento
+    /// </summary>
     [HttpGet("event/{eventId}")]
     public async Task<ActionResult<IEnumerable<TicketDto>>> GetTicketsByEvent(long eventId)
     {
         try
         {
-            var tickets = await _getTicketsByEventHandler.HandleAsync(new GetTicketsByEventQuery(eventId));
+            var tickets = await _ticketService.GetTicketsByEventAsync(eventId);
             return Ok(tickets);
         }
         catch (Exception ex)
@@ -70,13 +79,18 @@ public class TicketsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Obtener un ticket por ID
+    /// </summary>
     [HttpGet("{id}")]
     public async Task<ActionResult<TicketDto>> GetTicket(long id)
     {
         try
         {
-            var ticket = await _getTicketByIdHandler.HandleAsync(new GetTicketByIdQuery(id));
-            if (ticket == null) return NotFound($"Ticket {id} no encontrado");
+            var ticket = await _ticketService.GetTicketByIdAsync(id);
+            if (ticket == null)
+                return NotFound($"Ticket {id} no encontrado");
+
             return Ok(ticket);
         }
         catch (Exception ex)
@@ -86,17 +100,27 @@ public class TicketsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Crear tickets en lote para un evento
+    /// </summary>
     [HttpPost("bulk")]
     public async Task<ActionResult<IEnumerable<TicketDto>>> CreateTickets([FromBody] CreateTicketsRequest request)
     {
         try
         {
-            if (request.EventId <= 0) return BadRequest("EventId debe ser mayor a 0");
-            if (request.Quantity <= 0 || request.Quantity > 1000) return BadRequest("Quantity debe estar entre 1 y 1000");
+            if (request.EventId <= 0)
+                return BadRequest("EventId debe ser mayor a 0");
 
-            var tickets = await _createTicketsHandler.HandleAsync(new CreateTicketsCommand(request.EventId, request.Quantity));
+            if (request.Quantity <= 0 || request.Quantity > 1000)
+                return BadRequest("Quantity debe estar entre 1 y 1000");
+
+            var tickets = await _ticketService.CreateTicketsAsync(request.EventId, request.Quantity);
             _logger.LogInformation("Creados {Quantity} tickets para evento {EventId}", request.Quantity, request.EventId);
             return CreatedAtAction(nameof(GetTicketsByEvent), new { eventId = request.EventId }, tickets);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
@@ -105,22 +129,25 @@ public class TicketsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Actualizar el estado de un ticket
+    /// </summary>
     [HttpPut("{id}/status")]
     public async Task<ActionResult<TicketDto>> UpdateTicketStatus(long id, [FromBody] UpdateTicketStatusRequest request)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(request.NewStatus)) return BadRequest("NewStatus es requerido");
+            if (string.IsNullOrWhiteSpace(request.NewStatus))
+                return BadRequest("NewStatus es requerido");
 
-            var ticket = await _updateTicketStatusHandler.HandleAsync(
-                new UpdateTicketStatusCommand(id, request.NewStatus, request.Reason));
+            var ticket = await _ticketService.UpdateTicketStatusAsync(id, request.NewStatus, request.Reason);
             return Ok(ticket);
         }
-        catch (TicketNotFoundException)
+        catch (KeyNotFoundException)
         {
             return NotFound($"Ticket {id} no encontrado");
         }
-        catch (InvalidTicketStatusException ex)
+        catch (InvalidOperationException ex)
         {
             return BadRequest(ex.Message);
         }
@@ -131,18 +158,25 @@ public class TicketsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Liberar un ticket (ya sea por expiración, cancelación manual, o pago rechazado)
+    /// </summary>
     [HttpDelete("{id}/release")]
     public async Task<ActionResult<TicketDto>> ReleaseTicket(long id, [FromQuery] string? reason = null)
     {
         try
         {
-            var ticket = await _releaseTicketHandler.HandleAsync(new ReleaseTicketCommand(id, reason));
+            var ticket = await _ticketService.ReleaseTicketAsync(id, reason);
             _logger.LogInformation("Ticket {TicketId} liberado. Razón: {Reason}", id, reason ?? "No especificada");
             return Ok(ticket);
         }
-        catch (TicketNotFoundException)
+        catch (KeyNotFoundException)
         {
             return NotFound($"Ticket {id} no encontrado");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
@@ -151,12 +185,15 @@ public class TicketsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Obtener tickets expirados (para limpieza)
+    /// </summary>
     [HttpGet("expired/list")]
     public async Task<ActionResult<IEnumerable<TicketDto>>> GetExpiredTickets()
     {
         try
         {
-            var expiredTickets = await _getExpiredTicketsHandler.HandleAsync(new GetExpiredTicketsQuery());
+            var expiredTickets = await _ticketService.GetExpiredTicketsAsync();
             return Ok(expiredTickets);
         }
         catch (Exception ex)
@@ -166,10 +203,19 @@ public class TicketsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Health check para el servicio de tickets
+    /// </summary>
     [HttpGet("health")]
-    public IActionResult Health() => Ok(new { status = "healthy", timestamp = DateTime.UtcNow });
+    public IActionResult Health()
+    {
+        return Ok(new { status = "healthy", timestamp = DateTime.UtcNow });
+    }
 }
 
+/// <summary>
+/// Modelo para crear tickets en lote
+/// </summary>
 public class CreateTicketsRequest
 {
     public long EventId { get; set; }

@@ -1,4 +1,4 @@
-namespace CrudService.Application.DTOs;
+namespace CrudService.Application.Dtos;
 
 public class EventDto
 {

@@ -52,11 +52,14 @@ public class ProcessApprovedPaymentCommandHandlerTests
     [Fact]
     public async Task ApprovedPayment_AlreadyPaid_ReturnsAlreadyProcessed()
     {
+        // ARRANGE — ticket ya está en estado "paid"
         var command = CreateCommand();
         _ticketRepository.GetByIdAsync(1).Returns(new Ticket { Id = 1, Status = TicketStatus.paid });
 
+        // ACT
         var result = await _sut.HandleAsync(command);
 
+        // ASSERT
         Assert.True(result.IsAlreadyProcessed);
         Assert.False(result.IsSuccess);
     }
