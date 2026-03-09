@@ -20,6 +20,8 @@
 bin/
 obj/
 artifacts/
+!docs/evidencias/**/artifacts/
+!docs/evidencias/**/artifacts/**
 TestResults/
 *.cache
 *.log

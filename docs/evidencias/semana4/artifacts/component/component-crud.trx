@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="69250c35-8f83-4275-9169-c939135420d7" name="@runnervm0kj6c 2026-03-09 05:36:15" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-03-09T05:36:15.8441579+00:00" queuing="2026-03-09T05:36:15.8441580+00:00" start="2026-03-09T05:36:09.6784781+00:00" finish="2026-03-09T05:36:15.8497398+00:00" />
+  <TestSettings name="default" id="787b21d1-ce2d-40a0-b2ef-55d210e9e568">
+    <Deployment runDeploymentRoot="_runnervm0kj6c_2026-03-09_05_36_15" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="5e641db7-5bc7-43ac-822e-5c197c2c43d8" testId="6519db9f-9764-a392-d986-94cb027b2f55" testName="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests.Pipeline_ConcurrentMessages_AllDeliveredCorrectly" computerName="runnervm0kj6c" duration="00:00:00.0034276" startTime="2026-03-09T05:36:15.7640900+00:00" endTime="2026-03-09T05:36:15.7640900+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5e641db7-5bc7-43ac-822e-5c197c2c43d8" />
+    <UnitTestResult executionId="6d91b73d-306b-4373-a876-91acd36c25ad" testId="9acb80f1-bb5a-7763-e845-57e8831a0353" testName="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests.Pipeline_InvalidThenValidMessage_OnlyValidDelivered" computerName="runnervm0kj6c" duration="00:00:00.0016661" startTime="2026-03-09T05:36:15.7605797+00:00" endTime="2026-03-09T05:36:15.7605797+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6d91b73d-306b-4373-a876-91acd36c25ad" />
+    <UnitTestResult executionId="b9eeff4b-796c-47af-a176-01aac6e296ab" testId="96ddabaf-3630-9121-0bc2-8f302d43c362" testName="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests.Pipeline_ReleasedStatus_FlowsFromJsonToChannelReader" computerName="runnervm0kj6c" duration="00:00:00.0003930" startTime="2026-03-09T05:36:15.7603403+00:00" endTime="2026-03-09T05:36:15.7603403+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b9eeff4b-796c-47af-a176-01aac6e296ab" />
+    <UnitTestResult executionId="d09ce53b-fd81-4b8a-834d-357cd1383e5b" testId="c03c9ee9-10d3-ca63-e7ab-ef9c2beb8f59" testName="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests.Pipeline_WithoutSubscriber_CompletesWithoutError" computerName="runnervm0kj6c" duration="00:00:00.0005613" startTime="2026-03-09T05:36:15.7603713+00:00" endTime="2026-03-09T05:36:15.7603714+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d09ce53b-fd81-4b8a-834d-357cd1383e5b" />
+    <UnitTestResult executionId="b0c2a6eb-d673-45fc-850f-7503fc188e4e" testId="8828564f-c896-be6d-26a1-353006221582" testName="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests.Pipeline_SequentialMessages_SubscriptionCleanedUpBetween" computerName="runnervm0kj6c" duration="00:00:00.0005235" startTime="2026-03-09T05:36:15.7598053+00:00" endTime="2026-03-09T05:36:15.7598054+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b0c2a6eb-d673-45fc-850f-7503fc188e4e" />
+    <UnitTestResult executionId="f700e165-0643-465e-bdd8-18409f7592c2" testId="1c38662e-55a7-e097-0a3a-baa494744ed5" testName="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests.Pipeline_MultipleTickets_EachRoutedToCorrectSubscriber" computerName="runnervm0kj6c" duration="00:00:00.0006187" startTime="2026-03-09T05:36:15.7602645+00:00" endTime="2026-03-09T05:36:15.7602646+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f700e165-0643-465e-bdd8-18409f7592c2" />
+    <UnitTestResult executionId="94d31d25-14d6-4fd0-b7aa-c9a759ff2c96" testId="721698e9-ee47-aa09-8c06-c4c2132d680e" testName="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests.Pipeline_PaidStatus_FlowsFromJsonToChannelReader" computerName="runnervm0kj6c" duration="00:00:00.0003675" startTime="2026-03-09T05:36:15.7603047+00:00" endTime="2026-03-09T05:36:15.7603048+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="94d31d25-14d6-4fd0-b7aa-c9a759ff2c96" />
+    <UnitTestResult executionId="6a4d555f-ed80-410b-8573-f8a7dcfc2942" testId="41b9779c-26e8-6a03-6e6b-f6d8c6a0c2b0" testName="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests.Pipeline_MultipleSubscribersSameTicket_AllReceive" computerName="runnervm0kj6c" duration="00:00:00.0776875" startTime="2026-03-09T05:36:15.7568255+00:00" endTime="2026-03-09T05:36:15.7568448+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6a4d555f-ed80-410b-8573-f8a7dcfc2942" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests.Pipeline_MultipleSubscribersSameTicket_AllReceive" storage="/home/runner/work/ticketing_project_week1/ticketing_project_week1/crud_service/tests/crudservice.infrastructure.tests/bin/release/net8.0/crudservice.infrastructure.tests.dll" id="41b9779c-26e8-6a03-6e6b-f6d8c6a0c2b0">
+      <Execution id="6a4d555f-ed80-410b-8573-f8a7dcfc2942" />
+      <TestMethod codeBase="/home/runner/work/ticketing_project_week1/ticketing_project_week1/crud_service/tests/CrudService.Infrastructure.Tests/bin/Release/net8.0/CrudService.Infrastructure.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests" name="Pipeline_MultipleSubscribersSameTicket_AllReceive" />
+    </UnitTest>
+    <UnitTest name="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests.Pipeline_WithoutSubscriber_CompletesWithoutError" storage="/home/runner/work/ticketing_project_week1/ticketing_project_week1/crud_service/tests/crudservice.infrastructure.tests/bin/release/net8.0/crudservice.infrastructure.tests.dll" id="c03c9ee9-10d3-ca63-e7ab-ef9c2beb8f59">
+      <Execution id="d09ce53b-fd81-4b8a-834d-357cd1383e5b" />
+      <TestMethod codeBase="/home/runner/work/ticketing_project_week1/ticketing_project_week1/crud_service/tests/CrudService.Infrastructure.Tests/bin/Release/net8.0/CrudService.Infrastructure.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests" name="Pipeline_WithoutSubscriber_CompletesWithoutError" />
+    </UnitTest>
+    <UnitTest name="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests.Pipeline_ReleasedStatus_FlowsFromJsonToChannelReader" storage="/home/runner/work/ticketing_project_week1/ticketing_project_week1/crud_service/tests/crudservice.infrastructure.tests/bin/release/net8.0/crudservice.infrastructure.tests.dll" id="96ddabaf-3630-9121-0bc2-8f302d43c362">
+      <Execution id="b9eeff4b-796c-47af-a176-01aac6e296ab" />
+      <TestMethod codeBase="/home/runner/work/ticketing_project_week1/ticketing_project_week1/crud_service/tests/CrudService.Infrastructure.Tests/bin/Release/net8.0/CrudService.Infrastructure.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests" name="Pipeline_ReleasedStatus_FlowsFromJsonToChannelReader" />
+    </UnitTest>
+    <UnitTest name="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests.Pipeline_InvalidThenValidMessage_OnlyValidDelivered" storage="/home/runner/work/ticketing_project_week1/ticketing_project_week1/crud_service/tests/crudservice.infrastructure.tests/bin/release/net8.0/crudservice.infrastructure.tests.dll" id="9acb80f1-bb5a-7763-e845-57e8831a0353">
+      <Execution id="6d91b73d-306b-4373-a876-91acd36c25ad" />
+      <TestMethod codeBase="/home/runner/work/ticketing_project_week1/ticketing_project_week1/crud_service/tests/CrudService.Infrastructure.Tests/bin/Release/net8.0/CrudService.Infrastructure.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests" name="Pipeline_InvalidThenValidMessage_OnlyValidDelivered" />
+    </UnitTest>
+    <UnitTest name="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests.Pipeline_SequentialMessages_SubscriptionCleanedUpBetween" storage="/home/runner/work/ticketing_project_week1/ticketing_project_week1/crud_service/tests/crudservice.infrastructure.tests/bin/release/net8.0/crudservice.infrastructure.tests.dll" id="8828564f-c896-be6d-26a1-353006221582">
+      <Execution id="b0c2a6eb-d673-45fc-850f-7503fc188e4e" />
+      <TestMethod codeBase="/home/runner/work/ticketing_project_week1/ticketing_project_week1/crud_service/tests/CrudService.Infrastructure.Tests/bin/Release/net8.0/CrudService.Infrastructure.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests" name="Pipeline_SequentialMessages_SubscriptionCleanedUpBetween" />
+    </UnitTest>
+    <UnitTest name="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests.Pipeline_PaidStatus_FlowsFromJsonToChannelReader" storage="/home/runner/work/ticketing_project_week1/ticketing_project_week1/crud_service/tests/crudservice.infrastructure.tests/bin/release/net8.0/crudservice.infrastructure.tests.dll" id="721698e9-ee47-aa09-8c06-c4c2132d680e">
+      <Execution id="94d31d25-14d6-4fd0-b7aa-c9a759ff2c96" />
+      <TestMethod codeBase="/home/runner/work/ticketing_project_week1/ticketing_project_week1/crud_service/tests/CrudService.Infrastructure.Tests/bin/Release/net8.0/CrudService.Infrastructure.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests" name="Pipeline_PaidStatus_FlowsFromJsonToChannelReader" />
+    </UnitTest>
+    <UnitTest name="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests.Pipeline_MultipleTickets_EachRoutedToCorrectSubscriber" storage="/home/runner/work/ticketing_project_week1/ticketing_project_week1/crud_service/tests/crudservice.infrastructure.tests/bin/release/net8.0/crudservice.infrastructure.tests.dll" id="1c38662e-55a7-e097-0a3a-baa494744ed5">
+      <Execution id="f700e165-0643-465e-bdd8-18409f7592c2" />
+      <TestMethod codeBase="/home/runner/work/ticketing_project_week1/ticketing_project_week1/crud_service/tests/CrudService.Infrastructure.Tests/bin/Release/net8.0/CrudService.Infrastructure.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests" name="Pipeline_MultipleTickets_EachRoutedToCorrectSubscriber" />
+    </UnitTest>
+    <UnitTest name="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests.Pipeline_ConcurrentMessages_AllDeliveredCorrectly" storage="/home/runner/work/ticketing_project_week1/ticketing_project_week1/crud_service/tests/crudservice.infrastructure.tests/bin/release/net8.0/crudservice.infrastructure.tests.dll" id="6519db9f-9764-a392-d986-94cb027b2f55">
+      <Execution id="5e641db7-5bc7-43ac-822e-5c197c2c43d8" />
+      <TestMethod codeBase="/home/runner/work/ticketing_project_week1/ticketing_project_week1/crud_service/tests/CrudService.Infrastructure.Tests/bin/Release/net8.0/CrudService.Infrastructure.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CrudService.Infrastructure.Tests.Component.TicketStatusPipelineTests" name="Pipeline_ConcurrentMessages_AllDeliveredCorrectly" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="6519db9f-9764-a392-d986-94cb027b2f55" executionId="5e641db7-5bc7-43ac-822e-5c197c2c43d8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9acb80f1-bb5a-7763-e845-57e8831a0353" executionId="6d91b73d-306b-4373-a876-91acd36c25ad" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="96ddabaf-3630-9121-0bc2-8f302d43c362" executionId="b9eeff4b-796c-47af-a176-01aac6e296ab" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c03c9ee9-10d3-ca63-e7ab-ef9c2beb8f59" executionId="d09ce53b-fd81-4b8a-834d-357cd1383e5b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8828564f-c896-be6d-26a1-353006221582" executionId="b0c2a6eb-d673-45fc-850f-7503fc188e4e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1c38662e-55a7-e097-0a3a-baa494744ed5" executionId="f700e165-0643-465e-bdd8-18409f7592c2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="721698e9-ee47-aa09-8c06-c4c2132d680e" executionId="94d31d25-14d6-4fd0-b7aa-c9a759ff2c96" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="41b9779c-26e8-6a03-6e6b-f6d8c6a0c2b0" executionId="6a4d555f-ed80-410b-8573-f8a7dcfc2942" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="8" executed="8" passed="8" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.4.5+1caef2f33e (64-bit .NET 8.0.24)
+[xUnit.net 00:00:02.77]   Discovering: CrudService.Infrastructure.Tests
+[xUnit.net 00:00:02.91]   Discovered:  CrudService.Infrastructure.Tests
+[xUnit.net 00:00:02.91]   Starting:    CrudService.Infrastructure.Tests
+[xUnit.net 00:00:03.04]   Finished:    CrudService.Infrastructure.Tests
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

@@ -42,7 +42,8 @@ La guía de evaluación de Semana 4 no pide exclusivamente historias de usuario.
 
 ## Estado actual
 
-- Plan de pruebas: disponible.
-- Pipeline CI/CD: pendiente de implementación.
-- Escaneo de imagen: pendiente.
-- Evidencia de release GitFlow: pendiente.
+- ✅ Plan de pruebas: `TEST_PLAN.md` disponible.
+- ✅ Pipeline CI/CD: implementado y ejecutado — 9/9 jobs verdes en PR #24.
+- ✅ Escaneo de imagen: Trivy activo — 4 reportes archivados en `artifacts/trivy/`.
+- ✅ Evidencia de release GitFlow: PRs #23 y #24, tag v3.0.1, capturas en `capturas/`.
+- ✅ Artifacts de tests: `.trx` reales del CI en `artifacts/` (unit, component, integration, blackbox).
