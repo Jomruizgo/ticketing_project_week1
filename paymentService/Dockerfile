@@ -5,14 +5,17 @@ ARG BUILD_CONFIGURATION=Release
 
 WORKDIR /src
 
-# Copiar archivos de proyecto
-COPY ["MsPaymentService.Worker/MsPaymentService.Worker.csproj", "MsPaymentService.Worker/"]
+# Copiar archivos de proyecto para restaurar dependencias en caché
+COPY ["MsPaymentService.sln", "./"]
+COPY ["src/MsPaymentService.Domain/MsPaymentService.Domain.csproj",           "src/MsPaymentService.Domain/"]
+COPY ["src/MsPaymentService.Application/MsPaymentService.Application.csproj", "src/MsPaymentService.Application/"]
+COPY ["src/MsPaymentService.Infrastructure/MsPaymentService.Infrastructure.csproj", "src/MsPaymentService.Infrastructure/"]
+COPY ["src/MsPaymentService.Worker/MsPaymentService.Worker.csproj",           "src/MsPaymentService.Worker/"]
 
-# Restaurar dependencias
-RUN dotnet restore "MsPaymentService.Worker/MsPaymentService.Worker.csproj"
+RUN dotnet restore "src/MsPaymentService.Worker/MsPaymentService.Worker.csproj"
 
-# Copiar código fuente
-COPY MsPaymentService.Worker/ MsPaymentService.Worker/
+# Copiar código fuente y compilar
+COPY . .
 
 # Publicar
 RUN dotnet publish "MsPaymentService.Worker/MsPaymentService.Worker.csproj" \

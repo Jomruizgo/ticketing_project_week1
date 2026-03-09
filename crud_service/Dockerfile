@@ -14,7 +14,7 @@ COPY ["src/CrudService.Infrastructure/CrudService.Infrastructure.csproj", "src/C
 # Restaurar dependencias
 RUN dotnet restore "src/CrudService.Api/CrudService.Api.csproj"
 
-# Copiar código fuente
+# Copiar código fuente y compilar
 COPY . .
 
 # Publicar
@@ -39,7 +39,6 @@ RUN apt-get update \
 # Copiar artefactos compilados
 COPY --from=build --chown=appuser:appgroup /app/publish .
 
-# Exponer puerto
 EXPOSE 8080
 
 USER appuser

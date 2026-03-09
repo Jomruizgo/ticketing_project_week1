@@ -4,31 +4,39 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CrudService.Api.Controllers;
 
-/// <summary>
-/// Controlador para gestionar eventos
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class EventsController : ControllerBase
 {
-    private readonly IEventService _eventService;
+    private readonly GetAllEventsQueryHandler _getAllEventsHandler;
+    private readonly GetEventByIdQueryHandler _getEventByIdHandler;
+    private readonly CreateEventCommandHandler _createEventHandler;
+    private readonly UpdateEventCommandHandler _updateEventHandler;
+    private readonly DeleteEventCommandHandler _deleteEventHandler;
     private readonly ILogger<EventsController> _logger;
 
-    public EventsController(IEventService eventService, ILogger<EventsController> logger)
+    public EventsController(
+        GetAllEventsQueryHandler getAllEventsHandler,
+        GetEventByIdQueryHandler getEventByIdHandler,
+        CreateEventCommandHandler createEventHandler,
+        UpdateEventCommandHandler updateEventHandler,
+        DeleteEventCommandHandler deleteEventHandler,
+        ILogger<EventsController> logger)
     {
-        _eventService = eventService;
+        _getAllEventsHandler = getAllEventsHandler;
+        _getEventByIdHandler = getEventByIdHandler;
+        _createEventHandler = createEventHandler;
+        _updateEventHandler = updateEventHandler;
+        _deleteEventHandler = deleteEventHandler;
         _logger = logger;
     }
 
-    /// <summary>
-    /// Obtener todos los eventos
-    /// </summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<EventDto>>> GetEvents()
     {
         try
         {
-            var events = await _eventService.GetAllEventsAsync();
+            var events = await _getAllEventsHandler.HandleAsync(new GetAllEventsQuery());
             return Ok(events);
         }
         catch (Exception ex)
@@ -38,18 +46,13 @@ public class EventsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Obtener un evento por ID
-    /// </summary>
     [HttpGet("{id}")]
     public async Task<ActionResult<EventDto>> GetEvent(long id)
     {
         try
         {
-            var @event = await _eventService.GetEventByIdAsync(id);
-            if (@event == null)
-                return NotFound($"Evento {id} no encontrado");
-
+            var @event = await _getEventByIdHandler.HandleAsync(new GetEventByIdQuery(id));
+            if (@event == null) return NotFound($"Evento {id} no encontrado");
             return Ok(@event);
         }
         catch (Exception ex)
@@ -59,9 +62,6 @@ public class EventsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Crear un nuevo evento
-    /// </summary>
     [HttpPost]
     public async Task<ActionResult<EventDto>> CreateEvent([FromBody] CreateEventRequest request)
     {
@@ -73,7 +73,7 @@ public class EventsController : ControllerBase
             if (request.StartsAt == default)
                 return BadRequest("La fecha de inicio es requerida");
 
-            var @event = await _eventService.CreateEventAsync(request);
+            var @event = await _createEventHandler.HandleAsync(new CreateEventCommand(request.Name, request.StartsAt));
             _logger.LogInformation("Evento creado: {EventId}", @event.Id);
             return CreatedAtAction(nameof(GetEvent), new { id = @event.Id }, @event);
         }
@@ -84,18 +84,15 @@ public class EventsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Actualizar un evento
-    /// </summary>
     [HttpPut("{id}")]
     public async Task<ActionResult<EventDto>> UpdateEvent(long id, [FromBody] UpdateEventRequest request)
     {
         try
         {
-            var updated = await _eventService.UpdateEventAsync(id, request);
+            var updated = await _updateEventHandler.HandleAsync(new UpdateEventCommand(id, request.Name, request.StartsAt));
             return Ok(updated);
         }
-        catch (KeyNotFoundException)
+        catch (EventNotFoundException)
         {
             return NotFound($"Evento {id} no encontrado");
         }
@@ -106,18 +103,13 @@ public class EventsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Eliminar un evento
-    /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteEvent(long id)
     {
         try
         {
-            var deleted = await _eventService.DeleteEventAsync(id);
-            if (!deleted)
-                return NotFound($"Evento {id} no encontrado");
-
+            var deleted = await _deleteEventHandler.HandleAsync(new DeleteEventCommand(id));
+            if (!deleted) return NotFound($"Evento {id} no encontrado");
             return NoContent();
         }
         catch (Exception ex)

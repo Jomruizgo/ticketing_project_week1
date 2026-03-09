@@ -126,8 +126,8 @@ Cada capa es un .csproj separado que compila como DLL independiente. Si alguien 
 | Microservicio | Arquitectura | Estado |
 |---------------|-------------|--------|
 | ReservationService | Hexagonal | Migrado |
-| PaymentService | Plana (MVP) | Pendiente |
-| CrudService | Plana (MVP) | Pendiente |
+| PaymentService | Hexagonal | Migrado |
+| CrudService | Hexagonal | Migrado |
 | Producer | Hexagonal | Migrado |
 
 ## 3. Interacciones Clave

@@ -350,12 +350,14 @@ ticketing_project_week1/
 │   │   └── ReservationService.Worker/        # Composition root (solo Program.cs)
 │   └── tests/
 │       └── ReservationService.Application.Tests/
-├── paymentService/                  # Worker: procesa pagos (estructura plana - pendiente migrar)
-│   └── MsPaymentService.Worker/
-│       ├── Handlers/
-│       ├── Messaging/
-│       ├── Repositories/
-│       └── Services/
+├── paymentService/                  # Worker: procesa pagos (arquitectura hexagonal)
+│   ├── src/
+│   │   ├── MsPaymentService.Domain/          # Entidades puras + interfaces (puertos)
+│   │   ├── MsPaymentService.Application/     # Casos de uso, DTOs, interfaces de salida
+│   │   ├── MsPaymentService.Infrastructure/  # EF Core + RabbitMQ (adaptadores)
+│   │   └── MsPaymentService.Worker/          # Composition root (punto de entrada)
+│   └── tests/
+│       └── MsPaymentService.Application.Tests/
 ├── crud_service/                    # API REST: gestión de eventos y tickets
 │   ├── Controllers/
 │   ├── Services/

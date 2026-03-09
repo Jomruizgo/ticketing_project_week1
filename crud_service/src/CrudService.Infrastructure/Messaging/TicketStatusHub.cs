@@ -49,5 +49,3 @@ public class TicketStatusHub : ITicketStatusNotifier, ITicketStatusSubscriber
         _subscriptions.TryRemove(ticketId, out _);
     }
 }
-
-public record TicketStatusUpdate(long TicketId, string NewStatus);
