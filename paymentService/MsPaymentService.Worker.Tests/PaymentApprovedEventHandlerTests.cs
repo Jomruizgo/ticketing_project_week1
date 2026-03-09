@@ -48,12 +48,16 @@ public class PaymentApprovedEventHandlerTests
             TransactionRef = "TXN-001",
             ApprovedAt = DateTime.UtcNow
         };
+
+        // ARRANGE
         var json = JsonSerializer.Serialize(evt);
         _validationService.ValidateAndProcessApprovedPaymentAsync(Arg.Any<PaymentApprovedEvent>())
             .Returns(ValidationResult.Success());
 
+        // ACT
         var result = await _sut.HandleAsync(json);
 
+        // ASSERT - verifica que el handler llama al puerto correo, 1 sola vez   
         Assert.True(result.IsSuccess);
         await _validationService.Received(1)
             .ValidateAndProcessApprovedPaymentAsync(Arg.Is<PaymentApprovedEvent>(e => e.TicketId == 1));
