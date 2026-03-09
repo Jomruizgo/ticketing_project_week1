@@ -18,7 +18,7 @@ RUN dotnet restore "src/MsPaymentService.Worker/MsPaymentService.Worker.csproj"
 COPY . .
 
 # Publicar
-RUN dotnet publish "MsPaymentService.Worker/MsPaymentService.Worker.csproj" \
+RUN dotnet publish "src/MsPaymentService.Worker/MsPaymentService.Worker.csproj" \
     -c ${BUILD_CONFIGURATION} \
     --no-restore \
     -p:UseAppHost=false \
