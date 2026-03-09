@@ -6,4 +6,5 @@ public interface ITicketRepository
 {
     Task<Ticket?> GetByIdAsync(long ticketId, CancellationToken cancellationToken = default);
     Task<bool> TryReserveAsync(Ticket ticket, string reservedBy, string orderId, DateTime expiresAt, CancellationToken cancellationToken = default);
+    Task<bool> TryReleaseAsync(Ticket ticket, CancellationToken cancellationToken = default);
 }

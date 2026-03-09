@@ -1,4 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+ARG BUILD_CONFIGURATION=Release
+
 WORKDIR /src
 
 # Copy project files and restore dependencies (layer caching)
@@ -11,15 +14,24 @@ RUN dotnet restore ReservationService.Worker/ReservationService.Worker.csproj
 # Copy source code and publish
 COPY src/. ./
 WORKDIR /src/ReservationService.Worker
-RUN dotnet publish -c Release -o /app/publish
+RUN dotnet publish \
+		-c ${BUILD_CONFIGURATION} \
+		--no-restore \
+		-p:UseAppHost=false \
+		-o /app/publish
 
 # Final image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
-RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+RUN groupadd --system appgroup \
+		&& useradd --system --gid appgroup --create-home --home-dir /home/appuser appuser
+
+COPY --from=build --chown=appuser:appgroup /app/publish .
+
 USER appuser
 
-COPY --from=build /app/publish .
+HEALTHCHECK --interval=10s --timeout=5s --retries=5 \
+	CMD kill -0 1 || exit 1
 
 ENTRYPOINT ["dotnet", "ReservationService.Worker.dll"]

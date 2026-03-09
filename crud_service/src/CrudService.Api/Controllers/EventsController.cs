@@ -1,10 +1,5 @@
-using CrudService.Application.Dtos;
-using CrudService.Application.UseCases.Events.CreateEvent;
-using CrudService.Application.UseCases.Events.DeleteEvent;
-using CrudService.Application.UseCases.Events.GetAllEvents;
-using CrudService.Application.UseCases.Events.GetEventById;
-using CrudService.Application.UseCases.Events.UpdateEvent;
-using CrudService.Domain.Exceptions;
+using CrudService.Application.DTOs;
+using CrudService.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CrudService.Api.Controllers;

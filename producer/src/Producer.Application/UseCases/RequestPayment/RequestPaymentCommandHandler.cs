@@ -1,9 +1,11 @@
+using Producer.Application.DTOs.RequestPayment;
+using Producer.Application.Interfaces;
 using Producer.Domain.Events;
 using Producer.Domain.Ports;
 
 namespace Producer.Application.UseCases.RequestPayment;
 
-public class RequestPaymentCommandHandler
+public class RequestPaymentCommandHandler : IRequestPaymentUseCase
 {
     private readonly IPaymentEventPublisher _paymentEventPublisher;
 

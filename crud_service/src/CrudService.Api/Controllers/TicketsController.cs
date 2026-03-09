@@ -1,14 +1,6 @@
-using System.Text.Json;
-using CrudService.Application.Dtos;
-using CrudService.Application.Exceptions;
-using CrudService.Application.UseCases.Tickets.CreateTickets;
-using CrudService.Application.UseCases.Tickets.GetExpiredTickets;
-using CrudService.Application.UseCases.Tickets.GetTicketById;
-using CrudService.Application.UseCases.Tickets.GetTicketsByEvent;
-using CrudService.Application.UseCases.Tickets.ReleaseTicket;
-using CrudService.Application.UseCases.Tickets.UpdateTicketStatus;
-using CrudService.Domain.Exceptions;
 using CrudService.Infrastructure.Messaging;
+using CrudService.Application.DTOs;
+using CrudService.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CrudService.Api.Controllers;
@@ -17,32 +9,21 @@ namespace CrudService.Api.Controllers;
 [Route("api/[controller]")]
 public class TicketsController : ControllerBase
 {
-    private readonly GetTicketsByEventQueryHandler _getTicketsByEventHandler;
-    private readonly GetTicketByIdQueryHandler _getTicketByIdHandler;
-    private readonly CreateTicketsCommandHandler _createTicketsHandler;
-    private readonly UpdateTicketStatusCommandHandler _updateTicketStatusHandler;
-    private readonly ReleaseTicketCommandHandler _releaseTicketHandler;
-    private readonly GetExpiredTicketsQueryHandler _getExpiredTicketsHandler;
-    private readonly TicketStatusHub _statusHub;
+    private readonly ITicketService _ticketService;
+    private readonly ITicketStatusSubscriber _statusSubscriber;
     private readonly ILogger<TicketsController> _logger;
 
+    /// <summary>
+    /// DIP: depende de ITicketStatusSubscriber (abstracción), no de TicketStatusHub concreto.
+    /// ISP: solo recibe la interfaz de suscripción, no la de notificación.
+    /// </summary>
     public TicketsController(
-        GetTicketsByEventQueryHandler getTicketsByEventHandler,
-        GetTicketByIdQueryHandler getTicketByIdHandler,
-        CreateTicketsCommandHandler createTicketsHandler,
-        UpdateTicketStatusCommandHandler updateTicketStatusHandler,
-        ReleaseTicketCommandHandler releaseTicketHandler,
-        GetExpiredTicketsQueryHandler getExpiredTicketsHandler,
-        TicketStatusHub statusHub,
+        ITicketService ticketService,
+        ITicketStatusSubscriber statusSubscriber,
         ILogger<TicketsController> logger)
     {
-        _getTicketsByEventHandler = getTicketsByEventHandler;
-        _getTicketByIdHandler = getTicketByIdHandler;
-        _createTicketsHandler = createTicketsHandler;
-        _updateTicketStatusHandler = updateTicketStatusHandler;
-        _releaseTicketHandler = releaseTicketHandler;
-        _getExpiredTicketsHandler = getExpiredTicketsHandler;
-        _statusHub = statusHub;
+        _ticketService = ticketService;
+        _statusSubscriber = statusSubscriber;
         _logger = logger;
     }
 
@@ -59,14 +40,14 @@ public class TicketsController : ControllerBase
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         using var combined = CancellationTokenSource.CreateLinkedTokenSource(clientDisconnected, timeout.Token);
 
-        var reader = _statusHub.Subscribe(id);
+        var reader = _statusSubscriber.Subscribe(id);
 
         try
         {
             await foreach (var update in reader.ReadAllAsync(combined.Token))
             {
-                var data = JsonSerializer.Serialize(new { ticketId = update.TicketId, status = update.NewStatus });
-                await Response.WriteAsync($"data: {data}\n\n", combined.Token);
+                var sseData = SseMessageFormatter.ToSseJson(update);
+                await Response.WriteAsync($"data: {sseData}\n\n", combined.Token);
                 await Response.Body.FlushAsync(combined.Token);
                 break;
             }

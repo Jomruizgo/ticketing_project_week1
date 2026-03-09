@@ -1,5 +1,8 @@
+using CrudService.Infrastructure.Data;
 using CrudService.Infrastructure;
 using CrudService.Infrastructure.Messaging;
+using CrudService.Domain.Entities;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,3 +46,6 @@ app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = Dat
     .Produces(StatusCodes.Status200OK);
 
 app.Run();
+
+// Expone la clase Program para WebApplicationFactory en tests de Caja Negra
+public partial class Program { }

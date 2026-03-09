@@ -1,63 +1,49 @@
-using CrudService.Application.UseCases.Events.CreateEvent;
-using CrudService.Application.UseCases.Events.DeleteEvent;
-using CrudService.Application.UseCases.Events.GetAllEvents;
-using CrudService.Application.UseCases.Events.GetEventById;
-using CrudService.Application.UseCases.Events.UpdateEvent;
-using CrudService.Application.UseCases.Tickets.CreateTickets;
-using CrudService.Application.UseCases.Tickets.GetExpiredTickets;
-using CrudService.Application.UseCases.Tickets.GetTicketById;
-using CrudService.Application.UseCases.Tickets.GetTicketsByEvent;
-using CrudService.Application.UseCases.Tickets.ReleaseTicket;
-using CrudService.Application.UseCases.Tickets.UpdateTicketStatus;
-using CrudService.Domain.Entities;
-using CrudService.Domain.Interfaces;
+using CrudService.Infrastructure.Data;
 using CrudService.Infrastructure.Messaging;
-using CrudService.Infrastructure.Persistence;
-using CrudService.Infrastructure.Persistence.Repositories;
-
+using CrudService.Domain.Repositories;
+using CrudService.Application.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
 
 namespace CrudService.Infrastructure;
 
+/// <summary>
+/// Extensiones para registrar servicios de la aplicación (DI).
+/// </summary>
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructureServices(
+    /// <summary>
+    /// Registra todos los servicios, repositorios e interfaces ISP.
+    /// </summary>
+    public static IServiceCollection AddApplicationServices(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Registro de enums de PostgreSQL (debe ejecutarse antes de abrir conexiones)
-        NpgsqlConnection.GlobalTypeMapper.MapEnum<TicketStatus>("ticket_status");
-        NpgsqlConnection.GlobalTypeMapper.MapEnum<PaymentStatus>("payment_status");
-
-        // DbContext (Scoped: nueva instancia por request)
+        // DbContext (Scoped: una conexión por request HTTP)
         services.AddDbContext<TicketingDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
-        // Repositorios (Scoped: dependen de DbContext)
+        // Repositorios (Scoped: viven en ciclo del request)
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<ITicketRepository, TicketRepository>();
+        services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<ITicketHistoryRepository, TicketHistoryRepository>();
 
-        // Use Case Handlers — Events (Scoped: dependen de repositorios)
-        services.AddScoped<GetAllEventsQueryHandler>();
-        services.AddScoped<GetEventByIdQueryHandler>();
-        services.AddScoped<CreateEventCommandHandler>();
-        services.AddScoped<UpdateEventCommandHandler>();
-        services.AddScoped<DeleteEventCommandHandler>();
+        // Servicios (Scoped: dependen de repositorios)
+        services.AddScoped<IEventService, EventService>();
+        services.AddScoped<ITicketService, TicketService>();
 
-        // Use Case Handlers — Tickets (Scoped)
-        services.AddScoped<GetTicketsByEventQueryHandler>();
-        services.AddScoped<GetTicketByIdQueryHandler>();
-        services.AddScoped<CreateTicketsCommandHandler>();
-        services.AddScoped<UpdateTicketStatusCommandHandler>();
-        services.AddScoped<ReleaseTicketCommandHandler>();
-        services.AddScoped<GetExpiredTicketsQueryHandler>();
-
-        // SSE hub (Singleton: correlaciona ticketId con conexiones SSE activas)
+        // SSE hub (Singleton: correlaciona ticketId con conexiones activas)
         services.AddSingleton<TicketStatusHub>();
+
+        // ISP: cada consumidor recibe solo la interfaz que necesita (DIP)
+        // Consumer → ITicketStatusNotifier (solo Notify)
+        // Controller → ITicketStatusSubscriber (solo Subscribe)
+        services.AddSingleton<ITicketStatusNotifier>(sp =>
+            sp.GetRequiredService<TicketStatusHub>());
+        services.AddSingleton<ITicketStatusSubscriber>(sp =>
+            sp.GetRequiredService<TicketStatusHub>());
 
         return services;
     }

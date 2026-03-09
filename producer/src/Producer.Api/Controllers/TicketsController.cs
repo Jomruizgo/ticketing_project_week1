@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Producer.Api.Models;
-using Producer.Application.UseCases.ReserveTicket;
+using Producer.Application.DTOs.ReserveTicket;
+using Producer.Application.Interfaces;
 
 namespace Producer.Api.Controllers;
 
@@ -8,11 +9,11 @@ namespace Producer.Api.Controllers;
 [Route("api/[controller]")]
 public class TicketsController : ControllerBase
 {
-    private readonly ReserveTicketCommandHandler _handler;
+    private readonly IReserveTicketUseCase _handler;
     private readonly ILogger<TicketsController> _logger;
 
     public TicketsController(
-        ReserveTicketCommandHandler handler,
+        IReserveTicketUseCase handler,
         ILogger<TicketsController> logger)
     {
         _handler = handler;

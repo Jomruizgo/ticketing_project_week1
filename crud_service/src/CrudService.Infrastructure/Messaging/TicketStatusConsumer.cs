@@ -14,7 +14,7 @@ namespace CrudService.Infrastructure.Messaging;
 /// </summary>
 public class TicketStatusConsumer : BackgroundService
 {
-    private readonly TicketStatusHub _hub;
+    private readonly ITicketStatusNotifier _notifier;
     private readonly RabbitMQSettings _settings;
     private readonly ILogger<TicketStatusConsumer> _logger;
 
@@ -23,12 +23,15 @@ public class TicketStatusConsumer : BackgroundService
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
+    /// <summary>
+    /// DIP: depende de la abstracción ITicketStatusNotifier, no de TicketStatusHub concreto.
+    /// </summary>
     public TicketStatusConsumer(
-        TicketStatusHub hub,
+        ITicketStatusNotifier notifier,
         IOptions<RabbitMQSettings> settings,
         ILogger<TicketStatusConsumer> logger)
     {
-        _hub = hub;
+        _notifier = notifier;
         _settings = settings.Value;
         _logger = logger;
     }
@@ -92,15 +95,7 @@ public class TicketStatusConsumer : BackgroundService
         try
         {
             var json = Encoding.UTF8.GetString(args.Body.ToArray());
-            var update = JsonSerializer.Deserialize<TicketStatusChangedPayload>(json, JsonOptions);
-
-            if (update is not null)
-            {
-                _logger.LogInformation(
-                    "ticket.status.changed received. TicketId={TicketId}, NewStatus={Status}",
-                    update.TicketId, update.NewStatus);
-                _hub.Notify(update.TicketId, update.NewStatus);
-            }
+            ProcessMessage(json);
 
             _channel?.BasicAck(args.DeliveryTag, false);
         }
@@ -113,6 +108,31 @@ public class TicketStatusConsumer : BackgroundService
         await Task.CompletedTask;
     }
 
+    internal void ProcessMessage(string json)
+    {
+        var update = StatusPayloadParser.TryParse(json);
+        if (update is null)
+        {
+            _logger.LogWarning("ticket.status.changed payload inválido o nulo: {Payload}",
+                json?.Length > 200 ? json[..200] : json);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(update.NewStatus))
+        {
+            _logger.LogWarning(
+                "ticket.status.changed ignorado por estado vacío. TicketId={TicketId}",
+                update.TicketId);
+            return;
+        }
+
+        _logger.LogInformation(
+            "ticket.status.changed received. TicketId={TicketId}, NewStatus={Status}",
+            update.TicketId, update.NewStatus);
+
+        _notifier.Notify(update.TicketId, update.NewStatus);
+    }
+
     public override void Dispose()
     {
         _channel?.Close();
@@ -121,6 +141,4 @@ public class TicketStatusConsumer : BackgroundService
         _connection?.Dispose();
         base.Dispose();
     }
-
-    private record TicketStatusChangedPayload(long TicketId, string NewStatus, DateTime ChangedAt);
 }

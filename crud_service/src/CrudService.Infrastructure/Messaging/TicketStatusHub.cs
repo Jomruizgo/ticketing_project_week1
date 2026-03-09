@@ -6,8 +6,9 @@ namespace CrudService.Infrastructure.Messaging;
 /// <summary>
 /// Singleton que correlaciona ticketId con las conexiones SSE que esperan su cambio de estado.
 /// Cuando llega un evento de RabbitMQ, notifica a todos los listeners de ese ticket.
+/// ISP: implementa interfaces segregadas — ITicketStatusNotifier (para el producer) e ITicketStatusSubscriber (para el controller SSE).
 /// </summary>
-public class TicketStatusHub
+public class TicketStatusHub : ITicketStatusNotifier, ITicketStatusSubscriber
 {
     private readonly ConcurrentDictionary<long, List<Channel<TicketStatusUpdate>>> _subscriptions = new();
 
@@ -28,6 +29,9 @@ public class TicketStatusHub
 
     public void Notify(long ticketId, string newStatus)
     {
+        if (string.IsNullOrWhiteSpace(newStatus))
+            return;
+
         if (!_subscriptions.TryGetValue(ticketId, out var channels))
             return;
 

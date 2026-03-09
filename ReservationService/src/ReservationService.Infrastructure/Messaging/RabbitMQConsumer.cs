@@ -6,19 +6,24 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using ReservationService.Application.UseCases.ProcessReservation;
+using ReservationService.Application.DTOs.ProcessReservation;
+using ReservationService.Application.Interfaces;
 
 namespace ReservationService.Infrastructure.Messaging;
 
 public class RabbitMQConsumer : BackgroundService
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly RabbitMQSettings _settings;
     private readonly ILogger<RabbitMQConsumer> _logger;
 
     private IConnection? _connection;
     private IChannel? _channel;
-    private IChannel? _publishChannel;
 
     public RabbitMQConsumer(
         IServiceScopeFactory scopeFactory,
@@ -42,7 +47,6 @@ public class RabbitMQConsumer : BackgroundService
 
         _connection = await factory.CreateConnectionAsync(stoppingToken);
         _channel = await _connection.CreateChannelAsync(cancellationToken: stoppingToken);
-        _publishChannel = await _connection.CreateChannelAsync(cancellationToken: stoppingToken);
 
         _logger.LogInformation("Connected to RabbitMQ. Listening on queue: {Queue}", _settings.QueueName);
 
@@ -55,22 +59,23 @@ public class RabbitMQConsumer : BackgroundService
 
             try
             {
-                var message = JsonSerializer.Deserialize<ProcessReservationCommand>(json, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                var message = JsonSerializer.Deserialize<ProcessReservationCommand>(json, JsonOptions);
 
                 if (message is not null)
                 {
                     using var scope = _scopeFactory.CreateScope();
-                    var handler = scope.ServiceProvider.GetRequiredService<ProcessReservationCommandHandler>();
-                    await handler.HandleAsync(message, stoppingToken);
+                    // HUMAN CHECK:
+                    // El adapter de infraestructura debe invocar el caso de uso por su
+                    // puerto de entrada para evitar acoplamiento al handler concreto.
+                    var useCase = scope.ServiceProvider.GetRequiredService<IProcessReservationUseCase>();
+                    var publisher = scope.ServiceProvider.GetRequiredService<IStatusChangedPublisher>();
+                    await useCase.HandleAsync(message, stoppingToken);
 
                     // HUMAN CHECK:
                     // El evento status.changed debe publicarse solo después de procesar
                     // la reserva para evitar notificar al cliente un estado que aún no fue
                     // persistido. Mantener este orden reduce race conditions con SSE.
-                    await PublishStatusChangedAsync(message.TicketId, "reserved", stoppingToken);
+                    await publisher.PublishAsync(message.TicketId, "reserved", stoppingToken);
                 }
 
                 await _channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false, stoppingToken);
@@ -90,37 +95,10 @@ public class RabbitMQConsumer : BackgroundService
         }
     }
 
-    private async Task PublishStatusChangedAsync(long ticketId, string newStatus, CancellationToken cancellationToken)
-    {
-        if (_publishChannel is null) return;
-
-        var payload = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(new
-        {
-            TicketId = ticketId,
-            NewStatus = newStatus,
-            ChangedAt = DateTime.UtcNow
-        });
-
-        var props = new RabbitMQ.Client.BasicProperties
-        {
-            Persistent = true,
-            ContentType = "application/json"
-        };
-
-        await _publishChannel.BasicPublishAsync(
-            exchange: _settings.ExchangeName,
-            routingKey: _settings.StatusChangedRoutingKey,
-            mandatory: false,
-            basicProperties: props,
-            body: payload,
-            cancellationToken: cancellationToken);
-    }
-
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Stopping consumer...");
 
-        if (_publishChannel is not null) await _publishChannel.CloseAsync(cancellationToken);
         if (_channel is not null) await _channel.CloseAsync(cancellationToken);
         if (_connection is not null) await _connection.CloseAsync(cancellationToken);
 

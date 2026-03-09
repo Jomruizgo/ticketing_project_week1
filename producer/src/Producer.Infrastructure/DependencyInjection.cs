@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Producer.Application.Interfaces;
 using Producer.Application.UseCases.RequestPayment;
 using Producer.Application.UseCases.ReserveTicket;
 using Producer.Domain.Ports;
@@ -58,8 +59,11 @@ public static class DependencyInjection
         services.AddScoped<ITicketEventPublisher, RabbitMQTicketPublisher>();
         services.AddScoped<IPaymentEventPublisher, RabbitMQPaymentPublisher>();
 
-        services.AddScoped<ReserveTicketCommandHandler>();
-        services.AddScoped<RequestPaymentCommandHandler>();
+        // HUMAN CHECK:
+        // Los adapters de entrada (API) deben depender de puertos de entrada
+        // para evitar acoplamiento a handlers concretos en la capa Application.
+        services.AddScoped<IReserveTicketUseCase, ReserveTicketCommandHandler>();
+        services.AddScoped<IRequestPaymentUseCase, RequestPaymentCommandHandler>();
 
         return services;
     }
