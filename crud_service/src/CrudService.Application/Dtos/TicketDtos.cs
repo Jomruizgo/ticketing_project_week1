@@ -1,6 +1,6 @@
 using CrudService.Domain.Entities;
 
-namespace CrudService.Application.DTOs;
+namespace CrudService.Application.Dtos;
 
 /// <summary>
 /// DTO para respuesta de ticket

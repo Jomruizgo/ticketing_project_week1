@@ -1,5 +1,5 @@
 using Xunit;
-using CrudService.Application.DTOs;
+using CrudService.Application.Dtos;
 using CrudService.Application.Services;
 using CrudService.Domain.Entities;
 using CrudService.Domain.Repositories;

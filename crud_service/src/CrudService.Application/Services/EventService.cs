@@ -1,4 +1,4 @@
-using CrudService.Application.DTOs;
+using CrudService.Application.Dtos;
 using CrudService.Domain.Entities;
 using CrudService.Domain.Repositories;
 using Microsoft.Extensions.Logging;
