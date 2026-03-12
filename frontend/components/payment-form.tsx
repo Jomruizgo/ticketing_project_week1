@@ -5,7 +5,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,24 +13,31 @@ import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
+import { useTicketStatusSse } from "@/hooks/use-ticket-status-sse"
+
+type PaymentProgress = "idle" | "processing" | "success" | "error"
 
 interface PaymentFormProps {
   ticket: {
     id: number
-    price: number
+    amountCents: number
     currency?: string
   }
   eventId: number
   email: string
-  onPaymentStart: () => void
+  status: PaymentProgress
+  error?: string
+  onPaymentStart: (ticketId: number) => void
   onPaymentSuccess: (ticketId: number, transactionRef: string) => void
-  onPaymentError: (error: string) => void
+  onPaymentError: (ticketId: number, error: string) => void
 }
 
 export function PaymentForm({
   ticket,
   eventId,
   email,
+  status,
+  error,
   onPaymentStart,
   onPaymentSuccess,
   onPaymentError,
@@ -40,6 +47,9 @@ export function PaymentForm({
   const [cardHolder, setCardHolder] = useState("")
   const [expiryDate, setExpiryDate] = useState("")
   const [cvv, setCvv] = useState("")
+  const { waitForStatus, cancel } = useTicketStatusSse()
+
+  useEffect(() => cancel, [cancel])
 
   // Formatear número de tarjeta (4 dígitos separados por espacios)
   const formatCardNumber = (value: string) => {
@@ -84,7 +94,6 @@ export function PaymentForm({
     // Validar que la fecha no esté expirada
     const [month, year] = expiryDate.split("/")
     const currentDate = new Date()
-    const currentYear = currentDate.getFullYear() % 100
     const currentMonth = currentDate.getMonth() + 1
 
     const expYear = parseInt(`20${year}`)
@@ -96,16 +105,16 @@ export function PaymentForm({
     }
 
     setIsLoading(true)
-    onPaymentStart()
+    onPaymentStart(ticket.id)
 
     try {
       const transactionRef = `TXN-${Date.now()}`
       
       // Procesar pago
-      const response = await api.processPayment({
+      await api.processPayment({
         ticketId: ticket.id,
         eventId: eventId,
-        amountCents: Math.round(ticket.price), // Ya está en centavos desde backend
+        amountCents: Math.round(ticket.amountCents),
         currency: ticket.currency || "USD",
         paymentBy: email,
         paymentMethodId: `card_${cardNumber.replace(/\s/g, "").slice(-4)}`, // Usar últimos 4 dígitos
@@ -114,10 +123,28 @@ export function PaymentForm({
 
       toast.success("💳 Pago procesado. Confirmando con el servidor...")
 
-      onPaymentSuccess(ticket.id, transactionRef)
+      waitForStatus(
+        ticket.id,
+        (nextStatus) => {
+          if (nextStatus === "paid") {
+            onPaymentSuccess(ticket.id, transactionRef)
+            return
+          }
+
+          onPaymentError(
+            ticket.id,
+            nextStatus === "released"
+              ? "Pago rechazado. El ticket fue liberado."
+              : `Estado inesperado recibido: ${nextStatus}`
+          )
+        },
+        () => {
+          onPaymentError(ticket.id, "El pago tardó demasiado en confirmarse")
+        }
+      )
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Error al procesar el pago"
-      onPaymentError(errorMessage)
+      onPaymentError(ticket.id, errorMessage)
       toast.error(`❌ ${errorMessage}`)
     } finally {
       setIsLoading(false)
@@ -198,16 +225,28 @@ export function PaymentForm({
         </div>
 
         {/* Botón de Pago */}
-        <Button type="submit" disabled={isLoading} className="mt-6 w-full">
-          {isLoading ? (
+        <Button type="submit" disabled={isLoading || status === "processing" || status === "success"} className="mt-6 w-full">
+          {isLoading || status === "processing" ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Procesando...
+              Confirmando...
             </>
+          ) : status === "success" ? (
+            "Pagado ✓"
           ) : (
-            `Pagar $${(ticket.price / 100).toFixed(2)}`
+            `Pagar $${(ticket.amountCents / 100).toFixed(2)}`
           )}
         </Button>
+
+        {status === "success" && (
+          <p className="text-sm text-emerald-500">
+            Ticket #{ticket.id} pagado y confirmado.
+          </p>
+        )}
+
+        {status === "error" && error && (
+          <p className="text-sm text-destructive">{error}</p>
+        )}
 
         {/* Nota de Seguridad */}
         <p className="text-xs text-muted-foreground">

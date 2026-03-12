@@ -21,6 +21,39 @@ export type TicketStatusEvent = {
   status: string
 }
 
+export function waitForTicketStatusSse(ticketId: number, timeoutMs: number = SSE_TIMEOUT_MS): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = `${CRUD_URL}/api/tickets/${ticketId}/stream`
+    const source = new EventSource(url)
+
+    const cleanup = () => {
+      clearTimeout(timer)
+      source.close()
+    }
+
+    const timer = setTimeout(() => {
+      cleanup()
+      reject(new Error(`SSE timeout waiting for ticket ${ticketId}`))
+    }, timeoutMs)
+
+    source.onmessage = (event) => {
+      try {
+        const data: TicketStatusEvent = JSON.parse(event.data)
+        cleanup()
+        resolve(data.status)
+      } catch {
+        cleanup()
+        reject(new Error(`Invalid SSE payload for ticket ${ticketId}`))
+      }
+    }
+
+    source.onerror = () => {
+      cleanup()
+      reject(new Error(`SSE connection failed for ticket ${ticketId}`))
+    }
+  })
+}
+
 export function useTicketStatusSse() {
   const sourceRef = useRef<EventSource | null>(null)
 
