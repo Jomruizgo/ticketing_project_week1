@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="668b60e2-b1d7-44bb-bb58-feb3b9908f53" name="@runnervm0kj6c 2026-03-09 05:36:21" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-03-09T05:36:21.1481222+00:00" queuing="2026-03-09T05:36:21.1481223+00:00" start="2026-03-09T05:36:20.3493540+00:00" finish="2026-03-09T05:36:21.1564696+00:00" />
+  <TestSettings name="default" id="d7e5694b-603e-4f8e-a214-e566bc67bdfc">
+    <Deployment runDeploymentRoot="_runnervm0kj6c_2026-03-09_05_36_21" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="5d2d4baf-ae02-4aed-bfd3-2610042175b3" testId="829b49e4-2d0e-aa0f-362f-1aaf4e8dbbd1" testName="RabbitMQSettings: nombre de sección es 'RabbitMQ'" computerName="runnervm0kj6c" duration="00:00:00.0000696" startTime="2026-03-09T05:36:21.0007573+00:00" endTime="2026-03-09T05:36:21.0007575+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5d2d4baf-ae02-4aed-bfd3-2610042175b3" />
+    <UnitTestResult executionId="b6ae87b8-ae8b-4950-85d2-e199fbbf9adc" testId="11430add-0057-3a51-b314-250ded0e3e54" testName="RabbitMQSettings: valores por defecto son correctos para desarrollo local" computerName="runnervm0kj6c" duration="00:00:00.0002354" startTime="2026-03-09T05:36:21.0015005+00:00" endTime="2026-03-09T05:36:21.0015005+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b6ae87b8-ae8b-4950-85d2-e199fbbf9adc" />
+    <UnitTestResult executionId="dae44254-0d6d-4ace-b06a-a224de96b4f9" testId="90fb8b9a-5712-30c1-5f91-111dc028c07b" testName="RabbitMQSettings: queue names por defecto están definidos" computerName="runnervm0kj6c" duration="00:00:00.0002293" startTime="2026-03-09T05:36:21.0013044+00:00" endTime="2026-03-09T05:36:21.0013045+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="dae44254-0d6d-4ace-b06a-a224de96b4f9" />
+    <UnitTestResult executionId="f4806e34-b866-44b4-8b9b-d35b6b75dd38" testId="d134fb6d-0bcb-14a8-b1cc-fb725086a04e" testName="RabbitMQSettings: se puede inyectar correctamente via IOptions" computerName="runnervm0kj6c" duration="00:00:00.0007415" startTime="2026-03-09T05:36:21.0015568+00:00" endTime="2026-03-09T05:36:21.0015569+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f4806e34-b866-44b4-8b9b-d35b6b75dd38" />
+    <UnitTestResult executionId="ba87634f-588f-4ed5-8f3a-1ccd1804b8fe" testId="387ab700-1fad-8f13-13d3-14190ff2f066" testName="RabbitMQSettings: QueueName y ExpiredQueueName son distintos" computerName="runnervm0kj6c" duration="00:00:00.0033371" startTime="2026-03-09T05:36:21.0013658+00:00" endTime="2026-03-09T05:36:21.0013658+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ba87634f-588f-4ed5-8f3a-1ccd1804b8fe" />
+    <UnitTestResult executionId="05cf1d9e-99a3-480d-b083-a384c3b6af71" testId="420e5d0a-68aa-d87f-8583-38a2c149eff8" testName="RabbitMQSettings: se pueden sobrescribir todos los valores" computerName="runnervm0kj6c" duration="00:00:00.0087062" startTime="2026-03-09T05:36:20.9965326+00:00" endTime="2026-03-09T05:36:20.9965600+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="05cf1d9e-99a3-480d-b083-a384c3b6af71" />
+    <UnitTestResult executionId="351964ce-92b3-46a9-b209-c5b18db10480" testId="8ea29c56-a6c9-25c7-6f0f-0553d102dac1" testName="RabbitMQSettings: exchange y routing keys por defecto están definidos" computerName="runnervm0kj6c" duration="00:00:00.0002258" startTime="2026-03-09T05:36:21.0014395+00:00" endTime="2026-03-09T05:36:21.0014396+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="351964ce-92b3-46a9-b209-c5b18db10480" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="RabbitMQSettings: QueueName y ExpiredQueueName son distintos" storage="/home/runner/work/ticketing_project_week1/ticketing_project_week1/reservationservice/tests/reservationservice.infrastructure.tests/bin/release/net8.0/reservationservice.infrastructure.tests.dll" id="387ab700-1fad-8f13-13d3-14190ff2f066">
+      <Execution id="ba87634f-588f-4ed5-8f3a-1ccd1804b8fe" />
+      <TestMethod codeBase="/home/runner/work/ticketing_project_week1/ticketing_project_week1/ReservationService/tests/ReservationService.Infrastructure.Tests/bin/Release/net8.0/ReservationService.Infrastructure.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ReservationService.Infrastructure.Tests.RabbitMQSettingsTests" name="RabbitMQSettings_QueueNameAndExpiredQueueName_AreDifferent" />
+    </UnitTest>
+    <UnitTest name="RabbitMQSettings: nombre de sección es 'RabbitMQ'" storage="/home/runner/work/ticketing_project_week1/ticketing_project_week1/reservationservice/tests/reservationservice.infrastructure.tests/bin/release/net8.0/reservationservice.infrastructure.tests.dll" id="829b49e4-2d0e-aa0f-362f-1aaf4e8dbbd1">
+      <Execution id="5d2d4baf-ae02-4aed-bfd3-2610042175b3" />
+      <TestMethod codeBase="/home/runner/work/ticketing_project_week1/ticketing_project_week1/ReservationService/tests/ReservationService.Infrastructure.Tests/bin/Release/net8.0/ReservationService.Infrastructure.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ReservationService.Infrastructure.Tests.RabbitMQSettingsTests" name="RabbitMQSettings_SectionName_IsRabbitMQ" />
+    </UnitTest>
+    <UnitTest name="RabbitMQSettings: exchange y routing keys por defecto están definidos" storage="/home/runner/work/ticketing_project_week1/ticketing_project_week1/reservationservice/tests/reservationservice.infrastructure.tests/bin/release/net8.0/reservationservice.infrastructure.tests.dll" id="8ea29c56-a6c9-25c7-6f0f-0553d102dac1">
+      <Execution id="351964ce-92b3-46a9-b209-c5b18db10480" />
+      <TestMethod codeBase="/home/runner/work/ticketing_project_week1/ticketing_project_week1/ReservationService/tests/ReservationService.Infrastructure.Tests/bin/Release/net8.0/ReservationService.Infrastructure.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ReservationService.Infrastructure.Tests.RabbitMQSettingsTests" name="RabbitMQSettings_DefaultExchangeAndRoutingKeys_AreDefined" />
+    </UnitTest>
+    <UnitTest name="RabbitMQSettings: queue names por defecto están definidos" storage="/home/runner/work/ticketing_project_week1/ticketing_project_week1/reservationservice/tests/reservationservice.infrastructure.tests/bin/release/net8.0/reservationservice.infrastructure.tests.dll" id="90fb8b9a-5712-30c1-5f91-111dc028c07b">
+      <Execution id="dae44254-0d6d-4ace-b06a-a224de96b4f9" />
+      <TestMethod codeBase="/home/runner/work/ticketing_project_week1/ticketing_project_week1/ReservationService/tests/ReservationService.Infrastructure.Tests/bin/Release/net8.0/ReservationService.Infrastructure.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ReservationService.Infrastructure.Tests.RabbitMQSettingsTests" name="RabbitMQSettings_DefaultQueueNames_AreDefined" />
+    </UnitTest>
+    <UnitTest name="RabbitMQSettings: valores por defecto son correctos para desarrollo local" storage="/home/runner/work/ticketing_project_week1/ticketing_project_week1/reservationservice/tests/reservationservice.infrastructure.tests/bin/release/net8.0/reservationservice.infrastructure.tests.dll" id="11430add-0057-3a51-b314-250ded0e3e54">
+      <Execution id="b6ae87b8-ae8b-4950-85d2-e199fbbf9adc" />
+      <TestMethod codeBase="/home/runner/work/ticketing_project_week1/ticketing_project_week1/ReservationService/tests/ReservationService.Infrastructure.Tests/bin/Release/net8.0/ReservationService.Infrastructure.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ReservationService.Infrastructure.Tests.RabbitMQSettingsTests" name="RabbitMQSettings_DefaultValues_AreCorrectForLocalDev" />
+    </UnitTest>
+    <UnitTest name="RabbitMQSettings: se puede inyectar correctamente via IOptions" storage="/home/runner/work/ticketing_project_week1/ticketing_project_week1/reservationservice/tests/reservationservice.infrastructure.tests/bin/release/net8.0/reservationservice.infrastructure.tests.dll" id="d134fb6d-0bcb-14a8-b1cc-fb725086a04e">
+      <Execution id="f4806e34-b866-44b4-8b9b-d35b6b75dd38" />
+      <TestMethod codeBase="/home/runner/work/ticketing_project_week1/ticketing_project_week1/ReservationService/tests/ReservationService.Infrastructure.Tests/bin/Release/net8.0/ReservationService.Infrastructure.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ReservationService.Infrastructure.Tests.RabbitMQSettingsTests" name="RabbitMQSettings_CanBeInjectedViaIOptions" />
+    </UnitTest>
+    <UnitTest name="RabbitMQSettings: se pueden sobrescribir todos los valores" storage="/home/runner/work/ticketing_project_week1/ticketing_project_week1/reservationservice/tests/reservationservice.infrastructure.tests/bin/release/net8.0/reservationservice.infrastructure.tests.dll" id="420e5d0a-68aa-d87f-8583-38a2c149eff8">
+      <Execution id="05cf1d9e-99a3-480d-b083-a384c3b6af71" />
+      <TestMethod codeBase="/home/runner/work/ticketing_project_week1/ticketing_project_week1/ReservationService/tests/ReservationService.Infrastructure.Tests/bin/Release/net8.0/ReservationService.Infrastructure.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="ReservationService.Infrastructure.Tests.RabbitMQSettingsTests" name="RabbitMQSettings_AllValues_AreOverridable" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="829b49e4-2d0e-aa0f-362f-1aaf4e8dbbd1" executionId="5d2d4baf-ae02-4aed-bfd3-2610042175b3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="11430add-0057-3a51-b314-250ded0e3e54" executionId="b6ae87b8-ae8b-4950-85d2-e199fbbf9adc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="90fb8b9a-5712-30c1-5f91-111dc028c07b" executionId="dae44254-0d6d-4ace-b06a-a224de96b4f9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d134fb6d-0bcb-14a8-b1cc-fb725086a04e" executionId="f4806e34-b866-44b4-8b9b-d35b6b75dd38" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="387ab700-1fad-8f13-13d3-14190ff2f066" executionId="ba87634f-588f-4ed5-8f3a-1ccd1804b8fe" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="420e5d0a-68aa-d87f-8583-38a2c149eff8" executionId="05cf1d9e-99a3-480d-b083-a384c3b6af71" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8ea29c56-a6c9-25c7-6f0f-0553d102dac1" executionId="351964ce-92b3-46a9-b209-c5b18db10480" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="7" executed="7" passed="7" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.6+bf9b858c26 (64-bit .NET 8.0.24)
+[xUnit.net 00:00:00.10]   Discovering: ReservationService.Infrastructure.Tests
+[xUnit.net 00:00:00.15]   Discovered:  ReservationService.Infrastructure.Tests
+[xUnit.net 00:00:00.15]   Starting:    ReservationService.Infrastructure.Tests
+[xUnit.net 00:00:00.23]   Finished:    ReservationService.Infrastructure.Tests
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

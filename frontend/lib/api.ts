@@ -7,10 +7,20 @@ import type {
   ReserveTicketPayload,
   UpdateTicketPayload,
 } from "./types"
-import { retryWithBackoff } from "./polling"
 
 const CRUD_URL = process.env.NEXT_PUBLIC_API_CRUD || "http://localhost:8002"
 const PRODUCER_URL = process.env.NEXT_PUBLIC_API_PRODUCER || "http://localhost:8001"
+
+function normalizeTicket(ticket: Ticket): Ticket {
+  return {
+    ...ticket,
+    status: ticket.status.toLowerCase() as Ticket["status"],
+  }
+}
+
+function normalizeTickets(tickets: Ticket[]): Ticket[] {
+  return tickets.map(normalizeTicket)
+}
 
 /**
  * Custom error class for API errors
@@ -91,12 +101,14 @@ export const api = {
   // ─── Tickets ──────────────────────────────────────────
   async getTicketsByEvent(eventId: number): Promise<Ticket[]> {
     const res = await fetch(`${CRUD_URL}/api/tickets/event/${eventId}`)
-    return handleResponse<Ticket[]>(res)
+    const tickets = await handleResponse<Ticket[]>(res)
+    return normalizeTickets(tickets)
   },
 
   async getTicket(id: number): Promise<Ticket> {
     const res = await fetch(`${CRUD_URL}/api/tickets/${id}`)
-    return handleResponse<Ticket>(res)
+    const ticket = await handleResponse<Ticket>(res)
+    return normalizeTicket(ticket)
   },
 
   async createTickets(payload: CreateTicketsPayload): Promise<CreateTicketsResponse> {
@@ -105,16 +117,21 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     })
-    return handleResponse<CreateTicketsResponse>(res)
+    const tickets = normalizeTickets(await handleResponse<Ticket[]>(res))
+    return {
+      createdCount: tickets.length,
+      tickets,
+    }
   },
 
   async updateTicketStatus(id: number, payload: UpdateTicketPayload): Promise<Ticket> {
-    const res = await fetch(`${CRUD_URL}/api/tickets/${id}`, {
+    const res = await fetch(`${CRUD_URL}/api/tickets/${id}/status`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     })
-    return handleResponse<Ticket>(res)
+    const ticket = await handleResponse<Ticket>(res)
+    return normalizeTicket(ticket)
   },
 
   // ─── Producer ─────────────────────────────────────────
@@ -153,7 +170,7 @@ export const api = {
     paymentBy: string
     paymentMethodId: string
     transactionRef: string
-  }): Promise<{ message: string; ticketId: number; eventId: number; status: string }> {
+  }): Promise<{ message: string; ticketId: number; eventId: number }> {
     const res = await fetch(`${PRODUCER_URL}/api/payments/process`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

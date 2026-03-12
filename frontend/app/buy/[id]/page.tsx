@@ -1,21 +1,22 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import Link from "next/link"
-import { Calendar, Tickets, Loader2, CheckCircle2, XCircle, ArrowLeft } from "lucide-react"
+import { Calendar, Tickets, Loader2, CheckCircle2, XCircle } from "lucide-react"
 import { useEvent, useTickets } from "@/hooks/use-ticketing"
-import { usePaymentStatus } from "@/hooks/use-payment-status"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PaymentForm } from "@/components/payment-form"
-import { PaymentStatus } from "@/components/payment-status"
+import { waitForTicketStatusSse } from "@/hooks/use-ticket-status-sse"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
 
-type PurchaseStep = "form" | "processing" | "reserved" | "payment" | "confirming" | "success" | "error"
+type PurchaseStep = "form" | "processing" | "reserved" | "success" | "error"
+type PaymentProgress = "idle" | "processing" | "success" | "error"
+
+const DEFAULT_TICKET_PRICE_CENTS = 9999
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("es-ES", {
@@ -46,26 +47,23 @@ export default function BuyerEventPage() {
   const [errorMsg, setErrorMsg] = useState("")
   const [reservedCount, setReservedCount] = useState(0)
   const [reservedTicketIds, setReservedTicketIds] = useState<number[]>([])
-  const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "success" | "error">("idle")
-  const [paymentError, setPaymentError] = useState("")
-
-  const { isPolling: isPaymentPolling, startPolling: startPaymentPolling } = usePaymentStatus({
-    ticketId: reservedTicketIds[0],
-    onPaymentConfirmed: () => {
-      setPaymentStatus("success")
-      setStep("success")
-      toast.success("¡Pago confirmado! Tu compra está completa")
-    },
-    onPaymentRejected: (reason) => {
-      setPaymentStatus("error")
-      setPaymentError(reason)
-      toast.error(`Pago rechazado: ${reason}`)
-    },
-  })
+  const [paymentStates, setPaymentStates] = useState<Record<number, PaymentProgress>>({})
+  const [paymentErrors, setPaymentErrors] = useState<Record<number, string>>({})
 
   const availableTickets = tickets?.filter(
     (t) => t.status?.toLowerCase() === "available"
   ) || []
+
+  useEffect(() => {
+    if (
+      step === "reserved" &&
+      reservedTicketIds.length > 0 &&
+      reservedTicketIds.every((ticketId) => paymentStates[ticketId] === "success")
+    ) {
+      setStep("success")
+      toast.success("¡Pago confirmado! Tu compra está completa")
+    }
+  }, [paymentStates, reservedTicketIds, step])
 
   async function handlePurchase(e: React.FormEvent) {
     e.preventDefault()
@@ -98,41 +96,41 @@ export default function BuyerEventPage() {
     try {
       const selectedTickets = availableTickets.slice(0, qty)
       const orderId = `ORD-${Date.now()}`
-      let successCount = 0
-      const reservedIds: number[] = []
+      const reservedIds = (
+        await Promise.all(
+          selectedTickets.map(async (ticket) => {
+            try {
+              const result = await api.reserveTicket({
+                eventId,
+                ticketId: ticket.id,
+                orderId,
+                reservedBy: email.trim(),
+                expiresInSeconds: seconds,
+              })
 
-      // Enviar reservas en paralelo
-      await Promise.all(
-        selectedTickets.map((ticket) =>
-          api
-            .reserveTicket({
-              eventId,
-              ticketId: ticket.id,
-              orderId,
-              reservedBy: email.trim(),
-              expiresInSeconds: seconds,
-            })
-            .then((result) => {
-              successCount++
-              reservedIds.push(result.ticketId)
-            })
-            .catch((err) => {
+              const status = (await waitForTicketStatusSse(result.ticketId)).toLowerCase()
+              if (status !== "reserved") {
+                throw new Error(`Estado inesperado para ticket ${result.ticketId}: ${status}`)
+              }
+              return result.ticketId
+            } catch (err) {
               console.error("Failed to reserve ticket:", err)
-            })
+              return null
+            }
+          })
         )
-      )
+      ).filter((ticketId): ticketId is number => ticketId !== null)
 
-      if (successCount === 0) {
+      if (reservedIds.length === 0) {
         throw new Error("No fue posible reservar los tickets")
       }
 
-      setReservedCount(successCount)
+      setReservedCount(reservedIds.length)
       setReservedTicketIds(reservedIds)
-      
-      // Esperar un poco para que se procesen
-      await new Promise(r => setTimeout(r, 2000))
-      
-      // Mostrar formulario de pago
+      setPaymentStates(
+        Object.fromEntries(reservedIds.map((ticketId) => [ticketId, "idle" as PaymentProgress]))
+      )
+      setPaymentErrors({})
       setStep("reserved")
     } catch (err) {
       setStep("error")
@@ -144,23 +142,36 @@ export default function BuyerEventPage() {
     }
   }
 
-  async function handlePaymentStart() {
-    setPaymentStatus("processing")
+  function handlePaymentStart(ticketId: number) {
+    setPaymentStates((current) => ({
+      ...current,
+      [ticketId]: "processing",
+    }))
+    setPaymentErrors((current) => {
+      const next = { ...current }
+      delete next[ticketId]
+      return next
+    })
   }
 
-  async function handlePaymentSuccess(ticketId: number, transactionRef: string) {
-    toast.loading("Confirmando pago...")
-    setPaymentStatus("processing")
-    setStep("confirming")
-    
-    // Iniciar polling para esperar confirmación del pago
-    startPaymentPolling()
+  function handlePaymentSuccess(ticketId: number) {
+    setPaymentStates((current) => ({
+      ...current,
+      [ticketId]: "success",
+    }))
+    toast.success(`Pago confirmado para ticket #${ticketId}`)
   }
 
-  async function handlePaymentError(error: string) {
-    setPaymentStatus("error")
-    setPaymentError(error)
-    toast.error(`Error en el pago: ${error}`)
+  function handlePaymentError(ticketId: number, error: string) {
+    setPaymentStates((current) => ({
+      ...current,
+      [ticketId]: "error",
+    }))
+    setPaymentErrors((current) => ({
+      ...current,
+      [ticketId]: error,
+    }))
+    toast.error(`Error en el pago del ticket #${ticketId}: ${error}`)
   }
 
   function handleReset() {
@@ -170,8 +181,8 @@ export default function BuyerEventPage() {
     setExpiresIn("300")
     setReservedCount(0)
     setReservedTicketIds([])
-    setPaymentStatus("idle")
-    setPaymentError("")
+    setPaymentStates({})
+    setPaymentErrors({})
     setErrorMsg("")
   }
 
@@ -320,7 +331,7 @@ export default function BuyerEventPage() {
                     Completar Pago
                   </h2>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {reservedCount} ticket{reservedCount !== 1 ? "s" : ""} reservado{reservedCount !== 1 ? "s" : ""} • Total: ${(9999 * reservedCount / 100).toFixed(2)}
+                    {reservedCount} ticket{reservedCount !== 1 ? "s" : ""} reservado{reservedCount !== 1 ? "s" : ""} • Total: ${(DEFAULT_TICKET_PRICE_CENTS * reservedCount / 100).toFixed(2)}
                   </p>
                 </div>
 
@@ -329,25 +340,19 @@ export default function BuyerEventPage() {
                     key={ticketId}
                     ticket={{
                       id: ticketId,
-                      price: 9999, // $99.99 en centavos
+                      amountCents: DEFAULT_TICKET_PRICE_CENTS,
                       currency: "USD",
                     }}
                     eventId={eventId}
                     email={email}
+                    status={paymentStates[ticketId] ?? "idle"}
+                    error={paymentErrors[ticketId]}
                     onPaymentStart={handlePaymentStart}
                     onPaymentSuccess={handlePaymentSuccess}
                     onPaymentError={handlePaymentError}
                   />
                 ))}
               </div>
-            )}
-
-            {step === "confirming" && (
-              <PaymentStatus
-                status="processing"
-                ticketId={reservedTicketIds[0]}
-                onReset={handleReset}
-              />
             )}
 
             {step === "success" && (
