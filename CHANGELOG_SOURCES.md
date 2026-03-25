@@ -27,6 +27,7 @@ Registro y login cumplen esto:
 * Un usuario puede necesitar registrarse sin necesariamente iniciar sesión en ese momento
 * Puedes priorizar “registro” antes que “login” o viceversa (aunque en la práctica suelen ir juntos)
 
+---------------------------------------------------------------------
 
 *HISTORIAS DE USUARIO*
 Del concepto popularizado por Mike Cohn:
@@ -40,6 +41,7 @@ Aplicándolo:
 
 Son acciones distintas con valores distintos, por eso se separan.
 
+-----------------------------------------------------------------------
 
 *BDD/Gherkin*
 En herramientas como Cucumber usando Gherkin:
@@ -52,6 +54,7 @@ No se recomienda mezclar capacidades diferentes en una misma feature
 * Crear cuenta 
 * Autenticarse
 
+------------------------------------------------------------------------
 
 *Principio INVEST*
 También de Bill Wake:
@@ -69,5 +72,19 @@ Login:
 Aunque se relacionan, no son la misma responsabilidad
 
 
-DECISIÓN: Decido cambiar la feature de 'Inicio de sesión por parte de los usuarios' a 'Autenticación de usuarios' ya que de esta manera se incluirian ambas funcionalidades y harian parte del mismo dominio, siguiendo buenas practicas.
+FUENTES: 
+- User Stories Applied – Mike Cohn
+- INVEST in Good Stories - Bill Wake
+- https://scrumguides.org/ (SCRUM)
+- https://cucumber.io/docs/gherkin/reference/ (BDD y Gherkin)
+- Domain-Driven Design: Tackling Complexity in the Heart of Software – Eric Evans (DDD)
+- Clean Architecture – Robert C. Martin
+
+
+4. Decido cambiar la feature de 'Inicio de sesión por parte de los usuarios' a 'Autenticación de usuarios' ya que de esta manera se incluirian ambas funcionalidades y harian parte del mismo dominio, siguiendo buenas practicas.
+
+
+5. Defino concretamente la feature en la que se va a trabajar, adiciono las dos historias de usuarios y asi mismo los criterios de aceptación de una manera muy generica.
+
+6. Le pido a la IA que segun esa feature y HUs, profundice en los criterios de aceptación, luego reviso y realizo ajustes segun alcance que desee implementar despues en el desarrollo.
 
