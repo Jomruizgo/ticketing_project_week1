@@ -13,3 +13,6 @@ Esta fuente habla de cuatro documentos clave para todo proyecto de sofware moder
 
 4. https://www.scrum.org/forum/scrum-forum/41535/epic-acceptance-criteria
 Esta fuente se tra de un foro donde se habla sobre si una feature/Epic debe tener quiterios de aceptación o no, de aqui queda claro que no hay un concenso sobre ellos y que todo depende de lo que significa feature/epic para tu equipo y si tiene una ventaja o no que esta venga con croterios de aceptación, lo que si parece ser un concenso es la feature/epic definitivamente es algo que de debe refinar y transformas en historias de usuarios, por lo menos en formación que tuvimos con Santiago la definición que el maneja de feature/Epic, esta no tiene criterios de aceptación.
+
+5. https://rodrigo-lara.medium.com/arquitectura-de-un-sistema-de-venta-de-boletos-para-eventos-de-gran-escala-c20b9170b2d4
+En esta fuente se encuentra un punto de vista de la evolución arquitectonica que deben o suelen tener proyectos de software similares al presente proyecto. Esto nos para darnos cuenta que tan desviada, o coherente puede estar nuestra arquitectura actual respecto al estado del arte.
