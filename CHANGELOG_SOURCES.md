@@ -20,8 +20,8 @@ FUENTE: Proyecto
 *SCRUM*
 En marcos como Scrum y enfoques de producto:
 
-Una feature representa una unidad de valor para el usuario o negocio
-Debe poder priorizarse, desarrollarse y probarse de forma independiente
+* Una feature representa una unidad de valor para el usuario o negocio
+* Debe poder priorizarse, desarrollarse y probarse de forma independiente
 
 Registro y login cumplen esto:
 * Un usuario puede necesitar registrarse sin necesariamente iniciar sesión en ese momento
@@ -63,11 +63,9 @@ I – Independent (Independiente)
 
 Si puedes desarrollar o probar algo sin depender completamente de otro, debería ser separado.
 
-Registro:
-* Crear usuario 
+* Registro: Crear usuario 
 
-Login:
-* Validar credenciales 
+* Login: Validar credenciales 
 
 Aunque se relacionan, no son la misma responsabilidad
 
@@ -83,8 +81,14 @@ FUENTES:
 
 4. Decido cambiar la feature de 'Inicio de sesión por parte de los usuarios' a 'Autenticación de usuarios' ya que de esta manera se incluirian ambas funcionalidades y harian parte del mismo dominio, siguiendo buenas practicas.
 
-
 5. Defino concretamente la feature en la que se va a trabajar, adiciono las dos historias de usuarios y asi mismo los criterios de aceptación de una manera muy generica.
 
-6. Le pido a la IA que segun esa feature y HUs, profundice en los criterios de aceptación, luego reviso y realizo ajustes segun alcance que desee implementar despues en el desarrollo.
+6. Le pido a la IA que segun esa feature y HUs, profundice en los criterios de aceptación, luego reviso y realizo ajustes segun el alcance que desee implementar despues en el desarrollo.
+
+7. Según la rubrica debemos desarrollar tambien las reglas de negocio, hablando con nuestros instructores se menciona que las reglas de negocio ya se encuentran implicitas en los criterios de aceptación, pero me queda la duda, por lo que decido consultar y encuentre con que las reglas de negocio gobiernan todo y por lo tanto son normas o politicas que el sistema debe cumplir si o si independientemente de como se implemente; Es por esta razón que tomo la decisión de separar los criterios de aceptación de las reglas de negocio aunque tengan cierta relación y como desconozco Reglas de negocio comunes, solicito a la IA segun los criterios de aceptacion que me recomiende algunas.
+
+FUENTES:
+* Business Rules Applied – Barbara von Halle
+* Building Business Solutions: Business Analysis with Business Rules – Ronald G. Ross
+
 
