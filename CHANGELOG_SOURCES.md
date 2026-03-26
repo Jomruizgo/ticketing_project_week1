@@ -4,7 +4,7 @@
 
 ## 1. Identificacion del problema
 
-Analicé el proyecto para identificar que posibles Features se pueden implementar que sean de alta complejidad; Las funcionalidades (CRUD) de eventos ya estan existentes pero deberia restringir a que solamente los usuarios con un rol especifico pudiera hacerlo, pues no tiene logica que el sistema permita crear, editar, eliminar eventos a la misma persona que los va a comprar; Para esto yo he identificado que no existe la funcionalidad inicialmente para el registro del usuario y que implementar el Login y poder mostrar una UI dependiendo del rol implica 2 Features minimamente: Registro de usuarios, Inicio de sesión.
+Analicé el proyecto para identificar que posibles Features se pueden implementar que sean de alta complejidad; Las funcionalidades (CRUD) de eventos ya estan existentes pero deberia restringir a que solamente los usuarios con un rol especifico pudiera hacerlo, pues no tiene logica que el sistema permita crear, editar, eliminar eventos a la misma persona que los va a comprar; Para esto yo he identificado que no existe la funcionalidad inicialmente para el registro del usuario y que implemente el Login y poder mostrar una UI dependiendo del rol implica 2 Features minimamente: Registro de usuarios, Inicio de sesión.
 
 ---
 
@@ -118,4 +118,5 @@ Según la rubrica debemos desarrollar tambien las reglas de negocio, hablando co
 - Building Business Solutions: Business Analysis with Business Rules – Ronald G. Ross
 
 
+8. Empiezo a investigar sobre UML y C4 para definir el metodo de modelamiento y asi comenzar con el diagrama de la arquitectura, luego de ver varias herramientas decidi realizarlo en Draw.io por familiaridad.
 
