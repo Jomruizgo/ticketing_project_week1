@@ -120,3 +120,14 @@ Según la rubrica debemos desarrollar tambien las reglas de negocio, hablando co
 
 8. Empiezo a investigar sobre UML y C4 para definir el metodo de modelamiento y asi comenzar con el diagrama de la arquitectura, luego de ver varias herramientas decidi realizarlo en Draw.io por familiaridad.
 
+FUENTES: 
+* https://c4model.com/
+* https://www.omg.org/spec/UML/
+
+
+9. Luego de realizar el nivel 2 de contenedores del diagrama C4 y pensar como iba a ser la comunicación del nuevo servicio con los demás, me detengo un momento a pensar que arquitectura puede ser la ideal para el nuevo servicio y decido usar la arquitectura de capas por que mi feature requiere un sistema pequeño sin alta complejidad, sin mucho crecimiento esperado.
+
+
+
+
+
