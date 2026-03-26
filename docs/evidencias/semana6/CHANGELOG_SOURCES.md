@@ -4,4 +4,6 @@ Objetivo: El objetivo de este archivo es documentar fuentes que ha sido utilies 
 En esta fuente podemos encontrar información de la definión de lo que es una epica y ejemplos.
 
 2. https://www.parallelhq.com/blog/how-to-write-epic-in-agile
-En esta fuente esta mas actualizada ya que habla especificamente del 2026 y tambien nos habla de cómo descomponer una épica en HUs
+- En esta fuente esta mas actualizada ya que habla especificamente del 2026 y tambien nos habla de cómo descomponer una épica en HUs.
+- En esta fuente tambien encoantramos información sobre Planificion y ejecución de la épica, sin embargo, esto parece estar mas enfocado al seguimiento que a la estructuración de una plan documenado.
+
