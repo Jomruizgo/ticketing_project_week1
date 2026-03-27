@@ -127,7 +127,8 @@ FUENTES:
 
 9. Luego de realizar el nivel 2 de contenedores del diagrama C4 y pensar como iba a ser la comunicación del nuevo servicio con los demás, me detengo un momento a pensar que arquitectura puede ser la ideal para el nuevo servicio y decido usar la arquitectura de capas por que mi feature requiere un sistema pequeño sin alta complejidad, sin mucho crecimiento esperado.
 
+FUENTES: 
+* Clean Architecture - Robert C. Martin
 
 
-
-
+10. Comence el diseño del nivel 3 del diagrama C4 y decidi seguir el patron de diseño de service layer, separando la logica de de negocio de los controladores y repositorios, tambien, para tener mayor control sobre cada hu y modularizar un poco mas, decidi crear dos controladores y en los servicios incluir las acciones de cada uno teniendo en cuenta los criterios de aceptacion, luego pense en los repositorios a crear y obviamente esta el de usuario que nos permite toda la gestion del mismo y por otro lado se encuentra un repositorio quye gestiona los intentos de login y nos permite cumplir con la regla de negocio RN5 Limite de intentos fallidos: El sistema debe bloquear por un tiempo el acceso después de un 3 intentos fallidos de inicio de sesión de la HU2, luego con el diagrama casi listo le solicite a la IA su opinion teniendo en cuenta que era el nivel 3 de un c4, me recomendo crear un servicio unicamente para la gestion de contraseñas argumentando que: 'EL sistema debe bloquear por un tiempo el acceso después de un 3 intentos fallidos de inicio de sesión' y la acepte tambien siguiendo el principio de responsabilidad unica;
