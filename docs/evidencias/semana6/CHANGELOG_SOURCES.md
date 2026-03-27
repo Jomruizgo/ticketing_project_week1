@@ -19,3 +19,6 @@ En esta fuente se encuentra un punto de vista de la evolución arquitectonica qu
 
 6. https://scrum.menzinsky.com/2018/01/que-son-y-como-funcionan-las-historias.html
 En esta fuente se habla de la Historias técnicas, sin embargo, se llaga la conclusión de que para el desarrollo de la Feature correspondiente al presente entregable no es necesario tener historias técnicas, tal vez tendrpia sentido una historia técnica como habilitador en en el caso de la notificación por correo, pero esto se puede manejar directamente con una HU.
+
+7. https://medium.com/@hector-reyesaleman/visual-representations-of-software-systems-diagrams-as-communication-tools-d3fa106ba3a6
+En esta fuente se habla sobre los diagramas arquitectónicos, a partir de dicha referecia se toma la deción se usar un par de tipode  graficos en el presente trabajo, los cuales son: Diagrama de secuencia y diagrama de contenedores en C4. Tambien se usa el siguiente video de youtube como guia pra realizar los diagramas con la herramienta draw.io https://www.youtube.com/watch?v=QEXGbpsUXaI 
