@@ -26,3 +26,30 @@ En esta fuente se habla sobre los diagramas arquitectónicos, a partir de dicha 
 
 8. https://javiergarzas.com/2012/05/descomponer-historias-de-usuario-en-tareas-1.html
 Esta Fuente habla de recomendaciones para dividir una HU en tasks. Las cuales son consideradas teniendo en cuenta que para nuestro caso seguimos TDD.
+
+9. https://www.taurusgalaxy.com/post/incrementando-calidad-con-dod-y-dor
+Referencia para crear DoR y DoD
+
+
+
+Dadas la refecncias anteriores ya tenemos herramientas para crear un marco que nos permita documentar un plan de implementación de una feature/Epica, el marco al que hemos concluido debe contener lo siguiente:
+
+- Feature
+ * Definición
+ * Probelma que resuelve
+ * Supuestos
+ * Alcance
+
+- Palabras clave o vocabulario de negocio
+
+- Refinamiento en hacia Hus
+ * Definición
+ * Verificación INVEST
+ * Criterios de Aceptación
+ * DoR
+ * DoD
+ * Estimación de Efuerzo (opcional)
+
+- Análisis de Impacto arquitectónico
+
+- Tareas
