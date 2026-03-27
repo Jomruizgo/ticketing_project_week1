@@ -16,3 +16,6 @@ Esta fuente se tra de un foro donde se habla sobre si una feature/Epic debe tene
 
 5. https://rodrigo-lara.medium.com/arquitectura-de-un-sistema-de-venta-de-boletos-para-eventos-de-gran-escala-c20b9170b2d4
 En esta fuente se encuentra un punto de vista de la evolución arquitectonica que deben o suelen tener proyectos de software similares al presente proyecto. Esto nos para darnos cuenta que tan desviada, o coherente puede estar nuestra arquitectura actual respecto al estado del arte.
+
+6. https://scrum.menzinsky.com/2018/01/que-son-y-como-funcionan-las-historias.html
+En esta fuente se habla de la Historias técnicas, sin embargo, se llaga la conclusión de que para el desarrollo de la Feature correspondiente al presente entregable no es necesario tener historias técnicas, tal vez tendrpia sentido una historia técnica como habilitador en en el caso de la notificación por correo, pero esto se puede manejar directamente con una HU.
