@@ -22,3 +22,7 @@ En esta fuente se habla de la Historias técnicas, sin embargo, se llaga la conc
 
 7. https://medium.com/@hector-reyesaleman/visual-representations-of-software-systems-diagrams-as-communication-tools-d3fa106ba3a6
 En esta fuente se habla sobre los diagramas arquitectónicos, a partir de dicha referecia se toma la deción se usar un par de tipode  graficos en el presente trabajo, los cuales son: Diagrama de secuencia y diagrama de contenedores en C4. Tambien se usa el siguiente video de youtube como guia pra realizar los diagramas con la herramienta draw.io https://www.youtube.com/watch?v=QEXGbpsUXaI 
+
+
+8. https://javiergarzas.com/2012/05/descomponer-historias-de-usuario-en-tareas-1.html
+Esta Fuente habla de recomendaciones para dividir una HU en tasks. Las cuales son consideradas teniendo en cuenta que para nuestro caso seguimos TDD.
