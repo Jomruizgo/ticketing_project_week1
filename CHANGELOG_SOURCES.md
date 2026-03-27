@@ -146,3 +146,9 @@ FUENTES:
 * Patrones de Diseño - Erich Gamma
 
 12. Me di cuenta que en los primeros pasos, cuando elegi la feature a realizar, no estime el alcance sobre lo que incluye y lo que no, tampoco realice una descripción del impacto en la aplicación o el por que se va a realizar, es por esto que hice modificaciones en el documento word ' Documento de Diseño' en esta primera sección.
+
+
+13. Realizo la estimación de importancia de cada historia de usuario y le doy una puntuación basada en Planning Poker, como no tengo un equipo yo mismo voto y no existiria la necesidad de llegar a un consenso.
+
+FUENTES: 
+* https://asana.com/es/resources/planning-poker
