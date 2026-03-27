@@ -53,3 +53,11 @@ Dadas la refecncias anteriores ya tenemos herramientas para crear un marco que n
 - Análisis de Impacto arquitectónico
 
 - Tareas
+
+
+https://medium.com/@daniel_giraldo/fluent-validation-d931c0382348
+Heramienta FluentValidation aunque se podiran usar similares esta puede ser de ayuda como herrmienta de validación
+
+https://github.com/open-telemetry
+https://www.dynatrace.com/news/blog/what-is-opentelemetry/
+Herramienta Open Telemetry puede ser de ayuda para temas de trazabilidad
