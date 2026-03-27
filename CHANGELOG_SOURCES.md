@@ -142,3 +142,7 @@ FUENTES:
 
 * Si se lograron identificar adicional al Service Layer (pensado desde el inicio), el Repository tambien esta implicito por ejemplo en la abstracción realizada a PostgreSQL, tambien con ayuda de la IA se obtuvo la identificación de un patron de diseño desconocido para mi llamado Guard Clause que consiste en realizar validaciones tempranas en los servicios que corta el flujo antes de ejecutar alguna logica costosa.
 
+FUENTES: 
+* Patrones de Diseño - Erich Gamma
+
+12. Me di cuenta que en los primeros pasos, cuando elegi la feature a realizar, no estime el alcance sobre lo que incluye y lo que no, tampoco realice una descripción del impacto en la aplicación o el por que se va a realizar, es por esto que hice modificaciones en el documento word ' Documento de Diseño' en esta primera sección.
