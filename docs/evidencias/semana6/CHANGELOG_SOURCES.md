@@ -52,7 +52,7 @@ Dadas la refecncias anteriores ya tenemos herramientas para crear un marco que n
 
 - Análisis de Impacto arquitectónico
 
-- Tareas
+- Tareas (Opcional)
 
 
 https://medium.com/@daniel_giraldo/fluent-validation-d931c0382348
