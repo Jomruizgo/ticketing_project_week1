@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Logging;
-using ReservationService.Application.DTOs.ProcessReservation;
+using ReservationService.Application.UseCases.ProcessReservation;
 using ReservationService.Application.Interfaces;
 using ReservationService.Domain.Entities;
 using ReservationService.Domain.Interfaces;

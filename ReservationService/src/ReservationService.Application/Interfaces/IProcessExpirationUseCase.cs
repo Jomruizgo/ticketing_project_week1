@@ -1,4 +1,4 @@
-using ReservationService.Application.DTOs.ProcessExpiration;
+using ReservationService.Application.UseCases.ProcessExpiration;
 
 namespace ReservationService.Application.Interfaces;
 

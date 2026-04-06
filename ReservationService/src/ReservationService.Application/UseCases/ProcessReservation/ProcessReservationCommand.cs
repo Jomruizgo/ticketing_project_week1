@@ -1,4 +1,4 @@
-namespace ReservationService.Application.DTOs.ProcessReservation;
+namespace ReservationService.Application.UseCases.ProcessReservation;
 
 public record ProcessReservationCommand(
     long TicketId,
