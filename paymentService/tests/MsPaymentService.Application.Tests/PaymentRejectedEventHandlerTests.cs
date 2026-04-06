@@ -7,7 +7,7 @@ using MsPaymentService.Application.UseCases.ProcessRejectedPayment;
 using MsPaymentService.Domain.Entities;
 using MsPaymentService.Domain.Interfaces;
 using MsPaymentService.Infrastructure.Configurations;
-using MsPaymentService.Infrastructure.Handlers;
+using MsPaymentService.Infrastructure.Messaging.Handlers;
 using MsPaymentService.Infrastructure.Messaging;
 using NSubstitute;
 using Xunit;

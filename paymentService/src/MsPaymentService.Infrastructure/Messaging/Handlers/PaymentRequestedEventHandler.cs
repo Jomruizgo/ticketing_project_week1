@@ -8,7 +8,7 @@ using MsPaymentService.Application.Interfaces;
 using MsPaymentService.Infrastructure.Configurations;
 using MsPaymentService.Infrastructure.Messaging.RabbitMQ;
 
-namespace MsPaymentService.Infrastructure.Handlers;
+namespace MsPaymentService.Infrastructure.Messaging.Handlers;
 
 public class PaymentRequestedEventHandler : IPaymentEventHandler
 {

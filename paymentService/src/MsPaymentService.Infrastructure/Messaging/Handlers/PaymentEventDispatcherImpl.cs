@@ -1,7 +1,7 @@
 using MsPaymentService.Application.Dtos;
 using MsPaymentService.Application.Interfaces;
 
-namespace MsPaymentService.Infrastructure.Handlers;
+namespace MsPaymentService.Infrastructure.Messaging.Handlers;
 
 public class PaymentEventDispatcherImpl : IPaymentEventDispatcher
 {
