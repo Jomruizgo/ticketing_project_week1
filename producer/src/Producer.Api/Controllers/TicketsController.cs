@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Producer.Api.Models;
-using Producer.Application.DTOs.ReserveTicket;
+using Producer.Application.UseCases.ReserveTicket;
 using Producer.Application.Interfaces;
 
 namespace Producer.Api.Controllers;

@@ -1,4 +1,4 @@
-using Producer.Application.DTOs.RequestPayment;
+using Producer.Application.UseCases.RequestPayment;
 
 namespace Producer.Application.Interfaces;
 

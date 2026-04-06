@@ -1,4 +1,4 @@
-using Producer.Application.DTOs.ReserveTicket;
+using Producer.Application.UseCases.ReserveTicket;
 
 namespace Producer.Application.Interfaces;
 
