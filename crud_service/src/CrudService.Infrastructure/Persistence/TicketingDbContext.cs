@@ -1,7 +1,7 @@
 using CrudService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace CrudService.Infrastructure.Data;
+namespace CrudService.Infrastructure.Persistence;
 
 public class TicketingDbContext : DbContext
 {

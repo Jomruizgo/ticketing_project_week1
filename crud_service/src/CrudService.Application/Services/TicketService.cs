@@ -1,6 +1,6 @@
 using CrudService.Application.Dtos;
 using CrudService.Domain.Entities;
-using CrudService.Domain.Repositories;
+using CrudService.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace CrudService.Application.Services;

@@ -2,7 +2,7 @@ using Xunit;
 using CrudService.Application.Dtos;
 using CrudService.Application.Services;
 using CrudService.Domain.Entities;
-using CrudService.Domain.Repositories;
+using CrudService.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
