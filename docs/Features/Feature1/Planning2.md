@@ -69,41 +69,16 @@ Hoy, cuando un evento se queda sin disponibilidad inmediata, los compradores int
 
 ---
 
-## Integración con el sistema de eventos de dominio existente
+## Diagramas de soporte
 
-> **Nota:** Esta sección es de referencia técnica para el equipo de desarrollo. El Product Owner puede omitirla.
+Los siguientes diagramas complementan este plan y detallan las decisiones de diseño desde distintas perspectivas. Se encuentran en la carpeta `drawio/` junto a este documento:
 
-Esta épica requiere que ReservationService y paymentService publiquen el evento `ticket.released` cuando una entrada queda disponible nuevamente. Esta publicación es **adicional** a la ya existente de `ticket.status.changed` (que alimenta el SSE del frontend); son eventos independientes con consumidores distintos. Este es el contrato mínimo que activa la lista de espera:
-
-- **Routing key:** `ticket.released`
-- **Exchange:** `tickets` (ya existente)
-- **Quién publica:**
-  - ReservationService: cuando una reserva expira y el ticket pasa a `released` (en `TicketExpiredConsumer`, al lado de la publicación existente de `ticket.status.changed`).
-  - paymentService: cuando un pago es rechazado y el ticket pasa a `released` (en `PaymentRejectedEventHandler`, al lado de la publicación existente de `ticket.status.changed`).
-- **Payload mínimo:**
-
-```json
-{ "ticketId": int, "eventId": int, "releasedAt": datetime }
-```
-
-> La cola `q.ticket.released` y su binding deben agregarse en `scripts/setup-rabbitmq.sh` antes de que esta feature entre a `develop`.
-
-### Topología de expiración de oportunidades (DLX)
-
-> **Nota:** Esta sección es de referencia técnica para el equipo de desarrollo. El Product Owner puede omitirla.
-
-La expiración de oportunidades de lista de espera reutiliza el patrón TTL + Dead Letter Exchange (DLX) que ya funciona para la expiración de reservas (`q.ticket.reserved.delay` → `q.ticket.expired`). La topología nueva es:
-
-- **Cola delay:** `q.waitlist.opportunity.delay`
-  - `x-message-ttl`: configurable por variable de entorno `WAITLIST_OPPORTUNITY_TTL_MS` (default: `900000` = 15 min)
-  - `x-dead-letter-exchange`: `tickets`
-  - `x-dead-letter-routing-key`: `waitlist.opportunity.expired`
-- **Cola consumer:** `q.waitlist.opportunity.expired` (binding: `waitlist.opportunity.expired`)
-- **Consumer:** `WaitlistOpportunityExpiredConsumer` en el CRUD Service
-
-El mensaje al delay queue se publica **cuando la oportunidad transiciona a `active`** (no cuando se crea como `pending`), para que el TTL cuente desde la activación real.
-
-> Estas colas también deben declararse en `scripts/setup-rabbitmq.sh`.
+| Diagrama | Qué muestra |
+|---|---|
+| [Contenedores C4](drawio/c4_contenedores.drawio) | Visión general del sistema: qué contenedores participan, cómo se conectan y qué responsabilidades nuevas adquiere cada uno con esta feature. |
+| [Componentes C4 — CRUD Service](drawio/c4_componentes_crud.drawio) | Descomposición interna del CRUD Service: controladores, handlers, repositorios, consumidores y servicios nuevos que esta feature agrega. |
+| [Secuencia — Lista de espera](drawio/secuencia_lista_espera.drawio) | Flujo completo de interacción entre los actores y servicios para inscripción, asignación, notificación, expiración y reasignación. |
+| [Esquema de base de datos](drawio/bd_esquema.drawio) | Tablas nuevas (`waitlist_entries`, `waitlist_opportunities`, `notification_deliveries`), relaciones con tablas existentes e índice parcial de unicidad. |
 
 ---
 
@@ -642,6 +617,38 @@ En esta sección se busca responder inquietudes sobre capacidades del sistema qu
 - **Reserva temporal:** la lógica de reserva por lista de espera opera sobre tickets en estado `released` (`WHERE status = 'released'`), mientras que la reserva directa sigue operando exclusivamente sobre `available` (`WHERE status = 'available'`). El flujo de compra existente no se modifica.
 
 > Estos tres cambios son prerequisito antes de implementar HU3.
+
+### Contrato del evento de liberación
+
+Esta épica requiere que ReservationService y paymentService publiquen el evento `ticket.released` cuando una entrada queda disponible nuevamente. Esta publicación es **adicional** a la ya existente de `ticket.status.changed` (que alimenta el SSE del frontend); son eventos independientes con consumidores distintos. Este es el contrato mínimo que activa la lista de espera:
+
+- **Routing key:** `ticket.released`
+- **Exchange:** `tickets` (ya existente)
+- **Quién publica:**
+  - ReservationService: cuando una reserva expira y el ticket pasa a `released` (en `TicketExpiredConsumer`, al lado de la publicación existente de `ticket.status.changed`).
+  - paymentService: cuando un pago es rechazado y el ticket pasa a `released` (en `PaymentRejectedEventHandler`, al lado de la publicación existente de `ticket.status.changed`).
+- **Payload mínimo:**
+
+```json
+{ "ticketId": int, "eventId": int, "releasedAt": datetime }
+```
+
+> La cola `q.ticket.released` y su binding deben agregarse en `scripts/setup-rabbitmq.sh` antes de que esta feature entre a `develop`.
+
+### Topología de expiración de oportunidades (DLX)
+
+La expiración de oportunidades de lista de espera reutiliza el patrón TTL + Dead Letter Exchange (DLX) que ya funciona para la expiración de reservas (`q.ticket.reserved.delay` → `q.ticket.expired`). La topología nueva es:
+
+- **Cola delay:** `q.waitlist.opportunity.delay`
+  - `x-message-ttl`: configurable por variable de entorno `WAITLIST_OPPORTUNITY_TTL_MS` (default: `900000` = 15 min)
+  - `x-dead-letter-exchange`: `tickets`
+  - `x-dead-letter-routing-key`: `waitlist.opportunity.expired`
+- **Cola consumer:** `q.waitlist.opportunity.expired` (binding: `waitlist.opportunity.expired`)
+- **Consumer:** `WaitlistOpportunityExpiredConsumer` en el CRUD Service
+
+El mensaje al delay queue se publica **cuando la oportunidad transiciona a `active`** (no cuando se crea como `pending`), para que el TTL cuente desde la activación real.
+
+> Estas colas también deben declararse en `scripts/setup-rabbitmq.sh`.
 
 ### Nuevos conceptos de dominio
 
