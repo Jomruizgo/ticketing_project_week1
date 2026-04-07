@@ -601,6 +601,41 @@ Scenario: El comprador ve que su oportunidad expiró
 
 En esta sección se busca responder inquietudes sobre capacidades del sistema que cambian o se incorporan, nuevos conceptos de dominio y qué compromisos de diseño garantizan que la arquitectura pueda sostener esos cambios sin crear deuda técnica adicional a la que exista.
 
+### Arquitectura del sistema: Hexagonal con DDD
+
+Todos los servicios del sistema siguen arquitectura hexagonal con separación DDD. Cada microservicio se organiza en cuatro proyectos independientes (assemblies .NET):
+
+```
+MicroService.Domain/          # Núcleo de negocio — entidades, excepciones, interfaces (puertos de salida)
+├── Entities/                 #   Entidades de dominio puras, sin dependencias de framework
+├── Interfaces/               #   Puertos de salida: ITicketRepository, IWaitlistEntryRepository, etc.
+└── Exceptions/               #   Excepciones de dominio
+
+MicroService.Application/     # Casos de uso — orquestación de lógica de negocio
+├── UseCases/                 #   Un caso de uso por carpeta (Command + Handler + Response)
+├── Interfaces/               #   Puertos de entrada: IEnrollInWaitlistUseCase, IAssignOpportunityUseCase, etc.
+├── Dtos/                     #   Data Transfer Objects
+└── Exceptions/               #   Excepciones de aplicación
+
+MicroService.Infrastructure/  # Adaptadores — implementaciones concretas de los puertos
+├── Persistence/              #   EF Core: DbContext, repositorios concretos (implementan Domain.Interfaces)
+│   ├── Repositories/         #     WaitlistEntryRepository, WaitlistOpportunityRepository, etc.
+│   └── TicketingDbContext.cs
+├── Messaging/                #   Adaptadores RabbitMQ: publishers, consumers
+├── Services/                 #   Adaptadores de servicios externos (envío de correo, etc.)
+└── DependencyInjection.cs    #   Cableado de puertos → adaptadores
+
+MicroService.Api/ (o Worker/) # Punto de entrada — controladores HTTP o consumers de mensajería
+├── Controllers/              #   Adaptadores de entrada HTTP (delegan a puertos de entrada)
+└── Program.cs                #   Composition Root: registra DI, middleware, configuración
+```
+
+**Regla de dependencia:** `Domain` no referencia a nadie. `Application` solo referencia a `Domain`. `Infrastructure` referencia a `Domain` y `Application` para implementar los puertos. `Api/Worker` referencia a todos para el Composition Root, pero su código propio solo delega a puertos de entrada.
+
+**Lo que esto significa para esta épica:** la lógica de lista de espera (reglas de inscripción, transición de estados, prioridad por orden de llegada) vive en `Domain` y `Application`. EF Core, RabbitMQ y el proveedor de correo son adaptadores en `Infrastructure` que implementan interfaces definidas en `Domain`. Los controllers HTTP y los consumers de mensajería son adaptadores de entrada que invocan puertos de `Application`. No hay fugas de framework en la lógica de negocio.
+
+La documentación de referencia arquitectónica completa está en [API_CONTRACTS.md](API_CONTRACTS.md) para la superficie HTTP y en los archivos de patrones de diseño referenciados más adelante.
+
 ### Capacidades que se amplían o incorporan en el sistema
 
 - El sistema pasa de ignorar la demanda no atendida a retenerla y reactivarla.
@@ -663,6 +698,7 @@ El mensaje al delay queue se publica **cuando la oportunidad transiciona a `acti
 - **Canal en tiempo real:** si el comprador está navegando cuando su oportunidad se activa, el aviso llega sin que tenga que recargar la página.
 - **Canal de correo:** si el comprador no está en la aplicación, recibe un aviso externo que lo invita a actuar, dejando claro que el estado oficial vive en la plataforma.
 - **Evento de dominio `ticket.released`:** nuevo contrato entre ReservationService/paymentService y el CRUD Service para activar la lista de espera.
+- **Superficie HTTP de lista de espera:** cuatro endpoints nuevos en el CRUD Service documentados en [API_CONTRACTS.md](API_CONTRACTS.md) (`POST /entries`, `GET /entries`, `POST /opportunities/{id}/claim`, `GET /stream`).
 
 ### Patrones de diseño que ayudan a sostener las decisiones de negocio
 
@@ -672,6 +708,13 @@ El mensaje al delay queue se publica **cuando la oportunidad transiciona a `acti
 | **Strategy** | La política de "a quién le toca" se puede cambiar sin deshacer el proceso de asignación. Hoy es orden de llegada; mañana puede ser otro criterio sin afectar el resto del sistema. |
 | **State** | La oportunidad tiene estados con reglas claras de transición (`pending` → `active` → `consumed`/`expired`, y `pending` → `failed`). Si el negocio quiere agregar un estado intermedio, el modelo lo soporta sin condicionales dispersos que dificulten diagnósticos. |
 | **Command** | Las acciones relevantes para el negocio (registrar interés, expirar oportunidad, enviar aviso) existen como objetos formales con su propio handler. Esto facilita trazabilidad y auditoría. |
+
+Cada patrón tiene su documentación detallada con diagrama de clases UML y fragmentos de código declarativo en archivos separados dentro de la carpeta `patterns/`:
+
+- [Observer — Notificación multicanal](patterns/observer.md)
+- [Strategy — Política de priorización](patterns/strategy.md)
+- [State — Ciclo de vida de la oportunidad](patterns/state.md)
+- [Command — Casos de uso como objetos](patterns/command.md)
 
 ### Herramientas de soporte que pueden ayudar a cubrir reglas de negocio
 
@@ -684,7 +727,7 @@ El mensaje al delay queue se publica **cuando la oportunidad transiciona a `acti
 | **Amazon SES** | Cada correo enviado queda registrado con su resultado. Si un aviso falla, el sistema lo sabe y puede reportarlo; no se pierde en silencio. |
 | **Expiración automática por mensajería** | El vencimiento de una oportunidad lo detecta y procesa el sistema automáticamente, sin revisión periódica ni intervención manual. Cuando el tiempo configurado vence, el sistema recibe la señal y actúa de inmediato. El tiempo de vigencia es ajustable por configuración sin necesidad de modificar código ni hacer un despliegue. |
 | **PostgreSQL índices parciales** | El sistema garantiza en la base de datos que nadie puede tener dos inscripciones activas en el mismo evento, sin dejar esa responsabilidad únicamente al código de la aplicación. |
-| **GitHub Actions (CI)** | Cada push y cada pull request hacia `develop` o `main` ejecuta automáticamente las suites de prueba relevantes. El pipeline actual ya corre build, pruebas unitarias, de componente, de integración, de caja negra y escaneo de seguridad de imágenes Docker. Las suites nuevas de esta épica se integran al mismo pipeline sin crear uno paralelo. |
+| **GitHub Actions (CI)** | Cada push y cada pull request hacia `develop` o `main` ejecuta automáticamente las suites de prueba relevantes. El pipeline actual ya corre build, pruebas unitarias, de componente, de integración, de caja negra y escaneo de seguridad de imágenes Docker. Las suites nuevas de esta épica se integran al mismo pipeline sin crear uno paralelo. **Acción pendiente para esta épica:** configurar el pipeline como Quality Gate bloqueante — si alguna suite falla, el merge a `develop` debe quedar bloqueado automáticamente (branch protection rules + `exit-code: "1"` en los escaneos de seguridad). |
 
 ### Compromisos arquitectónicos con impacto directo en el negocio
 

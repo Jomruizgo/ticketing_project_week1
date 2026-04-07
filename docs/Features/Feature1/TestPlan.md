@@ -126,7 +126,9 @@ Se ejecutan sin base de datos ni broker reales. Validan la lógica de dominio en
 
 ### Integración
 
-Se ejecutan con base de datos real (PostgreSQL en contenedor) y sin broker real. Validan la restricción de unicidad a nivel de esquema, el comportamiento de los repositorios con datos reales y el orden garantizado de operaciones (persistencia antes que envío de correo).
+Se ejecutan con base de datos real (PostgreSQL en contenedor mediante Testcontainers) y sin broker real. Validan la restricción de unicidad a nivel de esquema, el comportamiento de los repositorios con datos reales y el orden garantizado de operaciones (persistencia antes que envío de correo).
+
+Cada test de integración debe limpiar sus datos al finalizar (teardown). La limpieza se implementa con `IAsyncLifetime.DisposeAsync()` en xUnit, que trunca o elimina las filas insertadas durante el test. Esto garantiza que los tests no se contaminan entre sí y elimina la causa principal de tests inestables (flaky tests) en suites de integración.
 
 ### Aceptación (E2E sobre compose)
 
@@ -155,6 +157,8 @@ Las suites nuevas de esta épica se incorporan al mismo pipeline según su nivel
 | Flujo completo de lista de espera, experiencia del comprador | Aceptación E2E | Requiere `docker compose` — pendiente de decisión sobre si se agrega un job E2E al pipeline o se ejecuta en un entorno dedicado |
 
 > Las suites E2E sobre compose no están en el pipeline actual porque requieren levantar infraestructura completa (PostgreSQL, RabbitMQ, todos los servicios). Si el equipo decide incluirlas, se agregaría un job adicional con `docker compose up` como paso previo. Mientras tanto, se ejecutan de forma manual o en un entorno dedicado de staging.
+
+**Acción pendiente — Quality Gate bloqueante:** el pipeline actual no bloquea el merge si los tests fallan. Para que funcione como Quality Gate estricto se requiere: (1) activar branch protection rules en GitHub para `develop` y `main` exigiendo que los checks de CI pasen antes del merge, y (2) cambiar `exit-code: "0"` a `exit-code: "1"` en el escaneo Trivy para que vulnerabilidades críticas bloqueen el pipeline.
 ---
 
 ## 6. Suites de prueba planificadas
@@ -197,6 +201,12 @@ Las pruebas de esta épica siguen la disciplina TDD sin excepciones: primero la 
 ## 9. Estrategia de automatización de pruebas funcionales
 
 La automatización de pruebas funcionales se planifica con Serenity BDD como marco de referencia. Serenity BDD permite expresar las pruebas en lenguaje de negocio y generar reportes que negocio y QA pueden leer sin conocimiento técnico previo.
+
+**Requisitos técnicos de los repositorios de automatización:**
+
+- **Gradle** como sistema de build para los tres repositorios Java (AUTO_FRONT_POM_FACTORY, AUTO_FRONT_SCREENPLAY, AUTO_API_SCREENPLAY). Cada repositorio debe compilar y ejecutar las pruebas con `gradle clean test`.
+- **`serenity.conf`** correctamente configurado con: URL base del sistema bajo prueba, timeouts de espera, driver del navegador (para E2E front) y nivel de reporte. No debe contener datos hardcodeados; las URLs base deben ser configurables por variable de entorno para que funcionen tanto en local como en CI.
+- **Estructura de proyecto limpia:** sin código comentado, sin dependencias sin usar en `build.gradle`, sin archivos de configuración huérfanos.
 
 Esta sección documenta **todos los escenarios que se consideran necesarios** para una cobertura funcional completa de la épica. La decisión de cuáles se implementan efectivamente se toma después de la planificación, en función de la capacidad del equipo y el valor de cada escenario como evidencia.
 
