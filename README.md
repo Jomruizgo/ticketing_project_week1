@@ -108,11 +108,11 @@ Aplicación que demuestra patrones de arquitectura distribuida:
   - `POST /api/payments/process` - Publica `ticket.payment.requested` (→ 202 Accepted)
   - `GET /health` - Health check
 
-### 3. Frontend (Puerto 3000)
-- **Framework**: Next.js 14
-- **Pages**:
-  - `/buy` - Compra de tickets (Buyer view)
-  - `/buy/[id]` - Detalle de evento y compra
+### 3. Frontend (Puerto 3000) — Servicio Externo
+- El frontend **no forma parte de este repositorio**. Es un servicio independiente (Next.js) que se conecta a este backend vía HTTP y SSE.
+- Se comunica con:
+  - `CRUD Service :8002` para listar eventos y tickets, y escuchar notificaciones SSE
+  - `Producer Service :8001` para reservar tickets y procesar pagos
 
 ## 📦 Flujos de Datos
 
@@ -164,7 +164,6 @@ Frontend (después de reserva)
 ### Requisitos
 - Docker & Docker Compose
 - .NET 8.0 SDK
-- Node.js 18+ (Frontend)
 - Git
 
 ### Pasos
@@ -180,14 +179,7 @@ cd ticketing_project_week0
 docker-compose up -d --build
 ```
 
-3. **Iniciar Frontend**
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-4. **Acceder**
+3. **Acceder**
 - Frontend: http://localhost:3000
 - CRUD API: http://localhost:8002/swagger
 - Producer API: http://localhost:8001/swagger
@@ -325,13 +317,8 @@ docker-compose logs -f rabbitmq
 - **RabbitMQ.Client** - Driver
 - **Swagger/OpenAPI** - Documentación
 
-### Frontend
-- **Next.js 14** - Framework
-- **React 18** - UI
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Estilos
-- **SWR** - Data fetching
-- **Sonner** - Notificaciones
+### Frontend (Servicio Externo)
+- Next.js 14 / React 18 — repositorio independiente, se conecta a este backend vía HTTP y SSE
 
 ### Infrastructure
 - **Docker & Docker Compose** - Containerización
@@ -371,13 +358,6 @@ ticketing_project_week1/
 │   │   └── Producer.Api/
 │   └── tests/
 │       └── Producer.Application.Tests/
-├── frontend/                        # Next.js: interfaz de usuario
-│   ├── app/
-│   │   ├── buy/                     # Vista comprador
-│   │   └── admin/                   # Vista admin (pendiente)
-│   ├── components/
-│   ├── hooks/
-│   └── lib/
 ├── scripts/                         # SQL, setup RabbitMQ, datos de prueba
 ├── compose.yml                      # Docker Compose
 └── README.md
@@ -435,7 +415,7 @@ policy.AllowAnyOrigin()  // Permite requests de cualquier dominio
 
 1. **Simulación de Pagos**: Los pagos tienen 80% probabilidad de éxito simulada. En producción se integraría con Stripe/PayPal.
 
-2. **Frontend**: Solo implementada la vista del buyer para el mvp. Admin view pendiente.
+2. **Frontend**: Servicio externo (repositorio independiente). Este repo solo expone las APIs REST y SSE que el frontend consume.
 
 3. **CRUD Consumer**: El CRUD Service necesita implementar el consumer de pagos.
 
