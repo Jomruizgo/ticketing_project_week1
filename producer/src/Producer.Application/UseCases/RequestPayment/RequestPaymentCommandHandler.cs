@@ -1,4 +1,4 @@
-using Producer.Application.DTOs.RequestPayment;
+using Producer.Application.UseCases.RequestPayment;
 using Producer.Application.Interfaces;
 using Producer.Domain.Events;
 using Producer.Domain.Ports;

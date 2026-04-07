@@ -1,4 +1,4 @@
-using ReservationService.Application.DTOs.ProcessReservation;
+using ReservationService.Application.UseCases.ProcessReservation;
 
 namespace ReservationService.Application.Interfaces;
 

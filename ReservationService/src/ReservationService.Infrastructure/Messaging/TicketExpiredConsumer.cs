@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using ReservationService.Application.DTOs.ProcessExpiration;
+using ReservationService.Application.UseCases.ProcessExpiration;
 using ReservationService.Application.Interfaces;
 
 namespace ReservationService.Infrastructure.Messaging;

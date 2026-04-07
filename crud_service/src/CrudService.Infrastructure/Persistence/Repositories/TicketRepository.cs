@@ -1,4 +1,4 @@
-using CrudService.Infrastructure.Data;
+using CrudService.Infrastructure.Persistence;
 using CrudService.Domain.Entities;
 using CrudService.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;

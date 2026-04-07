@@ -1,0 +1,94 @@
+<mxfile host="65bd71144e">
+    <diagram name="Command — Casos de uso como objetos" id="cmd1">
+        <mxGraphModel dx="656" dy="827" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="&lt;b&gt;Command — Casos de uso como objetos formales&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=14;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="20" width="500" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="iuc" value="&lt;&lt;interface&gt;&gt;&#xa;IEnrollInWaitlistUseCase" style="swimlane;fontStyle=3;align=center;startSize=40;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="370" y="70" width="360" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="iuc_m1" value="+ ExecuteAsync(command: EnrollInWaitlistCommand): Task&lt;EnrollInWaitlistResponse&gt;" style="text;align=left;fontSize=9;spacingLeft=4;" parent="iuc" vertex="1">
+                    <mxGeometry y="40" width="360" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="cmd" value="EnrollInWaitlistCommand" style="swimlane;fontStyle=1;align=center;startSize=26;fontSize=11;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+                    <mxGeometry x="430" y="415" width="240" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="cmd_f1" value="+ EventId: int" style="text;align=left;fontSize=10;spacingLeft=4;" parent="cmd" vertex="1">
+                    <mxGeometry y="26" width="240" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="cmd_f2" value="+ BuyerEmail: string" style="text;align=left;fontSize=10;spacingLeft=4;" parent="cmd" vertex="1">
+                    <mxGeometry y="46" width="240" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="resp" value="EnrollInWaitlistResponse" style="swimlane;fontStyle=1;align=center;startSize=26;fontSize=11;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="265" width="240" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="resp_f1" value="+ EntryId: int" style="text;align=left;fontSize=10;spacingLeft=4;" parent="resp" vertex="1">
+                    <mxGeometry y="26" width="240" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="resp_f2" value="+ Status: string" style="text;align=left;fontSize=10;spacingLeft=4;" parent="resp" vertex="1">
+                    <mxGeometry y="46" width="240" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="handler" value="EnrollInWaitlistHandler" style="swimlane;fontStyle=1;align=center;startSize=26;fontSize=11;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+                    <mxGeometry x="390" y="250" width="320" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="h_f1" value="- entryRepo: IWaitlistEntryRepository" style="text;align=left;fontSize=10;spacingLeft=4;" parent="handler" vertex="1">
+                    <mxGeometry y="26" width="320" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="h_f2" value="- eventRepo: IEventRepository" style="text;align=left;fontSize=10;spacingLeft=4;" parent="handler" vertex="1">
+                    <mxGeometry y="46" width="320" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="h_sep" value="" style="line;strokeWidth=1;" parent="handler" vertex="1">
+                    <mxGeometry y="66" width="320" height="4" as="geometry"/>
+                </mxCell>
+                <mxCell id="h_m1" value="+ ExecuteAsync(command): Task&lt;EnrollInWaitlistResponse&gt;" style="text;align=left;fontSize=10;spacingLeft=4;" parent="handler" vertex="1">
+                    <mxGeometry y="70" width="320" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="ctrl" value="WaitlistController" style="swimlane;fontStyle=1;align=center;startSize=26;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="860" y="70" width="320" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="c_f1" value="- enrollUseCase: IEnrollInWaitlistUseCase" style="text;align=left;fontSize=10;spacingLeft=4;" parent="ctrl" vertex="1">
+                    <mxGeometry y="26" width="320" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="c_sep" value="" style="line;strokeWidth=1;" parent="ctrl" vertex="1">
+                    <mxGeometry y="46" width="320" height="4" as="geometry"/>
+                </mxCell>
+                <mxCell id="c_m1" value="+ PostEntry(request: EnrollRequest): Task&lt;IActionResult&gt;" style="text;align=left;fontSize=10;spacingLeft=4;" parent="ctrl" vertex="1">
+                    <mxGeometry y="50" width="320" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="real1" style="endArrow=block;endFill=0;dashed=1;strokeColor=#333333;" parent="1" source="handler" target="iuc" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="dep1" style="endArrow=open;endFill=1;dashed=1;strokeColor=#333333;" parent="1" source="ctrl" target="iuc" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="dep1_lbl" value="delega" style="edgeLabel;fontSize=10;fontStyle=2;" parent="dep1" vertex="1" connectable="0">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="dep2" style="endArrow=open;endFill=1;dashed=1;strokeColor=#999999;" parent="1" source="handler" target="cmd" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="dep2_lbl" value="recibe" style="edgeLabel;fontSize=9;fontColor=#999999;" parent="dep2" vertex="1" connectable="0">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="dep3" style="endArrow=open;endFill=1;dashed=1;strokeColor=#999999;" parent="1" source="handler" target="resp" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="dep3_lbl" value="devuelve" style="edgeLabel;fontSize=9;fontColor=#999999;" parent="dep3" vertex="1" connectable="0">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tbl_title" value="&lt;b&gt;Casos de uso de esta épica&lt;/b&gt;" style="text;html=1;align=left;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="500" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="tbl" value="&lt;table style=&#39;font-size:10px;border-collapse:collapse&#39;&gt;&lt;tr style=&#39;background:#dae8fc&#39;&gt;&lt;th style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;Caso de uso&lt;/th&gt;&lt;th style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;Command / Query&lt;/th&gt;&lt;th style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;Puerto de entrada&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;Inscripción&lt;/td&gt;&lt;td style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;EnrollInWaitlistCommand&lt;/td&gt;&lt;td style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;IEnrollInWaitlistUseCase&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;Consulta de estado&lt;/td&gt;&lt;td style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;GetWaitlistStatusQuery&lt;/td&gt;&lt;td style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;IGetWaitlistStatusUseCase&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;Asignación&lt;/td&gt;&lt;td style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;AssignOpportunityCommand&lt;/td&gt;&lt;td style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;IAssignOpportunityUseCase&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;Consumir oportunidad&lt;/td&gt;&lt;td style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;ClaimOpportunityCommand&lt;/td&gt;&lt;td style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;IClaimOpportunityUseCase&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;Expiración&lt;/td&gt;&lt;td style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;ExpireOpportunityCommand&lt;/td&gt;&lt;td style=&#39;padding:4px;border:1px solid #ccc&#39;&gt;IExpireOpportunityUseCase&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="text;html=1;overflow=fill;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="530" width="600" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend" value="&lt;font style=&#39;font-size:10px&#39;&gt;🟡 Application layer  🟢 Api/Infrastructure layer  🔵 Application layer (interface/port)&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="680" width="550" height="20" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

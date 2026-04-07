@@ -1,6 +1,7 @@
-using CrudService.Infrastructure.Data;
+using CrudService.Infrastructure.Persistence;
+using CrudService.Infrastructure.Persistence.Repositories;
 using CrudService.Infrastructure.Messaging;
-using CrudService.Domain.Repositories;
+using CrudService.Domain.Interfaces;
 using CrudService.Application.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

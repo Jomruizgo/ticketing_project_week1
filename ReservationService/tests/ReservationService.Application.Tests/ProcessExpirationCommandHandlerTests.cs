@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using ReservationService.Application.DTOs.ProcessExpiration;
+using ReservationService.Application.UseCases.ProcessExpiration;
 using ReservationService.Application.UseCases.ProcessExpiration;
 using ReservationService.Domain.Entities;
 using ReservationService.Domain.Interfaces;

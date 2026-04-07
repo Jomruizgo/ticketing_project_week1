@@ -1,4 +1,4 @@
-using CrudService.Infrastructure.Data;
+using CrudService.Infrastructure.Persistence;
 using CrudService.Infrastructure;
 using CrudService.Infrastructure.Messaging;
 using CrudService.Domain.Entities;

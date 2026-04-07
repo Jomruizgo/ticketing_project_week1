@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Producer.Api.Models;
-using Producer.Application.DTOs.RequestPayment;
+using Producer.Application.UseCases.RequestPayment;
 using Producer.Application.Interfaces;
 
 namespace Producer.Api.Controllers;
