@@ -702,3 +702,60 @@ Debe configurarse mediante variable de entorno o tabla de configuración para qu
 
 **El fallo en la confirmación de la reserva no genera oportunidades sin respaldo.**
 Si el sistema no puede confirmar la reserva temporal para el comprador elegible, no crea la oportunidad y la inscripción permanece activa. Esto evita que el comprador quede con una oportunidad que no puede usar.
+
+### Decisión sobre la base de datos compartida
+
+Actualmente los cuatro servicios (Producer, ReservationService, paymentService, CRUD Service) operan contra una sola instancia de PostgreSQL con un único esquema. En una arquitectura de microservicios, lo natural sería que cada servicio tuviera su propia base de datos para aislar responsabilidades y evitar acoplamiento por datos compartidos. Esta épica agrega tres tablas nuevas (`waitlist_entries`, `waitlist_opportunities`, `notification_deliveries`) que pertenecen conceptualmente al bounded context de lista de espera, y eso refuerza la pregunta de si es momento de separar.
+
+**Decisión: se mantiene la base de datos única para esta épica.**
+
+Las razones son pragmáticas, no de principio:
+
+1. **El equipo ya tiene deuda técnica identificada** y agregar una separación de bases de datos en este momento multiplica la superficie de cambio sin que esta épica lo necesite para funcionar correctamente.
+2. **Las tablas nuevas no entran en conflicto con las existentes.** No comparten columnas, no se escriben desde múltiples servicios de forma concurrente (solo el CRUD Service las lee y escribe) y las foreign keys hacia `events` y `tickets` son de lectura, no de escritura cruzada.
+3. **El costo operativo de múltiples bases de datos** (migraciones independientes, conexiones separadas en compose, backups, monitoreo) no se justifica cuando el sistema todavía cabe en una sola instancia sin problemas de rendimiento ni de propiedad de datos ambigua.
+
+#### Consideraciones para futuras features
+
+Esta decisión no es permanente. Si una próxima feature introduce un bounded context con requisitos de aislamiento real (por ejemplo, usuarios con autenticación, datos sensibles con regulación distinta, o un servicio que necesite escalar su almacenamiento de forma independiente), la separación se vuelve necesaria. Para que ese momento no sea traumático, esta épica respeta las siguientes restricciones:
+
+- **Las tablas nuevas solo las lee y escribe el CRUD Service.** Ningún otro servicio accede directamente a `waitlist_entries`, `waitlist_opportunities` ni `notification_deliveries`. Si otro servicio necesita esa información, la obtiene por API o por evento, nunca por consulta directa a la base de datos.
+- **Los servicios existentes no adquieren dependencias nuevas sobre las tablas de lista de espera.** ReservationService y paymentService solo publican `ticket.released`; no consultan ni escriben tablas de lista de espera.
+- **Las migraciones de esquema de esta épica están aisladas en su propio script.** No se mezclan con alteraciones a las tablas existentes (`events`, `tickets`, `payments`, `ticket_history`), para que una futura separación pueda extraerlas sin desenredar DDL compartido.
+- **No se crean vistas ni funciones que crucen datos de lista de espera con datos del flujo base de compra.** Los joins, si son necesarios para reportes o consultas de negocio, se resuelven en la capa de aplicación, no en la base de datos.
+
+Si en el futuro se decide separar, el camino probable sería:
+
+1. Crear una instancia de PostgreSQL dedicada para el nuevo bounded context.
+2. Migrar las tablas correspondientes con su esquema y datos.
+3. Reemplazar las foreign keys por referencias lógicas (IDs sin constraint de FK) y validar la integridad en la capa de aplicación o mediante eventos.
+4. Actualizar el connection string del servicio afectado en `compose.yml`.
+
+El hecho de que las tablas nuevas ya estén aisladas por acceso (solo un servicio las toca) y por esquema (script separado, sin vistas cruzadas) hace que esa migración futura sea mecánica, no arquitectónica.
+
+### Patrones de orquestación y resiliencia: cuándo se vuelven necesarios
+
+Con una base de datos única y comunicación asíncrona por RabbitMQ, el sistema actual no necesita patrones de orquestación distribuida ni de resiliencia avanzada. Pero la separación de bases de datos o la incorporación de nuevos bounded contexts (usuarios, autenticación, pagos con proveedores externos con SLA propio) cambian las condiciones. Esta sección documenta qué patrones serían necesarios y bajo qué condiciones, para que la decisión no se tome reactivamente cuando ya hay un problema en producción.
+
+#### Orquestación: Saga
+
+Hoy la lista de espera coordina varios pasos (asignar oportunidad → reservar ticket → notificar) dentro de un solo servicio (CRUD Service) con una sola base de datos. Si esos pasos fueran a ocurrir en servicios distintos con bases de datos separadas, ya no existe una transacción ACID que los agrupe. En ese escenario, el patrón Saga permite coordinar la secuencia con compensaciones explícitas cuando un paso falla.
+
+**Condiciones que activarían la necesidad:**
+
+- La reserva temporal pasa a ejecutarse en un servicio con su propia base de datos, y la oportunidad de lista de espera vive en otra. Si la reserva falla después de que la oportunidad se marcó como activa, no hay rollback automático: hace falta una compensación que revierta la oportunidad.
+- Se incorpora un servicio de usuarios o autenticación que valide la identidad del comprador antes de permitir la reserva. Si esa validación es un paso del flujo que puede fallar de forma independiente, entra en el alcance de la Saga.
+
+**Lo que esta épica deja preparado:** los pasos del flujo de asignación ya están separados lógicamente (buscar elegible → intentar reserva → crear oportunidad → notificar). Si en el futuro cada paso lo ejecuta un servicio distinto, la secuencia lógica ya existe; lo que falta es agregar los eventos de compensación (por ejemplo, `opportunity.rollback` si la reserva falla después del commit de la oportunidad).
+
+**Variante relevante:** la Saga coreografiada (cada servicio reacciona a eventos del anterior sin un coordinador central) es más coherente con la arquitectura actual basada en eventos que una Saga orquestada con un coordinador centralizado. La decisión final depende de cuántos pasos y servicios participen cuando se concrete la separación.
+
+#### Resiliencia: Circuit Breaker, Retry, Timeout
+
+Hoy los servicios se comunican por mensajería asíncrona (RabbitMQ), lo que absorbe gran parte de los problemas de disponibilidad transitoria: si un consumer está caído, los mensajes esperan en la cola. Pero hay puntos donde las llamadas son síncronas o donde una dependencia externa puede degradar el sistema:
+
+- **Proveedor de correo (Amazon SES):** la HU5 ya maneja el fallo del proveedor aislándolo del flujo principal (el correo falla sin afectar la oportunidad). Eso es suficiente hoy, pero si en el futuro se agregan más canales externos (SMS, push notifications) o el volumen crece, un Circuit Breaker sobre el cliente de correo evitaría que reintentos acumulados saturen el servicio.
+- **Llamadas HTTP entre servicios:** actualmente no hay llamadas HTTP síncronas entre servicios en el flujo de lista de espera (todo pasa por RabbitMQ). Si la separación de bases de datos introduce la necesidad de consultar APIs de otro servicio de forma síncrona (por ejemplo, consultar disponibilidad de tickets en tiempo real a ReservationService), un Circuit Breaker + Retry con backoff exponencial protege al llamador de cascadas de fallo.
+- **Base de datos:** si se separan las bases de datos y un servicio necesita datos de otro por API, un timeout mal calibrado puede bloquear hilos. Definir timeouts explícitos y políticas de degradación (devolver un estado parcial o un error controlado en lugar de esperar indefinidamente) se vuelve obligatorio.
+
+**Lo que esta épica deja preparado:** el flujo de lista de espera no introduce llamadas síncronas entre servicios. La comunicación es por eventos y la única dependencia externa (correo) ya tiene aislamiento de fallo. Esto significa que no hay deuda de resiliencia que pagar antes de la separación, pero establece la expectativa de que cualquier feature futura que introduzca llamadas síncronas entre servicios debe incluir Circuit Breaker y políticas de retry como parte de su propio DoR.
