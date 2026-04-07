@@ -1,1 +1,10 @@
 La feature de inscripción en lista de espera vive en el CRUD Service (crud_service/), que sigue arquitectura hexagonal: CrudService.Domain, CrudService.Application, CrudService.Infrastructure, CrudService.Api. Usar .NET 8 con EF Core para PostgreSQL. Crear la entidad WaitlistEntry en Domain con campos: Id, EventId, BuyerEmail, Status (active/inactive), EnrolledAt. Definir el puerto IWaitlistEntryRepository en Domain/Interfaces. Crear EnrollInWaitlistCommand y EnrollInWaitlistHandler implementando IEnrollInWaitlistUseCase en Application/UseCases. El handler valida: (1) el evento existe y la fecha no fue alcanzada, (2) no existe inscripción activa para el mismo comprador+evento. Infrastructure implementa el repositorio con EF Core. La tabla waitlist_entries tiene un partial unique index sobre (event_id, buyer_email) WHERE status = 'active'. Los nombres de columna usan snake_case (convención PostgreSQL). WaitlistController en Api/Controllers delega al puerto del caso de uso. Registrar todo el DI en Infrastructure/DependencyInjection.cs. Seguir TDD estricto: escribir las pruebas fallidas primero en CrudService.Application.Tests para el handler (happy path, rechazo por duplicado, lista cerrada, reinscripción) y en CrudService.Infrastructure.Tests para la restricción de unicidad del repositorio usando Testcontainers con teardown adecuado.
+
+Casos de prueba mínimos a implementar (de TestCases.md):
+Los siguientes casos ya están definidos en docs/Features/Feature1/TestCases.md. Implementalos como mínimo. Si encontrás una inconsistencia con las reglas descritas arriba, documentala en lugar de ignorarla. Si el análisis revela escenarios no cubiertos, podés agregar casos adicionales.
+
+- TC-HU1-01 (tipo A) — Inscripción exitosa cuando no hay disponibilidad inmediata
+- TC-HU1-02 (tipo A) — Rechazo de inscripción duplicada
+- TC-HU1-03 (tipo A) — Rechazo cuando la lista de espera ya cerró
+- TC-HU1-04 (tipo A) — Reinscripción válida después de oportunidad utilizada o expirada
+- TC-HU1-05 (tipo I) — Unicidad garantizada a nivel de base de datos
