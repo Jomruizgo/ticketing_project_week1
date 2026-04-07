@@ -653,9 +653,9 @@ La documentación de referencia arquitectónica completa está en [API_CONTRACTS
 
 ### Cambios requeridos en servicios existentes
 
-- **ReservationService:** publicar `ticket.released` al expirar una reserva y el ticket pasa a `released` (publicación adicional a la existente de `ticket.status.changed`).
+- **ReservationService:** publicar `ticket.released` al expirar una reserva y el ticket pasa a `released` (publicación adicional a la existente de `ticket.status.changed`). Además, crear un consumer `TicketReturnedConsumer` que escuche `ticket.returned_to_inventory` y transite el ticket de `released` a `available` para devolverlo al inventario general.
 - **paymentService:** publicar `ticket.released` cuando un pago es rechazado y el ticket pasa a `released` (publicación adicional a la existente de `ticket.status.changed`).
-- **`scripts/setup-rabbitmq.sh`:** declarar las colas `q.ticket.released`, `q.waitlist.opportunity.delay` (con TTL y DLX) y `q.waitlist.opportunity.expired` con sus bindings sobre el exchange `tickets` existente.
+- **`scripts/setup-rabbitmq.sh`:** declarar las colas `q.ticket.released`, `q.ticket.returned` (binding: `ticket.returned_to_inventory`), `q.waitlist.opportunity.delay` (con TTL y DLX) y `q.waitlist.opportunity.expired` con sus bindings sobre el exchange `tickets` existente.
 - **Reserva temporal:** la lógica de reserva por lista de espera opera sobre tickets en estado `released` (`WHERE status = 'released'`), mientras que la reserva directa sigue operando exclusivamente sobre `available` (`WHERE status = 'available'`). El flujo de compra existente no se modifica.
 
 > Estos tres cambios son prerequisito antes de implementar HU3.
@@ -676,6 +676,22 @@ Esta épica requiere que ReservationService y paymentService publiquen el evento
 ```
 
 > La cola `q.ticket.released` y su binding deben agregarse en `scripts/setup-rabbitmq.sh` antes de que esta feature entre a `develop`.
+
+### Contrato del evento de devolución al inventario
+
+Cuando la lista de espera no tiene más compradores elegibles para un ticket liberado, el CRUD Service publica el evento `ticket.returned_to_inventory` para que ReservationService devuelva el ticket al inventario general. Este evento es distinto a `ticket.released` para evitar un loop: CRUD Service consume `ticket.released` pero no consume `ticket.returned_to_inventory`.
+
+- **Routing key:** `ticket.returned_to_inventory`
+- **Exchange:** `tickets` (ya existente)
+- **Quién publica:** CRUD Service (desde `TicketReleasedConsumer` y `ExpireOpportunityHandler` cuando no hay elegibles)
+- **Quién consume:** ReservationService (`TicketReturnedConsumer`) — transita el ticket de `released` a `available`
+- **Payload mínimo:**
+
+```json
+{ "ticketId": int, "eventId": int, "returnedAt": datetime }
+```
+
+> La cola `q.ticket.returned` y su binding deben agregarse en `scripts/setup-rabbitmq.sh`.
 
 ### Topología de expiración de oportunidades (DLX)
 
@@ -705,6 +721,7 @@ El mensaje al delay queue se publica **cuando la oportunidad transiciona a `acti
 - **Canal en tiempo real:** si el comprador está navegando cuando su oportunidad se activa, el aviso llega sin que tenga que recargar la página.
 - **Canal de correo:** si el comprador no está en la aplicación, recibe un aviso externo que lo invita a actuar, dejando claro que el estado oficial vive en la plataforma.
 - **Evento de dominio `ticket.released`:** nuevo contrato entre ReservationService/paymentService y el CRUD Service para activar la lista de espera.
+- **Evento de dominio `ticket.returned_to_inventory`:** nuevo contrato entre CRUD Service y ReservationService para devolver tickets al inventario general cuando la lista de espera no tiene compradores elegibles.
 - **Superficie HTTP de lista de espera:** cuatro endpoints nuevos en el CRUD Service documentados en [API_CONTRACTS.md](API_CONTRACTS.md) (`POST /entries`, `GET /entries`, `POST /opportunities/{id}/claim`, `GET /stream`).
 
 ### Patrones de diseño que ayudan a sostener las decisiones de negocio
@@ -770,7 +787,7 @@ Las razones son pragmáticas, no de principio:
 Esta decisión no es permanente. Si una próxima feature introduce un bounded context con requisitos de aislamiento real (por ejemplo, usuarios con autenticación, datos sensibles con regulación distinta, o un servicio que necesite escalar su almacenamiento de forma independiente), la separación se vuelve necesaria. Para que ese momento no sea traumático, esta épica respeta las siguientes restricciones:
 
 - **Las tablas nuevas solo las lee y escribe el CRUD Service.** Ningún otro servicio accede directamente a `waitlist_entries`, `waitlist_opportunities` ni `notification_deliveries`. Si otro servicio necesita esa información, la obtiene por API o por evento, nunca por consulta directa a la base de datos.
-- **Los servicios existentes no adquieren dependencias nuevas sobre las tablas de lista de espera.** ReservationService y paymentService solo publican `ticket.released`; no consultan ni escriben tablas de lista de espera.
+- **Los servicios existentes no adquieren dependencias nuevas sobre las tablas de lista de espera.** ReservationService y paymentService solo publican `ticket.released`; no consultan ni escriben tablas de lista de espera. ReservationService consume `ticket.returned_to_inventory` para devolver tickets al inventario general, pero esa operación es exclusivamente sobre la tabla `tickets` (que ya es su responsabilidad), no sobre tablas de lista de espera.
 - **Las migraciones de esquema de esta épica están aisladas en su propio script.** No se mezclan con alteraciones a las tablas existentes (`events`, `tickets`, `payments`, `ticket_history`), para que una futura separación pueda extraerlas sin desenredar DDL compartido.
 - **No se crean vistas ni funciones que crucen datos de lista de espera con datos del flujo base de compra.** Los joins, si son necesarios para reportes o consultas de negocio, se resuelven en la capa de aplicación, no en la base de datos.
 
