@@ -248,7 +248,7 @@ jobs:
             dockerfile: ./ReservationService/Dockerfile
           - name: auth-service
             context: ./authService
-            dockerfile: ./authService/src/AuthService.Api/Dockerfile
+            dockerfile: ./authService/Dockerfile
     steps:
       - uses: actions/checkout@v4
 
