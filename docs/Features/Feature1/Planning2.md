@@ -69,19 +69,6 @@ Hoy, cuando un evento se queda sin disponibilidad inmediata, los compradores int
 
 ---
 
-## Diagramas de soporte
-
-Los siguientes diagramas complementan este plan y detallan las decisiones de diseño desde distintas perspectivas. Se encuentran en la carpeta `drawio/` junto a este documento:
-
-| Diagrama | Qué muestra |
-|---|---|
-| [Contenedores C4](drawio/c4_contenedores.drawio) | Visión general del sistema: qué contenedores participan, cómo se conectan y qué responsabilidades nuevas adquiere cada uno con esta feature. |
-| [Componentes C4 — CRUD Service](drawio/c4_componentes_crud.drawio) | Descomposición interna del CRUD Service: controladores, handlers, repositorios, consumidores y servicios nuevos que esta feature agrega. |
-| [Secuencia — Lista de espera](drawio/secuencia_lista_espera.drawio) | Flujo completo de interacción entre los actores y servicios para inscripción, asignación, notificación, expiración y reasignación. |
-| [Esquema de base de datos](drawio/bd_esquema.drawio) | Tablas nuevas (`waitlist_entries`, `waitlist_opportunities`, `notification_deliveries`), relaciones con tablas existentes e índice parcial de unicidad. |
-
----
-
 
 ## Refinamiento en Historias de Usuario
 
@@ -642,6 +629,17 @@ MicroService.Api/ (o Worker/) # Punto de entrada — controladores HTTP o consum
 **Lo que esto significa para esta épica:** la lógica de lista de espera (reglas de inscripción, transición de estados, prioridad por orden de llegada) vive en `Domain` y `Application`. EF Core, RabbitMQ y el proveedor de correo son adaptadores en `Infrastructure` que implementan interfaces definidas en `Domain`. Los controllers HTTP y los consumers de mensajería son adaptadores de entrada que invocan puertos de `Application`. No hay fugas de framework en la lógica de negocio.
 
 La documentación de referencia arquitectónica completa está en [API_CONTRACTS.md](API_CONTRACTS.md) para la superficie HTTP y en los archivos de patrones de diseño referenciados más adelante.
+
+### Diagramas de soporte
+
+Los siguientes diagramas visualizan las decisiones de diseño de esta épica desde distintas perspectivas. Se encuentran en la carpeta `drawio/` junto a este documento:
+
+| Diagrama | Qué muestra |
+|---|---|
+| [Contenedores C4](drawio/c4_contenedores.drawio) | Visión general del sistema: qué contenedores participan, cómo se conectan y qué responsabilidades nuevas adquiere cada uno con esta feature. |
+| [Componentes C4 — CRUD Service](drawio/c4_componentes_crud.drawio) | Descomposición interna del CRUD Service: controladores, handlers, repositorios, consumidores y servicios nuevos que esta feature agrega. |
+| [Secuencia — Lista de espera](drawio/secuencia_lista_espera.drawio) | Flujo completo de interacción entre los actores y servicios para inscripción, asignación, notificación, expiración y reasignación. |
+| [Esquema de base de datos](drawio/bd_esquema.drawio) | Tablas nuevas (`waitlist_entries`, `waitlist_opportunities`, `notification_deliveries`), relaciones con tablas existentes e índice parcial de unicidad. |
 
 ### Capacidades que se amplían o incorporan en el sistema
 
