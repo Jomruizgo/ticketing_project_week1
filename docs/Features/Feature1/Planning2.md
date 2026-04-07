@@ -684,6 +684,7 @@ El mensaje al delay queue se publica **cuando la oportunidad transiciona a `acti
 | **Amazon SES** | Cada correo enviado queda registrado con su resultado. Si un aviso falla, el sistema lo sabe y puede reportarlo; no se pierde en silencio. |
 | **Expiración automática por mensajería** | El vencimiento de una oportunidad lo detecta y procesa el sistema automáticamente, sin revisión periódica ni intervención manual. Cuando el tiempo configurado vence, el sistema recibe la señal y actúa de inmediato. El tiempo de vigencia es ajustable por configuración sin necesidad de modificar código ni hacer un despliegue. |
 | **PostgreSQL índices parciales** | El sistema garantiza en la base de datos que nadie puede tener dos inscripciones activas en el mismo evento, sin dejar esa responsabilidad únicamente al código de la aplicación. |
+| **GitHub Actions (CI)** | Cada push y cada pull request hacia `develop` o `main` ejecuta automáticamente las suites de prueba relevantes. El pipeline actual ya corre build, pruebas unitarias, de componente, de integración, de caja negra y escaneo de seguridad de imágenes Docker. Las suites nuevas de esta épica se integran al mismo pipeline sin crear uno paralelo. |
 
 ### Compromisos arquitectónicos con impacto directo en el negocio
 

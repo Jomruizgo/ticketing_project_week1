@@ -135,7 +135,26 @@ Se ejecutan sobre Docker Compose levantado completo. Validan los criterios Gherk
 ### Regresión
 
 Cualquier cambio en los flujos de reserva, pago o expiraci\u00f3n existentes debe activar regresión sobre las suites de HU3 y HU6, ya que ambas dependen del comportamiento de servicios que no son propiedad de esta épica. No se asume aislamiento funcional.
+### Integración continua (GitHub Actions)
 
+El repositorio ya cuenta con un pipeline de CI (`.github/workflows/ci.yml`) que se ejecuta en cada push y pull request hacia `develop` o `main`. El pipeline actual tiene seis jobs secuenciales:
+
+1. **Build** — compila los cuatro servicios (.NET 8).
+2. **Unit Tests** — ejecuta pruebas unitarias (dominio y aplicación) de todos los servicios.
+3. **Component Tests** — ejecuta pruebas de componente con filtro `Category=Component`.
+4. **Integration Tests** — ejecuta pruebas de integración (contratos, repositorios con BD real) con filtro `Category=Integration`.
+5. **Black-Box Tests** — ejecuta pruebas de caja negra contra la API HTTP con filtro `Category=BlackBox`.
+6. **Docker Build + Trivy** — construye las imágenes Docker de los cuatro servicios y ejecuta escaneo de vulnerabilidades.
+
+Las suites nuevas de esta épica se incorporan al mismo pipeline según su nivel:
+
+| Suite de esta épica | Job del pipeline donde se ejecuta | Categoría / filtro |
+|---|---|---|
+| Reglas de inscripción, proyección de estado, asignación, expiración, notificación por correo | Unit Tests | (sin filtro — se ejecuta con el resto de unitarias) |
+| Unicidad en base de datos, contratos de estado | Integration Tests | `Category=Integration` |
+| Flujo completo de lista de espera, experiencia del comprador | Aceptación E2E | Requiere `docker compose` — pendiente de decisión sobre si se agrega un job E2E al pipeline o se ejecuta en un entorno dedicado |
+
+> Las suites E2E sobre compose no están en el pipeline actual porque requieren levantar infraestructura completa (PostgreSQL, RabbitMQ, todos los servicios). Si el equipo decide incluirlas, se agregaría un job adicional con `docker compose up` como paso previo. Mientras tanto, se ejecutan de forma manual o en un entorno dedicado de staging.
 ---
 
 ## 6. Suites de prueba planificadas
