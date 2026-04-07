@@ -110,7 +110,7 @@
     <mxCell id="strategy" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;dashed=1;" value="&lt;b&gt;&lt;&lt;strategy&gt;&gt;&lt;br/&gt;FifoSelectionPolicy ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Orden de llegada (intercambiable)&lt;/font&gt;" vertex="1">
       <mxGeometry height="90" width="190" x="1620" y="257" as="geometry" />
     </mxCell>
-    <mxCell id="scheduler" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;ExpirationScheduler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[Background Service]&lt;br/&gt;Detecta oportunidades vencidas&lt;/font&gt;" vertex="1">
+    <mxCell id="scheduler" parent="crudBound" style="rounded=1;whiteSpace:wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;WaitlistOpportunityExpiredConsumer &#9733;&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[RabbitMQ Consumer]&lt;br/&gt;Procesa vencimiento de oportunidades&lt;/font&gt;" vertex="1">
       <mxGeometry height="90" width="190" x="976" y="969" as="geometry" />
     </mxCell>
     <mxCell id="ia1" edge="1" parent="crudBound" source="wlCtrl" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" target="joinH" value="">

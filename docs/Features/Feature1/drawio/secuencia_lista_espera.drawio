@@ -11,7 +11,7 @@
     <mxCell id="p_crud" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;strokeWidth=2;verticalAlign=middle;" value="&lt;b&gt;CRUD Service&lt;/b&gt;&lt;br/&gt;&lt;font size=&#39;2&#39;&gt;[.NET / ASP.NET Core]&lt;/font&gt;" vertex="1">
       <mxGeometry height="50" width="160" x="716" y="328" as="geometry" />
     </mxCell>
-    <mxCell id="p_sched" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;strokeWidth=2;dashed=1;verticalAlign=middle;" value="&lt;b&gt;ExpirationScheduler&lt;/b&gt;&lt;br/&gt;&lt;font size=&#39;2&#39;&gt;[Background Service]&lt;/font&gt;" vertex="1">
+    <mxCell id="p_sched" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;strokeWidth=2;dashed=1;verticalAlign=middle;" value="&lt;b&gt;WaitlistExpiredConsumer&lt;/b&gt;&lt;br/&gt;&lt;font size=&#39;2&#39;&gt;[RabbitMQ Consumer]&lt;/font&gt;" vertex="1">
       <mxGeometry height="50" width="160" x="936" y="328" as="geometry" />
     </mxCell>
     <mxCell id="p_mq" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;verticalAlign=middle;" value="&lt;b&gt;RabbitMQ&lt;/b&gt;&lt;br/&gt;&lt;font size=&#39;2&#39;&gt;[Message Broker]&lt;/font&gt;" vertex="1">
@@ -367,7 +367,7 @@
     <mxCell id="hu6_hdr" parent="1" style="text;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;align=left;spacingLeft=8;fontSize=11;" value="HU6 — La oportunidad vence si el comprador no actúa en el plazo" vertex="1">
       <mxGeometry height="24" width="1720" x="276" y="1624" as="geometry" />
     </mxCell>
-    <mxCell id="note_sched" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;spacingLeft=6;" value="El scheduler se despierta automáticamente cada N minutos (timer interno). Primero pregunta a la base de datos si hay oportunidades vencidas; solo después procesa cada una." vertex="1">
+    <mxCell id="note_sched" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;spacingLeft=6;" value="RabbitMQ entrega el mensaje a este consumer cuando el TTL de la cola delay vence. No hay polling: el message broker es quien inicia el proceso exactamente al cumplirse el tiempo configurado." vertex="1">
       <mxGeometry height="44" width="420" x="916" y="1628" as="geometry" />
     </mxCell>
     <mxCell id="act_sched_hu6" parent="1" style="fillColor=#d5e8d4;strokeColor=#82b366;" value="" vertex="1">
@@ -391,19 +391,19 @@
     <mxCell id="act_fe_hu6" parent="1" style="fillColor=#dae8fc;strokeColor=#6c8ebf;" value="" vertex="1">
       <mxGeometry height="40" width="12" x="560" y="2004" as="geometry" />
     </mxCell>
-    <mxCell id="m28_q" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;verticalAlign=bottom;" value="¿Hay oportunidades cuyo plazo de compra ya venció?">
+    <mxCell id="m28_q" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;verticalAlign=bottom;" value="RabbitMQ entrega mensaje: oportunidad vencida &lt;font color=&#39;#888888&#39;&gt;[DLX / cola delay expirada]&lt;/font&gt;">
       <mxGeometry as="geometry">
         <mxPoint x="1010" y="1692" as="sourcePoint" />
         <mxPoint x="1650" y="1692" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="m28_qr" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#666666;fontSize=10;verticalAlign=bottom;" value="Sí — lista de oportunidades vencidas">
+    <mxCell id="m28_qr" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#666666;fontSize=10;verticalAlign=bottom;" value="ACK — mensaje procesado">
       <mxGeometry as="geometry">
         <mxPoint x="1650" y="1712" as="sourcePoint" />
         <mxPoint x="1010" y="1712" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="m28" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;verticalAlign=bottom;" value="Para cada oportunidad vencida: inicia el procesamiento  &lt;font color=&#39;#888888&#39;&gt;[loop]&lt;/font&gt;">
+    <mxCell id="m28" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;verticalAlign=bottom;" value="Inicia el procesamiento de la oportunidad vencida">
       <mxGeometry as="geometry">
         <mxPoint x="1010" y="1736" as="sourcePoint" />
         <mxPoint x="802" y="1736" as="targetPoint" />
@@ -457,7 +457,7 @@
         <mxPoint x="802" y="1960" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="m31b" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;verticalAlign=bottom;" value="Notificación automática en pantalla: tu oportunidad ha expirado  &lt;font color=&#39;#888888&#39;&gt;SSE push&lt;/font&gt;">
+    <mxCell id="m31b" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;verticalAlign=bottom;" value="Notificaci&#243;n autom&#225;tica en pantalla: tu oportunidad ha expirado  &lt;font color=&#39;#888888&#39;&gt;[Server-Sent Events]&lt;/font&gt;">
       <mxGeometry as="geometry">
         <mxPoint x="790" y="2006" as="sourcePoint" />
         <mxPoint x="572" y="2006" as="targetPoint" />
@@ -505,7 +505,7 @@
     <mxCell id="VGHSVwIxPOehzsGVXUGZ-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;strokeWidth=2;verticalAlign=middle;" value="&lt;b&gt;CRUD Service&lt;/b&gt;&lt;br/&gt;&lt;font size=&#39;2&#39;&gt;[.NET / ASP.NET Core]&lt;/font&gt;" vertex="1">
       <mxGeometry height="50" width="160" x="716" y="2187" as="geometry" />
     </mxCell>
-    <mxCell id="VGHSVwIxPOehzsGVXUGZ-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;strokeWidth=2;dashed=1;verticalAlign=middle;" value="&lt;b&gt;ExpirationScheduler&lt;/b&gt;&lt;br/&gt;&lt;font size=&#39;2&#39;&gt;[Background Service]&lt;/font&gt;" vertex="1">
+    <mxCell id="VGHSVwIxPOehzsGVXUGZ-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;strokeWidth=2;dashed=1;verticalAlign=middle;" value="&lt;b&gt;WaitlistExpiredConsumer&lt;/b&gt;&lt;br/&gt;&lt;font size=&#39;2&#39;&gt;[RabbitMQ Consumer]&lt;/font&gt;" vertex="1">
       <mxGeometry height="50" width="160" x="936" y="2187" as="geometry" />
     </mxCell>
     <mxCell id="VGHSVwIxPOehzsGVXUGZ-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;verticalAlign=middle;" value="&lt;b&gt;RabbitMQ&lt;/b&gt;&lt;br/&gt;&lt;font size=&#39;2&#39;&gt;[Message Broker]&lt;/font&gt;" vertex="1">

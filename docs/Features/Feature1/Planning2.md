@@ -22,9 +22,9 @@ Hoy, cuando un evento se queda sin disponibilidad inmediata, los compradores int
 - La asignación inicial seguirá una regla simple: orden de llegada.
 - La notificación no debe depender solo de que el comprador esté conectado a la aplicación; también debe existir una comunicación por correo electrónico.
 - El correo electrónico se entiende como un canal para avisar que existe una oportunidad activa, no como reemplazo de estado visible dentro de la experiencia del producto.
-- Una entrada se considera liberada cuando: (a) una reserva existente vence sin pago completado (gestionado por ReservationService), o (b) un pago es rechazado (gestionado por paymentService). En ambos casos el ticket pasa al estado `released` en la base de datos. Ambos servicios publican el evento `ticket.released` al exchange `tickets` con esa routing key, **además** de la publicación existente de `ticket.status.changed` que ya se usa para SSE al frontend. Son dos publicaciones independientes con consumidores distintos.
-- Un ticket en estado `released` queda interceptado por la lista de espera antes de volver al inventario general. Solo si no hay ningún comprador elegible en la lista de espera, el ticket transiciona a `available`. La reserva directa (compra normal) opera exclusivamente sobre tickets en estado `available`; la reserva por lista de espera es la única que opera sobre tickets en estado `released`.
-- El comprador se identifica por su correo electrónico (`buyer_email`); no existe un sistema de usuarios con autenticación. El correo es el identificador único del comprador en la lista de espera.
+- Una entrada se considera liberada cuando: (a) una reserva existente vence sin pago completado, o (b) un pago es rechazado. En ambos casos el sistema detecta la liberación automáticamente y activa el proceso de lista de espera.
+- Cuando una entrada queda libre, la lista de espera tiene prioridad antes de que esa entrada vuelva al inventario general. Solo si no hay ningún comprador elegible en la lista de espera, la entrada queda disponible para compra directa.
+- El comprador se identifica con su correo electrónico; no existe un sistema de usuarios con autenticación previa. El correo es suficiente para registrar el interés y recibir avisos.
 
 ---
 
@@ -50,26 +50,28 @@ Hoy, cuando un evento se queda sin disponibilidad inmediata, los compradores int
 - Priorización por criterios diferentes al orden de llegada.
 - Lista de espera segmentada por tipo o categoría de ticket.
 - Pre-automatización de pago durante el tiempo de espera.
-- Modificación de la lógica interna de ReservationService o paymentService; solo se les agrega la publicación de `ticket.released`.
+- Modificación de la lógica interna de los servicios existentes de reservas y pagos; solo se les agrega la capacidad de notificar cuando una entrada queda libre.
 
 ### Palabras clave o lenguaje de negocio
 
 | Término | Definición |
 |---|---|
-| **Sin disponibilidad** | El evento no tiene entradas con status `available` ni `released` en ese momento. |
-| **Entrada liberada** | Una entrada que estaba reservada o en proceso de pago y pasó al estado `released`. Se comunica al sistema mediante el evento `ticket.released`. El ticket permanece en `released` hasta que la lista de espera lo asigne o, si no hay elegibles, lo transite a `available`. |
-| **Oportunidad pendiente** | Estado transitorio de la oportunidad: el sistema seleccionó al comprador elegible y creó el registro, pero la reserva temporal aún no fue confirmada por ReservationService. Si la reserva falla, la oportunidad pasa a `failed` y la inscripción permanece activa. |
-| **Oportunidad activa** | La reserva temporal fue confirmada exitosamente; la entrada quedó reservada para ese comprador y la vigencia de esa reserva está corriendo. La vigencia es de 15 minutos a partir del momento de **activación** (no de creación). |
+| **Sin disponibilidad** | El evento no tiene entradas disponibles para compra inmediata en ese momento. |
+| **Entrada liberada** | Una entrada que estaba reservada o en proceso de pago y volvió a estar libre porque la reserva venció o el pago fue rechazado. La lista de espera intercepta esa entrada antes de que vuelva al inventario general. |
+| **Oportunidad en proceso** | Estado transitorio: el sistema identificó al comprador elegible y está confirmando que puede reservarle la entrada. Si la confirmación falla, el comprador sigue activo en la lista de espera para el próximo intento. |
+| **Oportunidad activa** | La entrada quedó reservada exclusivamente para ese comprador. La vigencia es de 15 minutos desde el momento en que la reserva fue confirmada. |
 | **Oportunidad utilizada** | El comprador avanzó a la pantalla de pago y confirmó la compra desde la oportunidad activa. En ese momento la oportunidad pasa a estado utilizada y la entrada continúa el ciclo normal de pago. |
 | **Oportunidad expirada** | Los 15 minutos de vigencia terminaron sin que el comprador haya iniciado el flujo de pago. |
 | **Fuente oficial del estado** | El estado real de la oportunidad vive dentro del sistema; el correo es solo un canal de aviso. |
-| **Política de liberación** | Si una oportunidad vence, la entrada vuelve a estado `released` e inmediatamente el sistema intenta asignarla al siguiente comprador en espera; si no hay nadie más, la entrada transiciona a `available` y vuelve al inventario general sin prioridad especial. |
+| **Política de liberación** | Si una oportunidad vence, la entrada queda libre e inmediatamente el sistema intenta asignarla al siguiente comprador en espera; si no hay nadie más, la entrada vuelve al inventario general sin prioridad especial. |
 | **Reinscripción** | Inscripción nueva que un comprador realiza después de que su oportunidad anterior fue utilizada o expiró. Es válida mientras la lista de espera del evento esté vigente. |
 | **Vigencia de la lista de espera** | La lista acepta inscripciones y genera oportunidades solo hasta la fecha del evento. Al alcanzarse esa fecha, la lista cierra y las inscripciones activas sin oportunidad se cierran sin asignación. |
 
 ---
 
 ## Integración con el sistema de eventos de dominio existente
+
+> **Nota:** Esta sección es de referencia técnica para el equipo de desarrollo. El Product Owner puede omitirla.
 
 Esta épica requiere que ReservationService y paymentService publiquen el evento `ticket.released` cuando una entrada queda disponible nuevamente. Esta publicación es **adicional** a la ya existente de `ticket.status.changed` (que alimenta el SSE del frontend); son eventos independientes con consumidores distintos. Este es el contrato mínimo que activa la lista de espera:
 
@@ -87,6 +89,8 @@ Esta épica requiere que ReservationService y paymentService publiquen el evento
 > La cola `q.ticket.released` y su binding deben agregarse en `scripts/setup-rabbitmq.sh` antes de que esta feature entre a `develop`.
 
 ### Topología de expiración de oportunidades (DLX)
+
+> **Nota:** Esta sección es de referencia técnica para el equipo de desarrollo. El Product Owner puede omitirla.
 
 La expiración de oportunidades de lista de espera reutiliza el patrón TTL + Dead Letter Exchange (DLX) que ya funciona para la expiración de reservas (`q.ticket.reserved.delay` → `q.ticket.expired`). La topología nueva es:
 
@@ -107,13 +111,13 @@ El mensaje al delay queue se publica **cuando la oportunidad transiciona a `acti
 
 El orden respeta dependencias de datos y reduce el riesgo de integración:
 
-1. Publicación de `ticket.released` en ReservationService y paymentService + bindings en `setup-rabbitmq.sh` (incluye `q.ticket.released`, `q.waitlist.opportunity.delay` y `q.waitlist.opportunity.expired`)
+1. Integración de los eventos de liberación de entradas en los servicios existentes + configuración del mecanismo de expiración automática en la mensajería
 2. **HU1** — Inscripción en lista de espera
 3. **HU2** — Consulta de estado
-4. **HU3** — Asignación de oportunidad *(depende de `ticket.released` y HU1)*
+4. **HU3** — Asignación de oportunidad *(depende del trabajo previo de integración y HU1)*
 5. **HU4** — Notificación in-app *(depende de HU3)*
 6. **HU5** — Notificación por correo *(depende de HU3, puede ir en paralelo con HU4)*
-7. **HU6** — Expiración y reasignación *(depende de HU3; usa DLX con `q.waitlist.opportunity.delay`)*
+7. **HU6** — Expiración y reasignación *(depende de HU3; la expiración se activa automáticamente sin intervención manual)*
 8. **HU7** — Inscripción y disponibilidad en la aplicación *(depende de HU1; puede avanzar en paralelo con HU4-HU6)*
 9. **HU8** — Consulta de estado y acción sobre oportunidad en la aplicación *(depende de HU2, HU3 y HU4; se construye al final porque integra los flujos de estado y acción)*
 
@@ -133,7 +137,7 @@ El orden respeta dependencias de datos y reduce el riesgo de integración:
 
 | Criterio | Análisis |
 |---|---|
-| **Independent** | Puede construirse sin depender de otras HU; no requiere que `ticket.released` exista ni que la asignación funcione. |
+| **Independent** | Puede construirse sin depender de otras HU; no requiere que el mecanismo de liberación de entradas exista ni que la asignación funcione. |
 | **Negotiable** | El objetivo real es conservar el interés del comprador, y hay otras formas de lograrlo. |
 | **Valuable** | Aprovecha demanda que actualmente se puede perder. |
 | **Estimable** | Alcance conocido sin dependencias externas. |
@@ -257,60 +261,59 @@ Scenario: Ver oportunidad expirada
 
 | Criterio | Análisis |
 |---|---|
-| **Independent** | La dependencia con HU1 es de datos, no de comportamiento. Requiere que `ticket.released` esté publicándose antes de implementarse. |
+| **Independent** | La dependencia con HU1 es de datos, no de comportamiento. Requiere que el mecanismo de detección de entradas liberadas esté en funcionamiento antes de implementarse. |
 | **Negotiable** | "Asignar a uno" asume exclusividad automática. El negocio podría preferir notificar a varios y dejar que el primero en reaccionar compre, aunque esto cambia por completo el modelo. |
 | **Valuable** | Sin esta HU la lista de espera es una base de datos inerte. |
 | **Estimable** | La regla de orden de llegada es conocida, la integración con el servicio de reserva existente también. El manejo de fallo de reserva temporal está acotado. |
 | **Small** | Excluye notificación y expiración; su única función es dejar una oportunidad activa para el siguiente elegible o no crear nada si falla la reserva. |
-| **Testable** | Con elegible y reserva exitosa: oportunidad activa. Con elegible y reserva fallida: oportunidad en `failed`, inscripción sigue activa. Sin elegible: ticket transiciona a `available`. |
+| **Testable** | Con elegible y reserva exitosa: oportunidad activa. Con elegible y reserva fallida: no se genera oportunidad, inscripción sigue activa. Sin elegible: la entrada vuelve al inventario general. |
 
 #### Criterios de aceptación
 
 ```gherkin
 Scenario: Asignación al siguiente comprador elegible
-  Given una entrada en estado released de un evento
+  Given una entrada que acaba de quedar libre en un evento
   And existe al menos un comprador con inscripción activa en la lista de espera de ese evento
   When el sistema procesa la liberación de la entrada
-  Then el sistema crea una oportunidad en estado pending para el siguiente comprador elegible
-  And el sistema solicita la reserva temporal de la entrada para ese comprador
-  And cuando la reserva temporal es confirmada, la oportunidad pasa a estado active
-  And el sistema publica un mensaje en la cola delay con el TTL configurado
+  Then el sistema asigna una oportunidad al siguiente comprador elegible
+  And el sistema reserva temporalmente la entrada para ese comprador
+  And la oportunidad queda activa con la vigencia configurada
   And la inscripción relacionada queda inactiva
 
 Scenario: Sin compradores en espera
-  Given una entrada en estado released de un evento
+  Given una entrada que acaba de quedar libre en un evento
   And no existen compradores con inscripción activa en la lista de espera de ese evento
   When el sistema procesa la liberación de la entrada
   Then el sistema no genera una oportunidad en lista de espera
-  And el sistema transiciona la entrada de released a available
+  And la entrada vuelve al inventario general disponible para compra directa
 
-Scenario: Fallo al reservar temporalmente la entrada
-  Given una entrada en estado released de un evento
+Scenario: Fallo al confirmar la reserva temporal
+  Given una entrada que acaba de quedar libre en un evento
   And existe al menos un comprador con inscripción activa en la lista de espera de ese evento
   When el sistema procesa la liberación de la entrada
-  And la llamada al servicio de reserva temporal falla
-  Then la oportunidad pasa a estado failed
+  And la confirmación de la reserva temporal falla
+  Then no se crea una oportunidad para ese comprador
   And la inscripción del comprador elegible permanece activa para el siguiente intento
-  And el evento de liberación queda registrado para diagnóstico
+  And el incidente queda registrado para diagnóstico
 ```
 
 #### DoR
 
 - Está definida la regla inicial de prioridad: orden de llegada.
-- Está definido qué significa que una entrada fue liberada: publicación del evento `ticket.released`.
-- Está definido que una oportunidad se crea primero en estado `pending` y pasa a `active` solo cuando la reserva temporal fue confirmada exitosamente por ReservationService. Si la reserva falla, la oportunidad pasa a `failed`.
-- Está definido el comportamiento cuando la reserva temporal falla: la oportunidad queda en `failed` y la inscripción permanece activa.
+- Está definido qué significa que una entrada fue liberada: el sistema detecta automáticamente cuando una reserva venció sin pago o un pago fue rechazado.
+- Está definido que la oportunidad solo queda activa cuando la reserva temporal fue confirmada exitosamente. Si la confirmación falla, no se genera una oportunidad y la inscripción del comprador permanece activa.
+- Está definido el comportamiento cuando la confirmación falla: el comprador sigue en la lista de espera para el próximo intento.
 - Está acordado que dos liberaciones simultáneas del mismo evento no pueden asignarse al mismo comprador; el bloqueo se resuelve con la restricción única de una oportunidad activa por inscripción.
 
 #### DoD
 
-- El sistema puede detectar una liberación relevante para la lista de espera a través de `ticket.released`.
+- El sistema puede detectar automáticamente cuando una entrada se libera y es relevante para la lista de espera.
 - El sistema selecciona correctamente al siguiente comprador elegible por orden de llegada.
-- La oportunidad queda creada primero como `pending` y transiciona a `active` con vigencia de 15 minutos solo cuando la reserva temporal fue confirmada. Si la reserva falla, la oportunidad queda en `failed`.
+- La oportunidad queda activa con la vigencia configurada solo cuando la reserva temporal fue confirmada exitosamente. Si falla, no se crea ninguna oportunidad para ese comprador.
 - La oportunidad activa implica que la entrada quedó reservada temporalmente para ese comprador.
 - La inscripción relacionada queda inactiva una vez que la oportunidad se activa, permitiendo una futura reinscripción del comprador.
-- Cuando no hay elegibles, el ticket transiciona de `released` a `available`.
-- El sistema no crea oportunidades huérfanas cuando la reserva temporal falla.
+- Cuando no hay elegibles, la entrada vuelve al inventario general disponible para compra directa.
+- El sistema no genera oportunidades sin respaldo en el inventario.
 - QA valida casos con elegible exitoso, con elegible y fallo de reserva, y sin comprador en lista de espera.
 
 **Estimación: 8 puntos**
@@ -328,7 +331,7 @@ Scenario: Fallo al reservar temporalmente la entrada
 | **Independent** | Consume estado producido por HU3 sin modificarlo; no hay acoplamiento de comportamiento con otra HU. |
 | **Negotiable** | "Dentro de la aplicación" define el canal, no la forma. Un banner, un badge o una sección de notificación son opciones negociables. |
 | **Valuable** | Sin esta HU un comprador presente en la aplicación no se entera de su oportunidad sin refrescar manualmente. |
-| **Estimable** | Endpoint SSE, hub de notificación y suscripción frontend son tres componentes conocidos con referencia en el hub existente del sistema. |
+| **Estimable** | El mecanismo de notificación en tiempo real, el hub de notificación y la suscripción del frontend son componentes conocidos con referencia en el sistema existente. |
 | **Small** | Excluye canal de correo y expiración. |
 | **Testable** | Se verifica que el front recibe la actualización sin recarga al activarse la oportunidad y que el estado visible es consistente con el sistema. |
 
@@ -438,7 +441,7 @@ Scenario: Fallo en el envío del correo
 | Criterio | Análisis |
 |---|---|
 | **Independent** | Consume oportunidades de HU3, pero la lógica de vencimiento y reasignación es autónoma y no modifica el flujo de HU3. |
-| **Negotiable** | La expiración automática vía DLX es la solución propuesta; reutiliza el patrón ya probado en la expiración de reservas. |
+| **Negotiable** | La expiración automática es la solución propuesta; reutiliza el mecanismo ya probado en la expiración de reservas. Podría ser manual o asistida si el negocio lo prefiriera. |
 | **Valuable** | Sin esta HU una oportunidad no utilizada bloquea una entrada indefinidamente, paralizando la reasignación de demanda. |
 | **Estimable** | La reasignación reutiliza el flujo de HU3; los pasos son conocidos una vez estimada HU3. |
 | **Small** | Limitada al ciclo de vida de oportunidades no usadas; no incluye notificar la expiración ni modificar la lógica de asignación original. |
@@ -448,17 +451,16 @@ Scenario: Fallo en el envío del correo
 
 ```gherkin
 Scenario: Expiración automática por vencimiento
-  Given una oportunidad activa cuyo mensaje en la cola delay venció
-  And la oportunidad no fue utilizada dentro del TTL configurado
-  When el consumer WaitlistOpportunityExpiredConsumer recibe el mensaje
-  Then el sistema cambia el estado de la oportunidad a expirada
+  Given una oportunidad activa que no fue utilizada dentro del tiempo de vigencia
+  When el tiempo de vigencia se cumple
+  Then el sistema marca la oportunidad como expirada
   And el vencimiento queda registrado con motivo y momento exacto
 
 Scenario: Reasignación inmediata al siguiente comprador elegible
   Given una oportunidad activa que acaba de expirar
   And existe otro comprador con inscripción activa en la lista de espera del mismo evento
   When el sistema procesa la expiración
-  Then el sistema libera la entrada previamente retenida (vuelve a estado released)
+  Then el sistema libera la entrada previamente retenida
   And el sistema asigna una nueva oportunidad al siguiente comprador elegible
   And la inscripción del comprador cuya oportunidad expiró queda inactiva, habilitando reinscripción futura
 
@@ -466,16 +468,16 @@ Scenario: Devolución al inventario cuando no hay más compradores
   Given una oportunidad activa que acaba de expirar
   And no existe comprador con inscripción activa en la lista de espera del mismo evento
   When el sistema procesa la expiración
-  Then el sistema transiciona la entrada de released a available
-  And la entrada vuelve al inventario general sin prioridad especial
+  Then la entrada vuelve al inventario general disponible para compra directa
+  And no queda ninguna reserva asociada a esa entrada
 ```
 
 #### DoR
 
-- Está definida la vigencia de la oportunidad: configurable por variable de entorno `WAITLIST_OPPORTUNITY_TTL_MS` (default 15 minutos) desde la activación.
-- Está definido el mecanismo de expiración: DLX con cola delay (`q.waitlist.opportunity.delay`) que entrega a `q.waitlist.opportunity.expired` tras el TTL, reutilizando el patrón ya probado en la expiración de reservas.
+- Está definida la vigencia de la oportunidad: 15 minutos desde la activación, configurable sin necesidad de un despliegue.
+- Está definido que la expiración es automática: el sistema detecta el vencimiento y lo procesa sin intervención manual ni revisión periódica.
 - Está definido qué significa "utilizada": el comprador avanzó a la pantalla de pago y confirmó la compra desde la oportunidad activa.
-- Está definida la política posterior al vencimiento: la entrada vuelve a `released`, se intenta reasignación inmediata; si no hay siguiente comprador, transiciona a `available`.
+- Está definida la política posterior al vencimiento: la entrada queda libre, se intenta reasignación inmediata; si no hay siguiente comprador, vuelve al inventario general.
 - Está definido que la inscripción del comprador cuya oportunidad expiró queda inactiva, habilitando reinscripción.
 
 #### DoD
@@ -673,7 +675,7 @@ En esta sección se busca responder inquietudes sobre capacidades del sistema qu
 | **FluentValidation** | La regla de inscripción se valida de forma consistente y visible, aunque también puede evaluarse si parte de esa validación corresponde al dominio como regla de negocio. |
 | **OpenTelemetry** | Cuando Soporte quiera saber qué pasó con una oportunidad que cruzó varios servicios y canales, hay una traza que responde sin depender de logs dispersos. |
 | **Amazon SES** | Cada correo enviado queda registrado con su resultado. Si un aviso falla, el sistema lo sabe y puede reportarlo; no se pierde en silencio. |
-| **DLX + cola delay (RabbitMQ)** | El vencimiento de una oportunidad es una capacidad del sistema, no un proceso manual. Reutiliza el patrón TTL + Dead Letter Exchange ya probado en la expiración de reservas (`q.ticket.reserved.delay` → `q.ticket.expired`). Cuando el TTL de la cola delay vence, RabbitMQ entrega el mensaje al consumer de expiración sin polling ni carga periódica a la base de datos. El TTL es configurable por variable de entorno. |
+| **Expiración automática por mensajería** | El vencimiento de una oportunidad lo detecta y procesa el sistema automáticamente, sin revisión periódica ni intervención manual. Cuando el tiempo configurado vence, el sistema recibe la señal y actúa de inmediato. El tiempo de vigencia es ajustable por configuración sin necesidad de modificar código ni hacer un despliegue. |
 | **PostgreSQL índices parciales** | El sistema garantiza en la base de datos que nadie puede tener dos inscripciones activas en el mismo evento, sin dejar esa responsabilidad únicamente al código de la aplicación. |
 
 ### Compromisos arquitectónicos con impacto directo en el negocio
@@ -690,5 +692,5 @@ La lista de espera aprovecha la reserva temporal existente sin reescribirla. Est
 **La vigencia de 15 minutos es un parámetro de negocio, no una constante en código.**
 Debe configurarse mediante variable de entorno o tabla de configuración para que el negocio pueda ajustarlo sin un despliegue.
 
-**El fallo en la reserva temporal no crea oportunidades huérfanas.**
-Si la llamada a ReservationService falla al intentar reservar la entrada para el comprador elegible, el sistema no crea la oportunidad y la inscripción permanece activa. Esto evita que el comprador quede con una oportunidad sin respaldo real en el inventario.
+**El fallo en la confirmación de la reserva no genera oportunidades sin respaldo.**
+Si el sistema no puede confirmar la reserva temporal para el comprador elegible, no crea la oportunidad y la inscripción permanece activa. Esto evita que el comprador quede con una oportunidad que no puede usar.
