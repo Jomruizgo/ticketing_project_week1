@@ -82,23 +82,6 @@ Los siguientes diagramas complementan este plan y detallan las decisiones de dis
 
 ---
 
-## Orden de implementación recomendado
-
-El orden respeta dependencias de datos y reduce el riesgo de integración:
-
-1. Integración de los eventos de liberación de entradas en los servicios existentes + configuración del mecanismo de expiración automática en la mensajería
-2. **HU1** — Inscripción en lista de espera
-3. **HU2** — Consulta de estado
-4. **HU3** — Asignación de oportunidad *(depende del trabajo previo de integración y HU1)*
-5. **HU4** — Notificación in-app *(depende de HU3)*
-6. **HU5** — Notificación por correo *(depende de HU3, puede ir en paralelo con HU4)*
-7. **HU6** — Expiración y reasignación *(depende de HU3; la expiración se activa automáticamente sin intervención manual)*
-8. **HU7** — Inscripción y disponibilidad en la aplicación *(depende de HU1; puede avanzar en paralelo con HU4-HU6)*
-9. **HU8** — Consulta de estado y acción sobre oportunidad en la aplicación *(depende de HU2, HU3 y HU4; se construye al final porque integra los flujos de estado y acción)*
-
-**Total estimado:** 42 puntos + trabajo previo de integración de eventos.
-
----
 
 ## Refinamiento en Historias de Usuario
 
@@ -209,6 +192,12 @@ Scenario: Ver oportunidad expirada
   When el comprador consulta su estado
   Then el sistema muestra que la oportunidad ha expirado
   And el sistema no muestra ninguna reserva temporal activa para ese comprador
+
+Scenario: Ver oportunidad utilizada
+  Given un comprador cuya oportunidad fue utilizada para avanzar al pago
+  When el comprador consulta su estado
+  Then el sistema muestra que la oportunidad fue utilizada
+  And el sistema no muestra acción de pago pendiente para ese comprador
 ```
 
 #### DoR
@@ -459,7 +448,7 @@ Scenario: Devolución al inventario cuando no hay más compradores
 
 - La oportunidad cambia correctamente a expirada cuando vence.
 - El vencimiento queda trazable con motivo y momento.
-- La inscripción relacionada queda inactiva cuando la oportunidad expira, permitiendo una futura reinscripción del comprador.
+- La inscripción del comprador cuya oportunidad expiró permanece inactiva (fue inactivada al momento de la asignación en HU3), habilitando una futura reinscripción mientras la lista del evento siga vigente.
 - La reasignación reutiliza el mismo flujo de HU3 sin duplicar lógica.
 - QA puede validar expiración y la transición posterior en los dos escenarios posibles.
 
@@ -594,6 +583,24 @@ Scenario: El comprador ve que su oportunidad expiró
 - QA y negocio validan cada flujo desde la perspectiva del comprador en la aplicación.
 
 **Estimación: 5 puntos**
+
+---
+
+## Orden de implementación recomendado
+
+El orden respeta dependencias de datos y reduce el riesgo de integración:
+
+1. Integración de los eventos de liberación de entradas en los servicios existentes + configuración del mecanismo de expiración automática en la mensajería
+2. **HU1** — Inscripción en lista de espera
+3. **HU2** — Consulta de estado
+4. **HU3** — Asignación de oportunidad *(depende del trabajo previo de integración y HU1)*
+5. **HU4** — Notificación in-app *(depende de HU3)*
+6. **HU5** — Notificación por correo *(depende de HU3, puede ir en paralelo con HU4)*
+7. **HU6** — Expiración y reasignación *(depende de HU3; la expiración se activa automáticamente sin intervención manual)*
+8. **HU7** — Inscripción y disponibilidad en la aplicación *(depende de HU1; puede avanzar en paralelo con HU4-HU6)*
+9. **HU8** — Consulta de estado y acción sobre oportunidad en la aplicación *(depende de HU2, HU3 y HU4; se construye al final porque integra los flujos de estado y acción)*
+
+**Total estimado:** 42 puntos + trabajo previo de integración de eventos.
 
 ---
 

@@ -1,8 +1,8 @@
-# Observer — Notificación multicanal al activarse una oportunidad
+# Observer — Notificación multicanal ante cambios en el ciclo de vida de una oportunidad
 
 ## Problema que resuelve
 
-Cuando una oportunidad pasa a `active`, el sistema debe reaccionar en múltiples canales (in-app vía SSE, correo electrónico) sin que la lógica de asignación conozca ni dependa de esos canales. Si mañana el negocio agrega SMS o push notifications, no se debe modificar el caso de uso de asignación.
+Cuando una oportunidad cambia de estado (`active`, `expired`), el sistema debe reaccionar en múltiples canales (in-app vía SSE, correo electrónico) sin que la lógica de asignación ni de expiración conozca ni dependa de esos canales. Si mañana el negocio agrega SMS o push notifications, no se debe modificar ningún caso de uso.
 
 ## Diagrama de clases UML
 
@@ -17,6 +17,7 @@ Ver [observer.drawio](observer.drawio) — abrir con draw.io o VS Code con exten
 public interface IOpportunityObserver
 {
     Task OnOpportunityActivatedAsync(WaitlistOpportunity opportunity);
+    Task OnOpportunityExpiredAsync(WaitlistOpportunity opportunity);
 }
 ```
 
@@ -47,7 +48,12 @@ public class SseNotificationObserver : IOpportunityObserver
 {
     public async Task OnOpportunityActivatedAsync(WaitlistOpportunity opportunity)
     {
-        // Publica al hub SSE — solo eso
+        // Publica opportunity_activated al hub SSE
+    }
+
+    public async Task OnOpportunityExpiredAsync(WaitlistOpportunity opportunity)
+    {
+        // Publica opportunity_expired al hub SSE
     }
 }
 
@@ -58,9 +64,14 @@ public class EmailNotificationObserver : IOpportunityObserver
     {
         // Envía correo + registra intento en NotificationDelivery — fallo aislado
     }
+
+    public async Task OnOpportunityExpiredAsync(WaitlistOpportunity opportunity)
+    {
+        // No-op: no hay correo de expiración en el alcance de esta épica
+    }
 }
 ```
 
 ## Por qué hace el código más escalable
 
-Sin Observer, el handler de asignación tendría llamadas directas a SSE y correo. Cada canal nuevo requiere modificar ese handler (viola OCP). Con Observer, agregar un canal es registrar un nuevo `IOpportunityObserver` en DI — cero cambios en la lógica de asignación.
+Sin Observer, el handler de asignación tendría llamadas directas a SSE y correo, y el handler de expiración necesitaría sus propias llamadas a SSE. Cada canal nuevo requiere modificar ambos handlers (viola OCP). Con Observer, agregar un canal es registrar un nuevo `IOpportunityObserver` en DI — cero cambios en la lógica de asignación o expiración.
