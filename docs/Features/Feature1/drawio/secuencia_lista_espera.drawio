@@ -92,7 +92,7 @@
         <mxPoint x="560" y="456" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="m2" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#333333;fontSize=10;verticalAlign=bottom;" value="Registra el interés en la lista de espera  &lt;font color=&#39;#888888&#39;&gt;POST /waitlist&lt;/font&gt;">
+    <mxCell id="m2" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#333333;fontSize=10;verticalAlign=bottom;" value="Registra el interés en la lista de espera  &lt;font color=&#39;#888888&#39;&gt;POST /api/waitlist/entries&lt;/font&gt;">
       <mxGeometry as="geometry">
         <mxPoint x="572" y="476" as="sourcePoint" />
         <mxPoint x="790" y="476" as="targetPoint" />
@@ -152,7 +152,7 @@
         <mxPoint x="560" y="686" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="m8" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#333333;fontSize=10;verticalAlign=bottom;" value="¿Cuál es mi estado en la lista de espera?  &lt;font color=&#39;#888888&#39;&gt;GET /waitlist/status&lt;/font&gt;">
+    <mxCell id="m8" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#333333;fontSize=10;verticalAlign=bottom;" value="¿Cuál es mi estado en la lista de espera?  &lt;font color=&#39;#888888&#39;&gt;GET /api/waitlist/entries&lt;/font&gt;">
       <mxGeometry as="geometry">
         <mxPoint x="572" y="706" as="sourcePoint" />
         <mxPoint x="790" y="706" as="targetPoint" />
@@ -191,7 +191,7 @@
     <mxCell id="act_crud_sse" parent="1" style="fillColor=#d5e8d4;strokeColor=#82b366;" value="" vertex="1">
       <mxGeometry height="48" width="12" x="790" y="890" as="geometry" />
     </mxCell>
-    <mxCell id="m_sse_open" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#6c8ebf;strokeWidth=2;fontSize=10;verticalAlign=bottom;" value="Abre canal de actualizaciones automáticas  &lt;font color=&#39;#888888&#39;&gt;GET /waitlist/stream&lt;/font&gt;">
+    <mxCell id="m_sse_open" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#6c8ebf;strokeWidth=2;fontSize=10;verticalAlign=bottom;" value="Abre canal de actualizaciones automáticas  &lt;font color=&#39;#888888&#39;&gt;GET /api/waitlist/stream&lt;/font&gt;">
       <mxGeometry as="geometry">
         <mxPoint x="572" y="886" as="sourcePoint" />
         <mxPoint x="790" y="886" as="targetPoint" />
@@ -421,28 +421,28 @@
         <mxPoint x="1650" y="1798" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="m30" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;verticalAlign=bottom;" value="Devuelve la entrada al inventario disponible  &lt;font color=&#39;#888888&#39;&gt;[HTTP]&lt;/font&gt;">
+    <mxCell id="m30" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;verticalAlign=bottom;" value="Publica ticket.returned_to_inventory { ticketId, eventId }  &lt;font color=&#39;#888888&#39;&gt;[AMQP]&lt;/font&gt;">
       <mxGeometry as="geometry">
         <mxPoint x="802" y="1854" as="sourcePoint" />
-        <mxPoint x="1450" y="1854" as="targetPoint" />
+        <mxPoint x="1236" y="1854" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="m30b" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#333333;fontSize=10;verticalAlign=bottom;" value="Vuelve a poner la entrada como disponible (con control de versión)">
+    <mxCell id="m30b" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;verticalAlign=bottom;" value="Entrega ticket.returned_to_inventory (async)">
       <mxGeometry as="geometry">
-        <mxPoint x="1462" y="1872" as="sourcePoint" />
-        <mxPoint x="1650" y="1872" as="targetPoint" />
+        <mxPoint x="1236" y="1872" as="sourcePoint" />
+        <mxPoint x="1450" y="1872" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="m30br" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#666666;fontSize=10;verticalAlign=bottom;" value="Actualizado">
+    <mxCell id="m30br" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#333333;fontSize=10;verticalAlign=bottom;" value="UPDATE ticket SET status=&#39;available&#39;, version=v+1">
       <mxGeometry as="geometry">
-        <mxPoint x="1650" y="1892" as="sourcePoint" />
-        <mxPoint x="1462" y="1892" as="targetPoint" />
+        <mxPoint x="1462" y="1892" as="sourcePoint" />
+        <mxPoint x="1650" y="1892" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="m30r" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#666666;fontSize=10;verticalAlign=bottom;" value="Entrada liberada">
+    <mxCell id="m30r" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#666666;fontSize=10;verticalAlign=bottom;" value="ACK">
       <mxGeometry as="geometry">
         <mxPoint x="1450" y="1912" as="sourcePoint" />
-        <mxPoint x="802" y="1912" as="targetPoint" />
+        <mxPoint x="1236" y="1912" as="targetPoint" />
       </mxGeometry>
     </mxCell>
     <mxCell id="m31" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;verticalAlign=bottom;" value="Envía correo de aviso: tu oportunidad expiró  &lt;font color=&#39;#888888&#39;&gt;[HTTPS]&lt;/font&gt;">
@@ -496,7 +496,7 @@
     <mxCell id="alt_no_lbl" parent="alt_frame" style="text;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=2;align=left;spacingLeft=8;fontSize=10;" value="[No hay más compradores elegibles]" vertex="1">
       <mxGeometry height="22" width="500" y="104" as="geometry" />
     </mxCell>
-    <mxCell id="alt_no_txt" parent="alt_frame" style="text;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=12;fontSize=10;" value="→ Entrada ya disponible en inventario general (ticket.status=&#39;available&#39;) — sin prioridad especial" vertex="1">
+    <mxCell id="alt_no_txt" parent="alt_frame" style="text;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=12;fontSize=10;" value="→ Entrada ya disponible en inventario general (devuelta vía ticket.returned_to_inventory) — sin prioridad especial" vertex="1">
       <mxGeometry height="26" width="900" x="10" y="132" as="geometry" />
     </mxCell>
     <mxCell id="VGHSVwIxPOehzsGVXUGZ-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;verticalAlign=middle;" value="&lt;b&gt;Frontend&lt;/b&gt;&lt;br/&gt;&lt;font size=&#39;2&#39;&gt;Next.js / React&lt;/font&gt;" vertex="1">
