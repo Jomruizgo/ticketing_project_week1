@@ -1,10 +1,13 @@
 using CrudService.Infrastructure.Persistence;
 using CrudService.Infrastructure.Persistence.Repositories;
 using CrudService.Infrastructure.Messaging;
+using CrudService.Infrastructure.Strategies;
+using CrudService.Infrastructure.Services;
 using CrudService.Domain.Interfaces;
 using CrudService.Application.Services;
 using CrudService.Application.UseCases.Waitlist.EnrollInWaitlist;
 using CrudService.Application.UseCases.Waitlist.GetWaitlistStatus;
+using CrudService.Application.UseCases.Waitlist.AssignOpportunity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,6 +43,12 @@ public static class DependencyInjection
         services.AddScoped<ITicketService, TicketService>();
         services.AddScoped<IEnrollInWaitlistUseCase, EnrollInWaitlistHandler>();
         services.AddScoped<IGetWaitlistStatusUseCase, GetWaitlistStatusHandler>();
+
+        // Waitlist opportunity assignment
+        services.AddScoped<IPrioritizationStrategy, FifoStrategy>();
+        services.AddScoped<ITicketReservationPort, TicketReservationAdapter>();
+        services.AddScoped<IOpportunityObserver, OpportunityActivatedObserver>();
+        services.AddScoped<IAssignOpportunityUseCase, AssignOpportunityHandler>();
 
         // SSE hub (Singleton: correlaciona ticketId con conexiones activas)
         services.AddSingleton<TicketStatusHub>();

@@ -28,6 +28,7 @@ builder.Services.AddApplicationServices(builder.Configuration);
 // RabbitMQ consumer para ticket.status.changed
 builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection(RabbitMQSettings.SectionName));
 builder.Services.AddHostedService<TicketStatusConsumer>();
+builder.Services.AddHostedService<TicketReleasedConsumer>();
 
 // CORS (si es necesario para frontend)
 builder.Services.AddCors(options =>

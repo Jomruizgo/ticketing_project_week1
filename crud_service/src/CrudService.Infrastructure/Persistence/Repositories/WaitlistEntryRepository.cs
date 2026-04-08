@@ -48,4 +48,18 @@ public class WaitlistEntryRepository : IWaitlistEntryRepository
             .OrderByDescending(e => e.EnrolledAt)
             .FirstOrDefaultAsync();
     }
+
+    public async Task<IReadOnlyList<WaitlistEntry>> GetActiveEntriesByEventAsync(long eventId)
+    {
+        return await _context.WaitlistEntries
+            .Where(e => e.EventId == eventId && e.Status == WaitlistEntryStatus.Active)
+            .ToListAsync();
+    }
+
+    public async Task UpdateStatusAsync(long entryId, WaitlistEntryStatus newStatus)
+    {
+        await _context.WaitlistEntries
+            .Where(e => e.Id == entryId)
+            .ExecuteUpdateAsync(s => s.SetProperty(e => e.Status, newStatus));
+    }
 }

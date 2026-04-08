@@ -78,3 +78,29 @@ CREATE INDEX idx_payments_status ON payments(status);
 CREATE UNIQUE INDEX idx_waitlist_entries_active_unique
   ON waitlist_entries (event_id, buyer_email)
   WHERE status = 'active';
+
+CREATE TYPE waitlist_opportunity_status AS ENUM (
+  'pending',
+  'active',
+  'consumed',
+  'expired',
+  'failed'
+);
+
+CREATE TABLE waitlist_opportunities (
+  id BIGSERIAL PRIMARY KEY,
+  waitlist_entry_id BIGINT NOT NULL REFERENCES waitlist_entries(id) ON DELETE CASCADE,
+  ticket_id BIGINT NOT NULL REFERENCES tickets(id) ON DELETE NO ACTION,
+  status waitlist_opportunity_status NOT NULL DEFAULT 'pending',
+  activated_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_waitlist_opportunities_entry
+  ON waitlist_opportunities (waitlist_entry_id);
+CREATE UNIQUE INDEX idx_waitlist_opportunities_active_ticket_unique
+  ON waitlist_opportunities (ticket_id)
+  WHERE status = 'active';
+CREATE UNIQUE INDEX idx_waitlist_opportunities_active_entry_unique
+  ON waitlist_opportunities (waitlist_entry_id)
+  WHERE status = 'active';

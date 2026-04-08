@@ -101,6 +101,52 @@ curl -s -u "$RABBIT_USER:$RABBIT_PASS" -X POST \
   -d '{"routing_key":"ticket.expired"}' \
   "$RABBIT_URL/bindings/$VHOST/e/tickets/q/q.ticket.expired" && echo " ✓" || echo " ✗"
 
+# --- Waitlist opportunity assignment (HU3) ---
+
+echo "[15/22] Creando queue: q.ticket.released"
+curl -s -u "$RABBIT_USER:$RABBIT_PASS" -X PUT \
+  -H "content-type:application/json" \
+  -d '{"durable":true}' \
+  "$RABBIT_URL/queues/$VHOST/q.ticket.released" && echo " ✓" || echo " ✗"
+
+echo "[16/22] Creando queue: q.ticket.returned"
+curl -s -u "$RABBIT_USER:$RABBIT_PASS" -X PUT \
+  -H "content-type:application/json" \
+  -d '{"durable":true}' \
+  "$RABBIT_URL/queues/$VHOST/q.ticket.returned" && echo " ✓" || echo " ✗"
+
+WAITLIST_TTL="${WAITLIST_OPPORTUNITY_TTL_MS:-900000}"
+
+echo "[17/22] Creando queue delay: q.waitlist.opportunity.delay (TTL ${WAITLIST_TTL}ms)"
+curl -s -u "$RABBIT_USER:$RABBIT_PASS" -X PUT \
+  -H "content-type:application/json" \
+  -d "{\"durable\":true,\"arguments\":{\"x-message-ttl\":${WAITLIST_TTL},\"x-dead-letter-exchange\":\"tickets\",\"x-dead-letter-routing-key\":\"waitlist.opportunity.expired\"}}" \
+  "$RABBIT_URL/queues/$VHOST/q.waitlist.opportunity.delay" && echo " ✓" || echo " ✗"
+
+echo "[18/22] Creando queue: q.waitlist.opportunity.expired"
+curl -s -u "$RABBIT_USER:$RABBIT_PASS" -X PUT \
+  -H "content-type:application/json" \
+  -d '{"durable":true}' \
+  "$RABBIT_URL/queues/$VHOST/q.waitlist.opportunity.expired" && echo " ✓" || echo " ✗"
+
+echo "[19/22] Bindeando: q.ticket.released ← ticket.released"
+curl -s -u "$RABBIT_USER:$RABBIT_PASS" -X POST \
+  -H "content-type:application/json" \
+  -d '{"routing_key":"ticket.released"}' \
+  "$RABBIT_URL/bindings/$VHOST/e/tickets/q/q.ticket.released" && echo " ✓" || echo " ✗"
+
+echo "[20/22] Bindeando: q.ticket.returned ← ticket.returned_to_inventory"
+curl -s -u "$RABBIT_USER:$RABBIT_PASS" -X POST \
+  -H "content-type:application/json" \
+  -d '{"routing_key":"ticket.returned_to_inventory"}' \
+  "$RABBIT_URL/bindings/$VHOST/e/tickets/q/q.ticket.returned" && echo " ✓" || echo " ✗"
+
+echo "[21/22] Bindeando: q.waitlist.opportunity.expired ← waitlist.opportunity.expired"
+curl -s -u "$RABBIT_USER:$RABBIT_PASS" -X POST \
+  -H "content-type:application/json" \
+  -d '{"routing_key":"waitlist.opportunity.expired"}' \
+  "$RABBIT_URL/bindings/$VHOST/e/tickets/q/q.waitlist.opportunity.expired" && echo " ✓" || echo " ✗"
+
 echo ""
 echo "✓ Configuración completada!"
 echo ""

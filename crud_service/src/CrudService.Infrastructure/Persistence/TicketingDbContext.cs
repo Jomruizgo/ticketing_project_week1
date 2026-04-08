@@ -141,5 +141,15 @@ public class TicketingDbContext : DbContext
         modelBuilder.Entity<WaitlistOpportunity>()
             .HasIndex(o => o.WaitlistEntryId)
             .HasDatabaseName("idx_waitlist_opportunities_entry");
+        modelBuilder.Entity<WaitlistOpportunity>()
+            .HasIndex(o => o.TicketId)
+            .IsUnique()
+            .HasFilter("status = 'active'")
+            .HasDatabaseName("idx_waitlist_opportunities_active_ticket_unique");
+        modelBuilder.Entity<WaitlistOpportunity>()
+            .HasIndex(o => o.WaitlistEntryId)
+            .IsUnique()
+            .HasFilter("status = 'active'")
+            .HasDatabaseName("idx_waitlist_opportunities_active_entry_unique");
     }
 }
