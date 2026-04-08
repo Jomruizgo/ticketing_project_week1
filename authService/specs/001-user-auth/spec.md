@@ -41,6 +41,8 @@ Como usuario registrado, quiero iniciar sesión y cerrarla para acceder a mi his
 - Intentos de registro con email con mayúsculas/espacios: normalizar email al guardarlo.
 - Intentos masivos de login desde la misma IP: aplicar rate limiting y delays.
 - Usuario inexistente + intento de login: responder 401 genérico sin revelar existencia.
+- El desbloqueo de cuenta es automático tras expirar `LockoutSettings.LockoutMinutes` (por defecto 15 minutos). El sistema evalúa `lockedUntil` en tiempo real en cada intento — no se requiere un proceso de limpieza periódico.
+- Token JWT expirado presentado en cualquier endpoint protegido retorna 401. El cliente debe realizar un nuevo login para obtener un token válido.
 
 ## Requirements *(mandatory)*
 
@@ -49,11 +51,17 @@ Como usuario registrado, quiero iniciar sesión y cerrarla para acceder a mi his
 - **FR-001**: Permitir registro de usuario con `firstName`, `lastName`, `email`, `password`, `confirmPassword`.
 - **FR-002**: Validar formato de `email` y unicidad en BD; si existe, devolver 409 con mensaje indicado.
 - **FR-003**: Validar `password` con reglas: mínimo 8 caracteres, al menos 1 mayúscula, 1 carácter especial.
-- **FR-004**: Almacenar solo hash de la contraseña; usar `IPasswordHashingService.Hash()` (BCrypt, work factor ≥ 12).
-- **FR-005**: Permitir login con `email` y `password`, generando JWT con `sub=userId`, `email` y `exp`.
-- **FR-006**: Registrar intentos fallidos y bloquear cuenta tras 3 fallos consecutivos por 15 minutos (configurable).
+- **FR-004**: Almacenar solo hash de la contraseña; usar `IPasswordHashingService.Hash()` (BCrypt, work factor mínimo = 12). Este es un requisito de seguridad — no un detalle de implementación.
+- **FR-005**: Permitir login con `email` y `password`, generando JWT firmado con algoritmo HS256. El token debe incluir los claims obligatorios: `sub` (GUID del usuario), `email`, `iat` (issued at), `exp` (expiration). La respuesta incluye `expiresIn` en segundos (valor por defecto: 3600, equivalente a 60 minutos; configurable vía `JwtSettings.ExpirationMinutes`).
+- **FR-006**: Registrar intentos fallidos y bloquear cuenta tras 3 fallos consecutivos por 15 minutos (configurable vía `LockoutSettings.LockoutMinutes`). "3 consecutivos" significa 3 fallos sin ningún login exitoso intermedio. Un login exitoso reinicia el contador de intentos fallidos a 0.
 - **FR-007**: Logout devuelve 200 y cliente elimina token; servidor puede opcionalmente mantener blacklist.
 - **FR-008**: Mensajes de error de autenticación deben ser genéricos para evitar user enumeration.
+
+### Security Constraints
+
+- **SEC-001**: El JWT debe firmarse con algoritmo HS256 (`HmacSha256`).
+- **SEC-002**: El claim `sub` del JWT debe ser el GUID del usuario (`userId`), no un valor numérico secuencial (previene IDOR si otros microservicios consumen el token directamente).
+- **SEC-003**: Los claims obligatorios del token son: `sub` (GUID del usuario), `email`, `iat`, `exp`.
 
 ### Key Entities
 
