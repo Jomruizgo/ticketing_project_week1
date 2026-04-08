@@ -1,3 +1,4 @@
+using CrudService.Infrastructure.Sse;
 using CrudService.Infrastructure.Persistence;
 using CrudService.Infrastructure.Persistence.Repositories;
 using CrudService.Infrastructure.Messaging;
@@ -60,6 +61,16 @@ public static class DependencyInjection
             sp.GetRequiredService<TicketStatusHub>());
         services.AddSingleton<ITicketStatusSubscriber>(sp =>
             sp.GetRequiredService<TicketStatusHub>());
+
+        // Waitlist SSE hub (Singleton: correlaciona email con conexiones SSE activas)
+        services.AddSingleton<WaitlistSseHub>();
+
+        // ISP: consumer → IWaitlistSseNotifier (solo SendEvent)
+        //       controller → IWaitlistSseSubscriber (solo Register/Unregister)
+        services.AddSingleton<IWaitlistSseNotifier>(sp =>
+            sp.GetRequiredService<WaitlistSseHub>());
+        services.AddSingleton<IWaitlistSseSubscriber>(sp =>
+            sp.GetRequiredService<WaitlistSseHub>());
 
         return services;
     }

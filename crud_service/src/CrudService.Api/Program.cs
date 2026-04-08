@@ -29,6 +29,7 @@ builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection(RabbitMQSettings.SectionName));
 builder.Services.AddHostedService<TicketStatusConsumer>();
 builder.Services.AddHostedService<TicketReleasedConsumer>();
+builder.Services.AddHostedService<SseNotificationConsumer>();
 
 // CORS (si es necesario para frontend)
 builder.Services.AddCors(options =>

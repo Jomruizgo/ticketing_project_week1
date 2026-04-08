@@ -144,6 +144,8 @@ services:
       - RabbitMQ__Port=${RABBITMQ_AMQP_PORT}
       - RabbitMQ__Username=${RABBITMQ_DEFAULT_USER}
       - RabbitMQ__Password=${RABBITMQ_DEFAULT_PASS}
+      - SSE_KEEPALIVE_INTERVAL_SECONDS=30
+      - SSE_MAX_CONNECTIONS_PER_EMAIL=5
     depends_on:
       postgres:
         condition: service_healthy
