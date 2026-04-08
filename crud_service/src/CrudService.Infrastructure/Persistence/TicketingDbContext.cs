@@ -131,6 +131,9 @@ public class TicketingDbContext : DbContext
             .Property(o => o.Status)
             .HasColumnType("waitlist_opportunity_status");
         modelBuilder.Entity<WaitlistOpportunity>()
+            .Property(o => o.ExpirationReason)
+            .HasMaxLength(100);
+        modelBuilder.Entity<WaitlistOpportunity>()
             .HasOne(o => o.WaitlistEntry)
             .WithMany()
             .HasForeignKey(o => o.WaitlistEntryId)

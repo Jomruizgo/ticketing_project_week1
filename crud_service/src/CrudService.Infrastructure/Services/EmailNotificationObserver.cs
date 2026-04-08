@@ -88,4 +88,12 @@ public class EmailNotificationObserver : IOpportunityObserver
             .Replace("&quot;", "\"")
             .Replace("&#39;", "'");
     }
+
+    public Task OnOpportunityExpiredAsync(WaitlistOpportunity opportunity)
+    {
+        _logger.LogInformation(
+            "Opportunity expired notification skipped for OpportunityId={OpportunityId} (handled via SSE)",
+            opportunity.Id);
+        return Task.CompletedTask;
+    }
 }

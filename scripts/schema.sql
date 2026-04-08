@@ -93,7 +93,9 @@ CREATE TABLE waitlist_opportunities (
   ticket_id BIGINT NOT NULL REFERENCES tickets(id) ON DELETE NO ACTION,
   status waitlist_opportunity_status NOT NULL DEFAULT 'pending',
   activated_at TIMESTAMPTZ,
-  expires_at TIMESTAMPTZ
+  expires_at TIMESTAMPTZ,
+  expired_at TIMESTAMPTZ,
+  expiration_reason VARCHAR(100)
 );
 
 CREATE INDEX idx_waitlist_opportunities_entry

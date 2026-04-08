@@ -2,6 +2,7 @@ namespace CrudService.Infrastructure.Messaging;
 
 using System.Text;
 using System.Text.Json;
+using CrudService.Domain.Entities;
 using CrudService.Domain.Events;
 using CrudService.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -72,6 +73,43 @@ public class OpportunityActivatedObserver : IOpportunityObserver
         _logger.LogInformation(
             "Published delay message for OpportunityId={OpportunityId} to q.waitlist.opportunity.delay",
             activatedEvent.OpportunityId);
+
+        await Task.CompletedTask;
+    }
+
+    public async Task OnOpportunityExpiredAsync(WaitlistOpportunity opportunity)
+    {
+        var factory = new ConnectionFactory
+        {
+            HostName = _settings.Host,
+            Port = _settings.Port,
+            UserName = _settings.Username,
+            Password = _settings.Password
+        };
+
+        using var connection = factory.CreateConnection();
+        using var channel = connection.CreateModel();
+
+        var payload = new
+        {
+            opportunityId = opportunity.Id,
+            waitlistEntryId = opportunity.WaitlistEntryId,
+            ticketId = opportunity.TicketId,
+            buyerEmail = opportunity.WaitlistEntry?.BuyerEmail,
+            expiredAt = opportunity.ExpiredAt,
+            expirationReason = opportunity.ExpirationReason
+        };
+
+        var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(payload, JsonOptions));
+        channel.BasicPublish(
+            exchange: "tickets",
+            routingKey: "waitlist.opportunity.expired",
+            basicProperties: null,
+            body: body);
+
+        _logger.LogInformation(
+            "Published waitlist.opportunity.expired for OpportunityId={OpportunityId}",
+            opportunity.Id);
 
         await Task.CompletedTask;
     }
