@@ -90,6 +90,12 @@ Un comprador intenta inscribirse en la lista de espera pero la solicitud falla p
 - ¿Qué ocurre si el servidor responde con un código de error no documentado (e.g., 500, 503)? Se muestra un error genérico con opción de reintento.
 - ¿Qué sucede si el comprador envía el formulario dos veces rápidamente (doble clic)? Se debe prevenir el envío duplicado deshabilitando el botón durante el procesamiento.
 
+## Clarifications
+
+### Session 2026-04-08
+
+- Q: ¿Cómo debe comportarse la tarjeta del comprador (buyer-event-card) cuando no hay entradas disponibles pero la lista de espera está abierta? → A: Modificar la tarjeta: si availableTickets === 0 y el evento es futuro, el botón se activa con texto "Unirse a lista de espera" y enlaza a /buy/{id}.
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
@@ -100,11 +106,12 @@ Un comprador intenta inscribirse en la lista de espera pero la solicitud falla p
 - **FR-004**: La aplicación DEBE enviar la inscripción al endpoint POST /api/waitlist/entries con los campos eventId y buyerEmail.
 - **FR-005**: Tras una inscripción exitosa (201), la aplicación DEBE mostrar una confirmación con el estado de la inscripción como activa.
 - **FR-006**: Cuando el servidor responde con 409 (duplicado), la aplicación DEBE informar al comprador que ya tiene una inscripción activa, con un mensaje informativo y no destructivo.
-- **FR-007**: Cuando el servidor responde con 422 (lista cerrada), la aplicación DEBE mostrar que la lista de espera ya no acepta inscripciones para ese evento.
+- **FR-007**: Cuando el servidor responde con 422 (lista cerrada), la aplicación DEBE mostrar que la lista de espera ya no acepta inscripciones para ese evento. _(Nota: este es el fallback server-side — complementa a FR-009 que es la validación preventiva client-side. FR-007 cubre el caso donde el comprador envía el formulario antes de que el polling actualice la fecha del evento.)_
 - **FR-008**: La aplicación DEBE prevenir envíos duplicados del formulario deshabilitando el botón de envío mientras la solicitud está en curso.
-- **FR-009**: La aplicación DEBE mostrar un mensaje indicando que la lista de espera está cerrada cuando el evento no tiene entradas disponibles y su fecha ya ha pasado, sin mostrar el formulario.
+- **FR-009**: La aplicación DEBE mostrar un mensaje indicando que la lista de espera está cerrada cuando el evento no tiene entradas disponibles y su fecha ya ha pasado, sin mostrar el formulario. _(Nota: esta es la validación preventiva client-side basada en comparación de fechas — complementa a FR-007 que es el fallback server-side ante 422.)_
 - **FR-010**: Ante errores de red o respuestas inesperadas del servidor, la aplicación DEBE mostrar un mensaje de error genérico y permitir al comprador reintentar.
 - **FR-011**: La validación del correo electrónico DEBE ocurrir en el cliente antes de enviar la solicitud al servidor.
+- **FR-012**: Cuando un evento no tiene entradas disponibles y su fecha no ha pasado, la tarjeta del comprador en el listado de eventos DEBE mostrar el botón activo con el texto "Unirse a lista de espera", enlazando a la página de compra del evento.
 
 ### Key Entities
 
@@ -131,3 +138,4 @@ Un comprador intenta inscribirse en la lista de espera pero la solicitud falla p
 - No se requiere autenticación del comprador; el correo electrónico es el único identificador.
 - El formulario de inscripción se integra en el flujo de vista de comprador existente (página de compra de evento), no como una página separada.
 - La responsividad (mobile/desktop) sigue los patrones ya existentes en la aplicación; no se definen requisitos de diseño adicionales.
+- El componente buyer-event-card.tsx requiere modificación para soportar el CTA de lista de espera; actualmente deshabilita el botón cuando availableTickets === 0.
