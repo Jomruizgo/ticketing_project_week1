@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: authservice_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: authdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: authservice_api
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: >
+        Host=postgres;Port=5432;Database=authdb;Username=postgres;Password=postgres
+      JwtSettings__SecretKey: "super-secret-key-change-in-production-32chars!"
+      JwtSettings__Issuer: "authservice"
+      JwtSettings__Audience: "authservice-clients"
+      JwtSettings__ExpirationMinutes: "60"
+      LockoutSettings__MaxFailedAttempts: "3"
+      LockoutSettings__LockoutDurationMinutes: "15"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

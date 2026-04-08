@@ -38,6 +38,9 @@ jobs:
       - name: Restore PaymentService
         run: dotnet restore paymentService/src/MsPaymentService.Worker/MsPaymentService.Worker.csproj
 
+      - name: Restore AuthService
+        run: dotnet restore authService/src/AuthService.Api/AuthService.Api.csproj
+
       - name: Build CrudService
         run: dotnet build crud_service/src/CrudService.Api/CrudService.Api.csproj --no-restore -c Release
 
@@ -49,6 +52,9 @@ jobs:
 
       - name: Build PaymentService
         run: dotnet build paymentService/src/MsPaymentService.Worker/MsPaymentService.Worker.csproj --no-restore -c Release
+
+      - name: Build AuthService
+        run: dotnet build authService/src/AuthService.Api/AuthService.Api.csproj --no-restore -c Release
 
   # ──────────────────────────────────────────────
   # JOB 2 — UNIT TESTS: Pruebas de Caja Blanca (lógica de dominio/aplicación)
@@ -97,6 +103,13 @@ jobs:
         run: |
           dotnet test ReservationService/tests/ReservationService.Domain.Tests/ReservationService.Domain.Tests.csproj \
             --logger "trx;LogFileName=unit-reservation-domain.trx" \
+            --results-directory ./test-results/unit \
+            -c Release
+
+      - name: Run Unit Tests — AuthService Application
+        run: |
+          dotnet test authService/tests/AuthService.Application.Tests/AuthService.Application.Tests.csproj \
+            --logger "trx;LogFileName=unit-authservice-app.trx" \
             --results-directory ./test-results/unit \
             -c Release
 
@@ -167,6 +180,13 @@ jobs:
             --results-directory ./test-results/integration \
             -c Release
 
+      - name: Run Integration Tests — AuthService Infrastructure
+        run: |
+          dotnet test authService/tests/AuthService.Infrastructure.Tests/AuthService.Infrastructure.Tests.csproj \
+            --logger "trx;LogFileName=integration-authservice.trx" \
+            --results-directory ./test-results/integration \
+            -c Release
+
       - name: Upload Integration Test Results
         if: always()
         uses: actions/upload-artifact@v4
@@ -226,6 +246,9 @@ jobs:
           - name: reservation-service
             context: ./ReservationService
             dockerfile: ./ReservationService/Dockerfile
+          - name: auth-service
+            context: ./authService
+            dockerfile: ./authService/Dockerfile
     steps:
       - uses: actions/checkout@v4
 
