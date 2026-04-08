@@ -96,3 +96,11 @@
 - Mantener los supuestos de UX asíncrona: el frontend espera consistencia eventual mediante hooks de polling (`frontend/hooks/use-reservation-status.ts` y `frontend/hooks/use-payment-status.ts`).
 - Si se añaden nuevos eventos RabbitMQ, actualizar: publicador del producer, bindings/colas en `scripts/setup-rabbitmq.sh` y el handler del consumidor correspondiente.
 - Para cambios en el modelo de BD, actualizar `scripts/schema.sql` y todos los mappings EF afectados (especialmente conversiones de enums y nombres de columna en snake_case).
+
+## Active Technologies
+- C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, EFCore.NamingConventions 8.0.1 (001-waitlist-enrollment)
+- PostgreSQL (tabla `waitlist_entries`, snake_case automático) (001-waitlist-enrollment)
+- PostgreSQL — tablas `waitlist_entries` (existente), `waitlist_opportunities` (futura; se define el modelo pero puede no existir en BD) (002-waitlist-status-query)
+
+## Recent Changes
+- 001-waitlist-enrollment: Added C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, EFCore.NamingConventions 8.0.1
