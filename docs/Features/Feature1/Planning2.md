@@ -217,7 +217,7 @@ Scenario: Ver oportunidad utilizada
 | **Valuable** | Sin esta HU la lista de espera es una base de datos inerte. |
 | **Estimable** | La regla de orden de llegada es conocida, la integración con el servicio de reserva existente también. El manejo de fallo de reserva temporal está acotado. |
 | **Small** | Excluye notificación y expiración; su única función es dejar una oportunidad activa para el siguiente elegible o no crear nada si falla la reserva. |
-| **Testable** | Con elegible y reserva exitosa: oportunidad activa. Con elegible y reserva fallida: no se genera oportunidad, inscripción sigue activa. Sin elegible: la entrada vuelve al inventario general. |
+| **Testable** | Con elegible y reserva exitosa: oportunidad activa. Con elegible y reserva fallida: oportunidad pending→failed (trazabilidad), inscripción sigue activa. Sin elegible: la entrada vuelve al inventario general. |
 
 #### Criterios de aceptación
 
@@ -243,7 +243,7 @@ Scenario: Fallo al confirmar la reserva temporal
   And existe al menos un comprador con inscripción activa en la lista de espera de ese evento
   When el sistema procesa la liberación de la entrada
   And la confirmación de la reserva temporal falla
-  Then no se crea una oportunidad para ese comprador
+  Then la oportunidad creada como pending transiciona a failed para trazabilidad
   And la inscripción del comprador elegible permanece activa para el siguiente intento
   And el incidente queda registrado para diagnóstico
 ```
@@ -252,7 +252,7 @@ Scenario: Fallo al confirmar la reserva temporal
 
 - Está definida la regla inicial de prioridad: orden de llegada.
 - Está definido qué significa que una entrada fue liberada: el sistema detecta automáticamente cuando una reserva venció sin pago o un pago fue rechazado.
-- Está definido que la oportunidad solo queda activa cuando la reserva temporal fue confirmada exitosamente. Si la confirmación falla, no se genera una oportunidad y la inscripción del comprador permanece activa.
+- Está definido que la oportunidad solo queda activa cuando la reserva temporal fue confirmada exitosamente. Si la confirmación falla, la oportunidad creada como pending transiciona a failed (trazabilidad) y la inscripción del comprador permanece activa.
 - Está definido el comportamiento cuando la confirmación falla: el comprador sigue en la lista de espera para el próximo intento.
 - Está acordado que dos liberaciones simultáneas del mismo evento no pueden asignarse al mismo comprador; el bloqueo se resuelve con la restricción única de una oportunidad activa por inscripción.
 
@@ -260,7 +260,7 @@ Scenario: Fallo al confirmar la reserva temporal
 
 - El sistema puede detectar automáticamente cuando una entrada se libera y es relevante para la lista de espera.
 - El sistema selecciona correctamente al siguiente comprador elegible por orden de llegada.
-- La oportunidad queda activa con la vigencia configurada solo cuando la reserva temporal fue confirmada exitosamente. Si falla, no se crea ninguna oportunidad para ese comprador.
+- La oportunidad queda activa con la vigencia configurada solo cuando la reserva temporal fue confirmada exitosamente. Si falla, la oportunidad creada como pending transiciona a failed para trazabilidad.
 - La oportunidad activa implica que la entrada quedó reservada temporalmente para ese comprador.
 - La inscripción relacionada queda inactiva una vez que la oportunidad se activa, permitiendo una futura reinscripción del comprador.
 - Cuando no hay elegibles, la entrada vuelve al inventario general disponible para compra directa.

@@ -37,6 +37,8 @@ public class WaitlistOpportunity
 }
 ```
 
+> **Nota de implementación (HU3)**: La implementación actual usa `public set` en lugar de `private set` para mantener compatibilidad con los tests existentes de HU2 (`GetWaitlistStatusHandlerTests`), que asignan `Status` directamente al construir datos de prueba. La protección de transiciones se garantiza mediante `TransitionTo` en la lógica de negocio.
+
 ## Por qué hace el código más escalable
 
 Sin State, las transiciones se validan con `if (status == "active" && newStatus == "consumed")` dispersos en handlers, consumers y repositorios. Agregar un estado intermedio (por ejemplo, `confirming`) obliga a buscar y modificar cada condicional. Con el modelo de transiciones centralizado en la entidad, agregar un estado es una fila en `AllowedTransitions` — la validación ocurre en un solo lugar y cualquier transición inválida se rechaza con una excepción de dominio explícita.

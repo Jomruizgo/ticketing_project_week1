@@ -101,6 +101,8 @@
 - C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, EFCore.NamingConventions 8.0.1 (001-waitlist-enrollment)
 - PostgreSQL (tabla `waitlist_entries`, snake_case automático) (001-waitlist-enrollment)
 - PostgreSQL — tablas `waitlist_entries` (existente), `waitlist_opportunities` (futura; se define el modelo pero puede no existir en BD) (002-waitlist-status-query)
+- C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, EFCore.NamingConventions 8.0.1, RabbitMQ.Client (003-waitlist-opportunity-assignment)
+- PostgreSQL (tabla `waitlist_opportunities` existente, columnas snake_case) (003-waitlist-opportunity-assignment)
 
 ## Recent Changes
 - 001-waitlist-enrollment: Added C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, EFCore.NamingConventions 8.0.1

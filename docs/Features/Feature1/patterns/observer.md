@@ -21,6 +21,8 @@ public interface IOpportunityObserver
 }
 ```
 
+> **Nota de implementación (HU3)**: La interfaz implementada en HU3 solo declara `OnOpportunityActivatedAsync`. El método `OnOpportunityExpiredAsync` se agregará al implementar HU6 (Expiración de oportunidad), junto con sus adaptadores correspondientes.
+
 ### Handler (Application)
 
 ```csharp

@@ -199,7 +199,7 @@ Pasos:
 Resultado esperado:
 - Se crea una oportunidad activa para el comprador con la inscripción más antigua.
 - La inscripción de ese comprador pasa a estado inactivo.
-- La vigencia de la oportunidad es de 15 minutos desde el momento de creación.
+- La vigencia de la oportunidad es de 15 minutos desde el momento de activación.
 
 ---
 
@@ -235,7 +235,7 @@ Pasos:
 1. El caso de uso de asignación se invoca. La llamada al servicio de reserva falla.
 
 Resultado esperado:
-- No se crea ninguna oportunidad en el sistema.
+- La oportunidad creada como "pending" transiciona a "failed" para trazabilidad.
 - La inscripción del comprador elegible permanece activa.
 - El evento de liberación queda registrado con el error para diagnóstico.
 
