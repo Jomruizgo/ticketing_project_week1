@@ -23,13 +23,11 @@
 
 ## R3: Campos `ExpiredAt` / `ExpirationReason` en `WaitlistOpportunity`
 
-**Decision**: NO agregar columnas a la BD ni a la entidad. Usar `ExpiresAt` (ya existente) como referencia de cuándo debió expirar. El motivo es siempre `ttl_expired` (único mecanismo de expiración). Registrar el evento de expiración en logs estructurados.
+**Decision**: ~~NO agregar columnas~~ **REVERTIDO en clarify (2026-04-08)**. Agregar `expired_at TIMESTAMPTZ NULL` y `expiration_reason VARCHAR(100) NULL` a la tabla `waitlist_opportunities` y a la entidad `WaitlistOpportunity`. Actualizar `schema.sql` con las nuevas columnas y el mapping EF Core correspondiente.
 
-**Rationale**: La spec dice "registrar motivo y marca de tiempo de expiración". Esto puede cumplirse con: (1) `ExpiresAt` ya da la marca temporal planificada, y el `UpdatedAt` / log del evento cubre cuándo se procesó. (2) El motivo es siempre el mismo (`ttl_expired`) porque no hay expiración manual ni por otro trigger. Agregar columnas a la BD y ALTER TABLE en schema.sql agrega complejidad sin valor diferencial para el MVP.
+**Rationale**: FR-002 exige registrar motivo y marca de tiempo de expiración en la oportunidad. Solo logging estructurado es insuficiente para auditoría y diagnóstico operacional: un operador necesita consultar directamente en BD cuándo y por qué expiró una oportunidad sin depender de un sistema de logs externo. El proyecto ya no es MVP — la trazabilidad en BD es un requisito de calidad de producción.
 
-**Alternatives considered**: (1) Agregar `expired_at TIMESTAMPTZ` y `expiration_reason VARCHAR(100)` a `waitlist_opportunities` — viable para auditoría detallada, pero overengineering para MVP con un solo mecanismo de expiración. Puede agregarse en una iteración futura si el negocio requiere múltiples tipos de expiración.
-
-**Trade-off aceptado**: Si en el futuro se necesita expiración manual o por admin, deberá agregarse. Para MVP con solo DLX, los logs son suficientes.
+**Alternatives considered**: (1) Solo logs estructurados — rechazado durante clarify: insuficiente para diagnóstico operacional. (2) Solo `ExpiresAt` como proxy — rechazado: `ExpiresAt` indica cuándo debería expirar, no cuándo efectivamente se procesó la expiración (puede haber latencia entre DLX y procesamiento).
 
 ## R4: Patrón de reasignación post-expiración
 

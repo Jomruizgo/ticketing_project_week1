@@ -5,7 +5,7 @@
 
 ## Entidades afectadas
 
-### WaitlistOpportunity (existente — sin cambios en BD)
+### WaitlistOpportunity (existente — con cambios en BD)
 
 | Campo | Tipo | Descripción |
 |---|---|---|
@@ -15,13 +15,13 @@
 | `Status` | `waitlist_opportunity_status` (enum PG) | `pending`, `active`, `consumed`, `expired`, `failed` |
 | `ActivatedAt` | `DateTime?` | Momento de activación |
 | `ExpiresAt` | `DateTime?` | Momento planificado de expiración |
+| `ExpiredAt` | `DateTime?` | Momento efectivo de procesamiento de la expiración (nuevo en HU6) |
+| `ExpirationReason` | `string?` (VARCHAR(100)) | Motivo de expiración, e.g. `ttl_expired` (nuevo en HU6) |
 
-**Tabla PostgreSQL**: `waitlist_opportunities` (sin cambios de esquema).
+**Tabla PostgreSQL**: `waitlist_opportunities` (se agregan columnas `expired_at TIMESTAMPTZ NULL` y `expiration_reason VARCHAR(100) NULL`).
 
 **Transiciones de estado relevantes para HU6**:
 - `active → expired` (via `TransitionTo(Expired)`)
-
-**Nota**: No se agregan columnas `expired_at` ni `expiration_reason` (ver research.md R3). El motivo de expiración (`ttl_expired`) es implícito y se registra en logs.
 
 ### WaitlistEntry (existente — sin cambios)
 

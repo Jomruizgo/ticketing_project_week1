@@ -56,9 +56,17 @@ Como sistema, después de expirar una oportunidad, si no hay ningún comprador c
 ### Edge Cases
 
 - ¿Qué sucede si el mensaje DLX llega pero la oportunidad ya fue consumida (el comprador reclamó justo antes del vencimiento)? El sistema verifica el estado actual: si es `consumed`, confirma (ACK) sin modificar. La idempotencia protege contra condiciones de carrera.
-- ¿Qué sucede si el flujo de reasignación falla técnicamente (error de red, BD no disponible)? El consumer rechaza (NACK) con `requeue: false` para evitar loops. El mensaje se pierde pero la oportunidad ya está expirada; la reasignación se puede reintentar manualmente o mediante un proceso de reconciliación.
-- ¿Qué sucede si la publicación del evento de retorno al inventario falla? El fallo técnico se registra en logs. La oportunidad ya está expirada pero la entrada no vuelve al inventario automáticamente. El operador puede detectar el desajuste.
+- ¿Qué sucede si el flujo de reasignación falla técnicamente (error de red, BD no disponible)? El consumer rechaza (NACK) con `requeue: false`. Se registra log estructurado con nivel `Error` y se incrementa el contador `expiration_reassignment_failures_total`. La oportunidad ya está expirada; la reconciliación queda pendiente como deuda técnica.
+- ¿Qué sucede si la publicación del evento de retorno al inventario falla? Se registra log estructurado con nivel `Error` y se incrementa el contador `expiration_inventory_return_failures_total`. La oportunidad ya está expirada pero la entrada no vuelve al inventario automáticamente. La reconciliación queda pendiente como deuda técnica.
 - ¿Qué sucede si el comprador cuya oportunidad expiró intenta reinscribirse? La inscripción fue marcada como `expired` al momento de la asignación en HU3. El comprador puede crear una nueva inscripción (HU1), siempre que la lista del evento siga vigente.
+
+## Clarifications
+
+### Session 2026-04-08
+
+- Q: FR-002 exige registrar motivo y timestamp de expiración, pero R3 de research.md decidió NO agregar columnas. ¿Dónde se persiste? → A: Agregar columnas `expired_at` (nullable DateTime) y `expiration_reason` (nullable string) a `WaitlistOpportunity`. FR-002 prevalece; la trazabilidad en BD es necesaria para auditoría y diagnóstico.
+- Q: ¿Cómo distingue el handler los resultados de `IAssignOpportunityUseCase` para decidir si publicar retorno a inventario o NACK? → A: Usar resultado tipado existente `AssignOpportunityResult` con `AssignOpportunityResultType` (`Assigned` → no-op, `NoEligible`/`AllFailed` → publicar `ticket.returned_to_inventory`, excepción → propagar para NACK).
+- Q: ¿Es suficiente solo logging ante fallos técnicos de reasignación/retorno a inventario, o se necesita un mecanismo de reconciliación? → A: Logging estructurado (Error level) + contadores de métricas para monitoreo en esta HU. Registrar un job de reconciliación periódico como deuda técnica explícita para una HU futura.
 
 ## Requirements
 
@@ -68,16 +76,17 @@ Como sistema, después de expirar una oportunidad, si no hay ningún comprador c
 - **FR-002**: El sistema DEBE transicionar la oportunidad de estado `active` a `expired` registrando el motivo (`ttl_expired`) y la marca de tiempo de expiración.
 - **FR-003**: El sistema DEBE ser idempotente: si la oportunidad ya está en estado `expired` o `consumed`, confirmar (ACK) el mensaje sin modificación ni error.
 - **FR-004**: Después de expirar una oportunidad, el sistema DEBE verificar si existe otro comprador con inscripción activa para el mismo evento.
-- **FR-005**: Si hay comprador elegible, el sistema DEBE reutilizar el flujo de asignación de HU3 (mismos ticketId y eventId) para reasignar la entrada al siguiente comprador.
+- **FR-005**: Si hay comprador elegible, el sistema DEBE reutilizar el flujo de asignación de HU3 (mismos ticketId y eventId) y evaluar el `AssignOpportunityResult`: `Assigned` → reasignación exitosa sin acción adicional; `NoEligible` o `AllFailed` → publicar retorno al inventario; excepción técnica → propagar para NACK del mensaje.
 - **FR-006**: La reasignación DEBE seguir la política de priorización FIFO (orden de inscripción).
 - **FR-007**: Si NO hay comprador elegible, el sistema DEBE publicar un evento de retorno al inventario para que la entrada vuelva a estar disponible para compra directa.
-- **FR-008**: El evento de retorno al inventario DEBE contener: identificador de la entrada, identificador del evento y marca de tiempo del retorno.
+- **FR-008**: El evento de retorno al inventario DEBE contener: identificador del ticket (`ticketId`), identificador del evento (`eventId`) y marca de tiempo del retorno (`returnedAt`).
 - **FR-009**: Los fallos de validación de negocio (oportunidad ya expirada, ya consumida) DEBEN confirmarse (ACK). Los fallos técnicos DEBEN rechazarse (NACK) con `requeue: false`.
 - **FR-010**: El período de validez de la oportunidad DEBE ser configurable mediante la variable de entorno `WAITLIST_OPPORTUNITY_TTL_MS` (por defecto 900000 ms = 15 minutos).
+- **FR-011**: El handler DEBE registrar logs estructurados con nivel `Error` ante fallos técnicos de reasignación o publicación de retorno a inventario, y DEBE incrementar contadores de métricas (`expiration_reassignment_failures_total`, `expiration_inventory_return_failures_total`) para monitoreo operacional. **Deuda técnica**: un job de reconciliación periódico que detecte oportunidades expiradas cuyo ticket no fue reasignado ni devuelto a inventario se registra como trabajo futuro.
 
 ### Key Entities
 
-- **WaitlistOpportunity**: Oportunidad de compra para un comprador de la lista de espera. Atributos relevantes: estado (`active`, `consumed`, `expired`), marca de tiempo de activación, marca de tiempo de expiración, motivo de expiración. Transición válida: `active → expired`.
+- **WaitlistOpportunity**: Oportunidad de compra para un comprador de la lista de espera. Atributos relevantes: estado (`active`, `consumed`, `expired`), marca de tiempo de activación (`activated_at`), marca de tiempo de vencimiento (`expires_at`), marca de tiempo de expiración efectiva (`expired_at`, nullable), motivo de expiración (`expiration_reason`, nullable string, e.g. `ttl_expired`). Transición válida: `active → expired`. Las columnas `expired_at` y `expiration_reason` se agregan como parte de esta HU.
 - **WaitlistEntry**: Inscripción de un comprador en la lista de espera de un evento. El estado pasa de `active` a `expired` cuando se asigna una oportunidad (HU3). El comprador puede reinscribirse creando una nueva entrada.
 
 ## Success Criteria
@@ -98,125 +107,3 @@ Como sistema, después de expirar una oportunidad, si no hay ningún comprador c
 - La inscripción del comprador cuya oportunidad expiró ya fue marcada como `expired` en HU3 al momento de la asignación. No se requiere cambio de estado adicional en la inscripción durante la expiración de la oportunidad.
 - El evento de retorno al inventario usa la routing key `ticket.returned_to_inventory` en el exchange `tickets`, consistente con la topología documentada en Planning2.md.
 - El consumer que procesa `ticket.returned_to_inventory` ya existe o se creará como parte de la infraestructura compartida (fuera del alcance funcional de esta HU, pero necesario para el efecto end-to-end).
-
-## User Scenarios & Testing *(mandatory)*
-
-<!--
-  IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
-  Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
-  you should still have a viable MVP (Minimum Viable Product) that delivers value.
-  
-  Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
-  Think of each story as a standalone slice of functionality that can be:
-  - Developed independently
-  - Tested independently
-  - Deployed independently
-  - Demonstrated to users independently
--->
-
-### User Story 1 - [Brief Title] (Priority: P1)
-
-[Describe this user journey in plain language]
-
-**Why this priority**: [Explain the value and why it has this priority level]
-
-**Independent Test**: [Describe how this can be tested independently - e.g., "Can be fully tested by [specific action] and delivers [specific value]"]
-
-**Acceptance Scenarios**:
-
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-2. **Given** [initial state], **When** [action], **Then** [expected outcome]
-
----
-
-### User Story 2 - [Brief Title] (Priority: P2)
-
-[Describe this user journey in plain language]
-
-**Why this priority**: [Explain the value and why it has this priority level]
-
-**Independent Test**: [Describe how this can be tested independently]
-
-**Acceptance Scenarios**:
-
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-
----
-
-### User Story 3 - [Brief Title] (Priority: P3)
-
-[Describe this user journey in plain language]
-
-**Why this priority**: [Explain the value and why it has this priority level]
-
-**Independent Test**: [Describe how this can be tested independently]
-
-**Acceptance Scenarios**:
-
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-
----
-
-[Add more user stories as needed, each with an assigned priority]
-
-### Edge Cases
-
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right edge cases.
--->
-
-- What happens when [boundary condition]?
-- How does system handle [error scenario]?
-
-## Requirements *(mandatory)*
-
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right functional requirements.
--->
-
-### Functional Requirements
-
-- **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
-- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]  
-- **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
-- **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
-- **FR-005**: System MUST [behavior, e.g., "log all security events"]
-
-*Example of marking unclear requirements:*
-
-- **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
-- **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
-
-### Key Entities *(include if feature involves data)*
-
-- **[Entity 1]**: [What it represents, key attributes without implementation]
-- **[Entity 2]**: [What it represents, relationships to other entities]
-
-## Success Criteria *(mandatory)*
-
-<!--
-  ACTION REQUIRED: Define measurable success criteria.
-  These must be technology-agnostic and measurable.
--->
-
-### Measurable Outcomes
-
-- **SC-001**: [Measurable metric, e.g., "Users can complete account creation in under 2 minutes"]
-- **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
-- **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
-- **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
-
-## Assumptions
-
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right assumptions based on reasonable defaults
-  chosen when the feature description did not specify certain details.
--->
-
-- [Assumption about target users, e.g., "Users have stable internet connectivity"]
-- [Assumption about scope boundaries, e.g., "Mobile support is out of scope for v1"]
-- [Assumption about data/environment, e.g., "Existing authentication system will be reused"]
-- [Dependency on existing system/service, e.g., "Requires access to the existing user profile API"]

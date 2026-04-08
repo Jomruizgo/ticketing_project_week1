@@ -58,7 +58,7 @@ crud_service/src/
 │   │   ├── IWaitlistOpportunityRepository.cs  # MODIFY: agregar FindByIdAsync
 │   │   └── IOpportunityObserver.cs            # MODIFY: agregar OnOpportunityExpiredAsync
 │   └── Entities/
-│       └── WaitlistOpportunity.cs             # MODIFY: agregar ExpiredAt, ExpirationReason (opcional)
+│       └── WaitlistOpportunity.cs             # MODIFY: agregar ExpiredAt, ExpirationReason
 ├── CrudService.Application/
 │   └── UseCases/Waitlist/ExpireOpportunity/
 │       ├── ExpireOpportunityCommand.cs        # NEW
