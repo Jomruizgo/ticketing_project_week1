@@ -38,4 +38,14 @@ public class WaitlistEntryRepository : IWaitlistEntryRepository
             throw new DuplicateWaitlistEntryException();
         }
     }
+
+    public async Task<WaitlistEntry?> FindActiveByEventAndEmailAsync(long eventId, string buyerEmail)
+    {
+        return await _context.WaitlistEntries
+            .Where(e => e.EventId == eventId
+                     && e.BuyerEmail == buyerEmail
+                     && e.Status == WaitlistEntryStatus.Active)
+            .OrderByDescending(e => e.EnrolledAt)
+            .FirstOrDefaultAsync();
+    }
 }

@@ -14,6 +14,7 @@ public class TicketingDbContext : DbContext
     public DbSet<Payment> Payments { get; set; } = null!;
     public DbSet<TicketHistory> TicketHistories { get; set; } = null!;
     public DbSet<WaitlistEntry> WaitlistEntries { get; set; } = null!;
+    public DbSet<WaitlistOpportunity> WaitlistOpportunities { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -28,6 +29,7 @@ public class TicketingDbContext : DbContext
         modelBuilder.HasPostgresEnum<TicketStatus>("ticket_status");
         modelBuilder.HasPostgresEnum<PaymentStatus>("payment_status");
         modelBuilder.HasPostgresEnum<WaitlistEntryStatus>("waitlist_entry_status");
+        modelBuilder.HasPostgresEnum<WaitlistOpportunityStatus>("waitlist_opportunity_status");
 
         modelBuilder.Entity<Event>()
             .HasKey(e => e.Id);
@@ -120,5 +122,24 @@ public class TicketingDbContext : DbContext
             .IsUnique()
             .HasFilter("status = 'active'")
             .HasDatabaseName("idx_waitlist_entries_active_unique");
+
+        modelBuilder.Entity<WaitlistOpportunity>()
+            .HasKey(o => o.Id);
+        modelBuilder.Entity<WaitlistOpportunity>()
+            .Property(o => o.Status)
+            .HasColumnType("waitlist_opportunity_status");
+        modelBuilder.Entity<WaitlistOpportunity>()
+            .HasOne(o => o.WaitlistEntry)
+            .WithMany()
+            .HasForeignKey(o => o.WaitlistEntryId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<WaitlistOpportunity>()
+            .HasOne(o => o.Ticket)
+            .WithMany()
+            .HasForeignKey(o => o.TicketId)
+            .OnDelete(DeleteBehavior.NoAction);
+        modelBuilder.Entity<WaitlistOpportunity>()
+            .HasIndex(o => o.WaitlistEntryId)
+            .HasDatabaseName("idx_waitlist_opportunities_entry");
     }
 }
