@@ -45,21 +45,22 @@ public class AssignOpportunityHandler
 ### Adaptadores (Infrastructure)
 
 ```csharp
-// Infrastructure/Services/SseNotificationObserver.cs
-public class SseNotificationObserver : IOpportunityObserver
+// Infrastructure/Messaging/OpportunityActivatedObserver.cs
+public class OpportunityActivatedObserver : IOpportunityObserver
 {
     public async Task OnOpportunityActivatedAsync(WaitlistOpportunity opportunity)
     {
-        // Publica opportunity_activated al hub SSE
+        // Publica waitlist.opportunity.activated al exchange RabbitMQ
+        // Publica delay message a q.waitlist.opportunity.delay
     }
 
     public async Task OnOpportunityExpiredAsync(WaitlistOpportunity opportunity)
     {
-        // Publica opportunity_expired al hub SSE
+        // Pendiente HU6
     }
 }
 
-// Infrastructure/Services/EmailNotificationObserver.cs
+// Infrastructure/Services/EmailNotificationObserver.cs (HU5 — futuro)
 public class EmailNotificationObserver : IOpportunityObserver
 {
     public async Task OnOpportunityActivatedAsync(WaitlistOpportunity opportunity)
@@ -74,6 +75,8 @@ public class EmailNotificationObserver : IOpportunityObserver
 }
 ```
 
+> **Nota de implementación (HU4)**: La notificación SSE in-app NO se implementa como un `IOpportunityObserver` adicional. En su lugar, un consumer RabbitMQ dedicado (`SseNotificationConsumer`) escucha las routing keys `waitlist.opportunity.activated` y `waitlist.opportunity.expired` (publicadas por `OpportunityActivatedObserver` y el mecanismo de expiración DLX respectivamente) y despacha al hub SSE in-process. Esta decisión soporta escalamiento horizontal: cualquier instancia del CRUD Service que tenga la conexión SSE del comprador puede emitir la notificación. Ver `specs/004-inapp-notification/research.md` R4.
+
 ## Por qué hace el código más escalable
 
-Sin Observer, el handler de asignación tendría llamadas directas a SSE y correo, y el handler de expiración necesitaría sus propias llamadas a SSE. Cada canal nuevo requiere modificar ambos handlers (viola OCP). Con Observer, agregar un canal es registrar un nuevo `IOpportunityObserver` en DI — cero cambios en la lógica de asignación o expiración.
+Sin Observer, el handler de asignación tendría llamadas directas a RabbitMQ y correo, y el handler de expiración necesitaría sus propias llamadas. Cada canal nuevo requiere modificar ambos handlers (viola OCP). Con Observer, agregar un canal es registrar un nuevo `IOpportunityObserver` en DI — cero cambios en la lógica de asignación o expiración. La notificación SSE, al consumir el evento publicado por el observer vía RabbitMQ, se beneficia además de escalamiento horizontal sin modificar el handler.

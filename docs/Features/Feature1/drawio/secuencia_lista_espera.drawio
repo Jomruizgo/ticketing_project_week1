@@ -306,8 +306,8 @@
         <mxPoint x="572" y="1322" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="note_sse_chain" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" value="El servidor usa la conexión abierta en el paso anterior para enviar este aviso sin que el usuario recargue" vertex="1">
-      <mxGeometry height="28" width="300" x="821" y="1314" as="geometry" />
+    <mxCell id="note_sse_chain" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" value="El Observer publica waitlist.opportunity.activated a RabbitMQ; un consumer dedicado (SseNotificationConsumer) recibe el evento y lo envía por la conexión SSE abierta al frontend, habilitando escalamiento horizontal. El mismo consumer también escucha waitlist.opportunity.expired para notificar expiración en tiempo real" vertex="1">
+      <mxGeometry height="44" width="440" x="821" y="1300" as="geometry" />
     </mxCell>
     <mxCell id="m22" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#666666;fontSize=10;verticalAlign=bottom;" value="Tienes una oportunidad activa — entrada retenida hasta [vigencia]">
       <mxGeometry as="geometry">

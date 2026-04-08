@@ -317,6 +317,8 @@ Scenario: Consulta posterior del estado si el comprador sigue navegando
 - La notificación in-app deja claro que la entrada está retenida temporalmente para ese comprador.
 - Negocio y QA validan que la comunicación in-app sea suficientemente clara.
 
+> **Decisión de implementación (spec 004)**: La notificación SSE NO se implementa como un segundo `IOpportunityObserver` in-process, sino mediante un consumer RabbitMQ dedicado (`SseNotificationConsumer`) que escucha `waitlist.opportunity.activated` (publicado por `OpportunityActivatedObserver` de HU3) y despacha al hub SSE. Esta decisión soporta escalamiento horizontal: cualquier instancia del CRUD Service que tenga la conexión SSE del comprador puede emitir la notificación. Adicionalmente, el endpoint SSE valida formato de email (400) y limita conexiones concurrentes por email vía `SSE_MAX_CONNECTIONS_PER_EMAIL` (429). Keep-alive configurable vía `SSE_KEEPALIVE_INTERVAL_SECONDS`. Ver `specs/004-inapp-notification/spec.md` Clarifications.
+
 **Estimación: 5 puntos**
 
 ---
