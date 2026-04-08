@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram name="Observer — Notificación multicanal" id="obs1">
-        <mxGraphModel dx="1108" dy="827" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="800" math="0" shadow="0">
+        <mxGraphModel dx="1308" dy="927" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -8,16 +8,16 @@
                     <mxGeometry x="40" y="20" width="600" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="iobs" value="&lt;&lt;interface&gt;&gt;&#xa;IOpportunityObserver" style="swimlane;fontStyle=3;align=center;startSize=40;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
-                    <mxGeometry x="467" y="127" width="330" height="110" as="geometry"/>
+                    <mxGeometry x="420" y="80" width="380" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="iobs_m1" value="+ OnOpportunityActivatedAsync(opportunity: WaitlistOpportunity): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="iobs" vertex="1">
-                    <mxGeometry y="40" width="330" height="30" as="geometry"/>
+                <mxCell id="iobs_m1" value="+ OnOpportunityActivatedAsync(event: OpportunityActivatedEvent): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="iobs" vertex="1">
+                    <mxGeometry y="40" width="380" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="iobs_m2" value="+ OnOpportunityExpiredAsync(opportunity: WaitlistOpportunity): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="iobs" vertex="1">
-                    <mxGeometry y="70" width="330" height="30" as="geometry"/>
+                    <mxGeometry y="70" width="380" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="handler" value="AssignOpportunityHandler" style="swimlane;fontStyle=1;align=center;startSize=26;fontSize=11;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
-                    <mxGeometry x="27" y="117" width="290" height="100" as="geometry"/>
+                    <mxGeometry x="27" y="90" width="290" height="100" as="geometry"/>
                 </mxCell>
                 <mxCell id="handler_f1" value="- observers: IEnumerable&lt;IOpportunityObserver&gt;" style="text;align=left;fontSize=10;spacingLeft=4;" parent="handler" vertex="1">
                     <mxGeometry y="26" width="290" height="24" as="geometry"/>
@@ -28,32 +28,59 @@
                 <mxCell id="handler_m1" value="+ HandleAsync(command: AssignOpportunityCommand): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="handler" vertex="1">
                     <mxGeometry y="54" width="290" height="24" as="geometry"/>
                 </mxCell>
-                <mxCell id="sse" value="SseNotificationObserver" style="swimlane;fontStyle=1;align=center;startSize=26;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
-                    <mxGeometry x="347" y="317" width="280" height="100" as="geometry"/>
+                <mxCell id="rmq_obs" value="OpportunityActivatedObserver" style="swimlane;fontStyle=1;align=center;startSize=26;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="167" y="270" width="310" height="100" as="geometry"/>
                 </mxCell>
-                <mxCell id="sse_f1" value="- sseHub: IWaitlistSseHub" style="text;align=left;fontSize=10;spacingLeft=4;" parent="sse" vertex="1">
-                    <mxGeometry y="26" width="280" height="24" as="geometry"/>
+                <mxCell id="rmq_obs_f1" value="- settings: RabbitMQSettings" style="text;align=left;fontSize=10;spacingLeft=4;" parent="rmq_obs" vertex="1">
+                    <mxGeometry y="26" width="310" height="24" as="geometry"/>
                 </mxCell>
-                <mxCell id="sse_m1" value="+ OnOpportunityActivatedAsync(opportunity): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="sse" vertex="1">
-                    <mxGeometry y="50" width="280" height="24" as="geometry"/>
+                <mxCell id="rmq_obs_m1" value="+ OnOpportunityActivatedAsync(event): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="rmq_obs" vertex="1">
+                    <mxGeometry y="50" width="310" height="24" as="geometry"/>
                 </mxCell>
-                <mxCell id="sse_m2" value="+ OnOpportunityExpiredAsync(opportunity): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="sse" vertex="1">
-                    <mxGeometry y="74" width="280" height="24" as="geometry"/>
+                <mxCell id="rmq_obs_m2" value="  → publica a exchange: waitlist.opportunity.activated" style="text;align=left;fontSize=9;spacingLeft=14;fontStyle=2;fontColor=#666666;" parent="rmq_obs" vertex="1">
+                    <mxGeometry y="74" width="310" height="24" as="geometry"/>
                 </mxCell>
                 <mxCell id="email" value="EmailNotificationObserver" style="swimlane;fontStyle=1;align=center;startSize=26;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
-                    <mxGeometry x="667" y="317" width="300" height="124" as="geometry"/>
+                    <mxGeometry x="527" y="270" width="310" height="124" as="geometry"/>
                 </mxCell>
                 <mxCell id="email_f1" value="- emailSender: IEmailSender" style="text;align=left;fontSize=10;spacingLeft=4;" parent="email" vertex="1">
-                    <mxGeometry y="26" width="300" height="24" as="geometry"/>
+                    <mxGeometry y="26" width="310" height="24" as="geometry"/>
                 </mxCell>
                 <mxCell id="email_f2" value="- notificationRepo: INotificationDeliveryRepository" style="text;align=left;fontSize=10;spacingLeft=4;" parent="email" vertex="1">
-                    <mxGeometry y="50" width="300" height="24" as="geometry"/>
+                    <mxGeometry y="50" width="310" height="24" as="geometry"/>
                 </mxCell>
-                <mxCell id="email_m1" value="+ OnOpportunityActivatedAsync(opportunity): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="email" vertex="1">
-                    <mxGeometry y="74" width="300" height="24" as="geometry"/>
+                <mxCell id="email_m1" value="+ OnOpportunityActivatedAsync(event): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="email" vertex="1">
+                    <mxGeometry y="74" width="310" height="24" as="geometry"/>
                 </mxCell>
                 <mxCell id="email_m2" value="+ OnOpportunityExpiredAsync(opportunity): Task  // no-op" style="text;align=left;fontSize=10;spacingLeft=4;" parent="email" vertex="1">
-                    <mxGeometry y="98" width="300" height="24" as="geometry"/>
+                    <mxGeometry y="98" width="310" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="rmq_q" value="RabbitMQ&#xa;exchange: tickets&#xa;routing key: waitlist.opportunity.activated" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="52" y="450" width="220" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="sse_consumer" value="SseNotificationConsumer" style="swimlane;fontStyle=1;align=center;startSize=26;fontSize=11;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+                    <mxGeometry x="347" y="450" width="310" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sse_consumer_f1" value="- sseNotifier: IWaitlistSseNotifier" style="text;align=left;fontSize=10;spacingLeft=4;" parent="sse_consumer" vertex="1">
+                    <mxGeometry y="26" width="310" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="sse_consumer_m1" value="+ ExecuteAsync(cancellationToken): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="sse_consumer" vertex="1">
+                    <mxGeometry y="50" width="310" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="sse_consumer_m2" value="  → despacha al hub SSE por email del comprador" style="text;align=left;fontSize=9;spacingLeft=14;fontStyle=2;fontColor=#666666;" parent="sse_consumer" vertex="1">
+                    <mxGeometry y="74" width="310" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="sse_hub" value="WaitlistSseHub" style="swimlane;fontStyle=1;align=center;startSize=26;fontSize=11;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+                    <mxGeometry x="727" y="450" width="310" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sse_hub_f1" value="- connections: ConcurrentDictionary&lt;email, clients&gt;" style="text;align=left;fontSize=10;spacingLeft=4;" parent="sse_hub" vertex="1">
+                    <mxGeometry y="26" width="310" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="sse_hub_m1" value="+ SendEventAsync(email, eventType, payload): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="sse_hub" vertex="1">
+                    <mxGeometry y="50" width="310" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="sse_hub_m2" value="+ RegisterAsync / UnregisterAsync / GetConnectionCount" style="text;align=left;fontSize=10;spacingLeft=4;" parent="sse_hub" vertex="1">
+                    <mxGeometry y="74" width="310" height="24" as="geometry"/>
                 </mxCell>
                 <mxCell id="dep1" style="endArrow=open;endFill=1;dashed=1;strokeColor=#333333;fontSize=10;" parent="1" source="handler" target="iobs" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
@@ -63,14 +90,23 @@
                         <mxPoint x="-45" as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="real1" style="endArrow=block;endFill=0;dashed=1;strokeColor=#333333;" parent="1" source="sse" target="iobs" edge="1">
+                <mxCell id="real1" style="endArrow=block;endFill=0;dashed=1;strokeColor=#333333;" parent="1" source="rmq_obs" target="iobs" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="real2" style="endArrow=block;endFill=0;dashed=1;strokeColor=#333333;" parent="1" source="email" target="iobs" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="legend" value="&lt;font style=&#39;font-size:10px&#39;&gt;🟡 Application layer  🟢 Infrastructure layer  🔵 Domain layer (interface)&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;" parent="1" vertex="1">
-                    <mxGeometry x="107" y="477" width="500" height="20" as="geometry"/>
+                <mxCell id="pub_arrow" value="publica" style="endArrow=open;endFill=1;strokeColor=#b85450;fontSize=10;fontStyle=2;" parent="1" source="rmq_obs" target="rmq_q" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="consume_arrow" value="consume" style="endArrow=open;endFill=1;strokeColor=#b85450;fontSize=10;fontStyle=2;" parent="1" source="rmq_q" target="sse_consumer" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="dispatch_arrow" value="despacha" style="endArrow=open;endFill=1;strokeColor=#9673a6;fontSize=10;fontStyle=2;" parent="1" source="sse_consumer" target="sse_hub" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend" value="&lt;font style=&#39;font-size:10px&#39;&gt;🟡 Application  🟢 Infrastructure (Observer)  🔵 Domain (interface)  🟣 Infrastructure (SSE)  🔴 RabbitMQ&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="580" width="700" height="20" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>

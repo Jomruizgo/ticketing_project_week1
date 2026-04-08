@@ -57,7 +57,72 @@ CREATE TABLE ticket_history (
   reason VARCHAR(200)
 );
 
+CREATE TYPE waitlist_entry_status AS ENUM (
+  'active',
+  'consumed',
+  'expired'
+);
+
+CREATE TABLE waitlist_entries (
+  id BIGSERIAL PRIMARY KEY,
+  event_id BIGINT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  buyer_email VARCHAR(255) NOT NULL,
+  status waitlist_entry_status NOT NULL DEFAULT 'active',
+  enrolled_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX idx_tickets_status_expires_at ON tickets(status, expires_at);
 CREATE INDEX idx_tickets_event_id ON tickets(event_id);
 CREATE INDEX idx_payments_ticket_id ON payments(ticket_id);
 CREATE INDEX idx_payments_status ON payments(status);
+CREATE UNIQUE INDEX idx_waitlist_entries_active_unique
+  ON waitlist_entries (event_id, buyer_email)
+  WHERE status = 'active';
+
+CREATE TYPE waitlist_opportunity_status AS ENUM (
+  'pending',
+  'active',
+  'consumed',
+  'expired',
+  'failed'
+);
+
+CREATE TABLE waitlist_opportunities (
+  id BIGSERIAL PRIMARY KEY,
+  waitlist_entry_id BIGINT NOT NULL REFERENCES waitlist_entries(id) ON DELETE CASCADE,
+  ticket_id BIGINT NOT NULL REFERENCES tickets(id) ON DELETE NO ACTION,
+  status waitlist_opportunity_status NOT NULL DEFAULT 'pending',
+  activated_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ,
+  expired_at TIMESTAMPTZ,
+  expiration_reason VARCHAR(100)
+);
+
+CREATE INDEX idx_waitlist_opportunities_entry
+  ON waitlist_opportunities (waitlist_entry_id);
+CREATE UNIQUE INDEX idx_waitlist_opportunities_active_ticket_unique
+  ON waitlist_opportunities (ticket_id)
+  WHERE status = 'active';
+CREATE UNIQUE INDEX idx_waitlist_opportunities_active_entry_unique
+  ON waitlist_opportunities (waitlist_entry_id)
+  WHERE status = 'active';
+
+-- HU5: Notification deliveries
+CREATE TYPE notification_delivery_status AS ENUM (
+  'pending',
+  'sent',
+  'failed'
+);
+
+CREATE TABLE notification_deliveries (
+  id              BIGSERIAL PRIMARY KEY,
+  waitlist_opportunity_id BIGINT NOT NULL
+    REFERENCES waitlist_opportunities(id) ON DELETE CASCADE,
+  channel         VARCHAR(50)  NOT NULL,
+  status          notification_delivery_status NOT NULL DEFAULT 'pending',
+  sent_at         TIMESTAMPTZ  NOT NULL,
+  failure_reason  TEXT
+);
+
+CREATE INDEX idx_notification_deliveries_opportunity
+  ON notification_deliveries(waitlist_opportunity_id);

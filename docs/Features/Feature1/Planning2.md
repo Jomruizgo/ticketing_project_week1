@@ -25,6 +25,8 @@ Hoy, cuando un evento se queda sin disponibilidad inmediata, los compradores int
 - Una entrada se considera liberada cuando: (a) una reserva existente vence sin pago completado, o (b) un pago es rechazado. En ambos casos el sistema detecta la liberación automáticamente y activa el proceso de lista de espera.
 - Cuando una entrada queda libre, la lista de espera tiene prioridad antes de que esa entrada vuelva al inventario general. Solo si no hay ningún comprador elegible en la lista de espera, la entrada queda disponible para compra directa.
 - El comprador se identifica con su correo electrónico; no existe un sistema de usuarios con autenticación previa. El correo es suficiente para registrar el interés y recibir avisos.
+- La lista de espera tiene un límite global de tamaño configurable; cuando se alcanza, las nuevas inscripciones son rechazadas hasta que alguna inscripción activa deje de estarlo.
+- La inscripción en lista de espera no depende de la disponibilidad actual de entradas a nivel del sistema; la experiencia del comprador en la aplicación decide cuándo ofrecer la opción de lista de espera.
 
 ---
 
@@ -37,6 +39,7 @@ Hoy, cuando un evento se queda sin disponibilidad inmediata, los compradores int
 - El comprador puede enterarse de su oportunidad dentro de la aplicación, en tiempo real.
 - El comprador recibe una notificación por correo electrónico como canal de aviso complementario.
 - La oportunidad tiene un estado visible, trazable y coherente para el comprador, soporte y negocio.
+- El comprador con una oportunidad activa puede reclamarla para avanzar al flujo de pago; al hacerlo, la oportunidad pasa a estado utilizada y la entrada sigue el ciclo normal de compra.
 - Una vez que la oportunidad fue utilizada o expiró, el comprador puede volver a inscribirse mientras la lista siga vigente.
 - La lista de espera cierra al alcanzarse la fecha del evento; después no se aceptan inscripciones ni se asignan oportunidades.
 
@@ -66,6 +69,8 @@ Hoy, cuando un evento se queda sin disponibilidad inmediata, los compradores int
 | **Política de liberación** | Si una oportunidad vence, la entrada queda libre e inmediatamente el sistema intenta asignarla al siguiente comprador en espera; si no hay nadie más, la entrada vuelve al inventario general sin prioridad especial. |
 | **Reinscripción** | Inscripción nueva que un comprador realiza después de que su oportunidad anterior fue utilizada o expiró. Es válida mientras la lista de espera del evento esté vigente. |
 | **Vigencia de la lista de espera** | La lista acepta inscripciones y genera oportunidades solo hasta la fecha del evento. Al alcanzarse esa fecha, la lista cierra y las inscripciones activas sin oportunidad se cierran sin asignación. |
+| **Lista de espera llena** | La lista de espera tiene un límite global de tamaño configurable. Cuando se alcanza ese límite, el sistema no acepta nuevas inscripciones hasta que alguna inscripción activa deje de estarlo. |
+| **Oportunidad fallida** | Estado interno de trazabilidad: el sistema intentó reservar una entrada para el comprador elegible pero la confirmación no fue exitosa. La oportunidad queda registrada como fallida, y la inscripción del comprador permanece activa para el siguiente intento. Este estado no es visible para el comprador. |
 
 ---
 
@@ -119,6 +124,13 @@ Scenario: Reinscripción válida después de oportunidad utilizada o expirada
   When el comprador solicita unirse nuevamente a la lista de espera
   Then el sistema registra una nueva inscripción activa
   And el sistema confirma que su interés fue registrado nuevamente
+
+Scenario: Lista de espera llena
+  Given un evento sin disponibilidad inmediata
+  And la lista de espera de ese evento alcanzó el límite máximo de inscripciones configurado
+  When un comprador solicita unirse a la lista de espera
+  Then el sistema rechaza la inscripción
+  And el sistema informa que la lista de espera de ese evento está llena
 ```
 
 #### DoR
@@ -130,6 +142,7 @@ Scenario: Reinscripción válida después de oportunidad utilizada o expirada
 - Está claro el mensaje de confirmación que verá el comprador.
 - Está claro el mensaje de rechazo que verá el comprador en cada caso.
 - Está definido que la reinscripción es válida solo cuando la inscripción/oportunidad anterior ya no está activa.
+- Está definido el límite global de inscripciones activas por lista de espera y que es configurable sin necesidad de un despliegue.
 
 #### DoD
 
@@ -138,7 +151,8 @@ Scenario: Reinscripción válida después de oportunidad utilizada o expirada
 - La inscripción queda disponible para consulta posterior.
 - El sistema rechaza inscripciones cuando la lista de espera del evento ya cerró.
 - El sistema permite reinscripción cuando la inscripción u oportunidad anterior ya no está activa.
-- QA y negocio pueden validar los cuatro escenarios anteriores.
+- El sistema rechaza inscripciones cuando la lista de espera está llena y lo comunica al comprador.
+- QA y negocio pueden validar los cinco escenarios anteriores.
 
 **Estimación: 3 puntos**
 
@@ -217,7 +231,7 @@ Scenario: Ver oportunidad utilizada
 | **Valuable** | Sin esta HU la lista de espera es una base de datos inerte. |
 | **Estimable** | La regla de orden de llegada es conocida, la integración con el servicio de reserva existente también. El manejo de fallo de reserva temporal está acotado. |
 | **Small** | Excluye notificación y expiración; su única función es dejar una oportunidad activa para el siguiente elegible o no crear nada si falla la reserva. |
-| **Testable** | Con elegible y reserva exitosa: oportunidad activa. Con elegible y reserva fallida: no se genera oportunidad, inscripción sigue activa. Sin elegible: la entrada vuelve al inventario general. |
+| **Testable** | Con elegible y reserva exitosa: oportunidad activa. Con elegible y reserva fallida: oportunidad pending→failed (trazabilidad), inscripción sigue activa. Sin elegible: la entrada vuelve al inventario general. |
 
 #### Criterios de aceptación
 
@@ -243,7 +257,7 @@ Scenario: Fallo al confirmar la reserva temporal
   And existe al menos un comprador con inscripción activa en la lista de espera de ese evento
   When el sistema procesa la liberación de la entrada
   And la confirmación de la reserva temporal falla
-  Then no se crea una oportunidad para ese comprador
+  Then la oportunidad creada como pending transiciona a failed para trazabilidad
   And la inscripción del comprador elegible permanece activa para el siguiente intento
   And el incidente queda registrado para diagnóstico
 ```
@@ -252,7 +266,7 @@ Scenario: Fallo al confirmar la reserva temporal
 
 - Está definida la regla inicial de prioridad: orden de llegada.
 - Está definido qué significa que una entrada fue liberada: el sistema detecta automáticamente cuando una reserva venció sin pago o un pago fue rechazado.
-- Está definido que la oportunidad solo queda activa cuando la reserva temporal fue confirmada exitosamente. Si la confirmación falla, no se genera una oportunidad y la inscripción del comprador permanece activa.
+- Está definido que la oportunidad solo queda activa cuando la reserva temporal fue confirmada exitosamente. Si la confirmación falla, la oportunidad creada como pending transiciona a failed (trazabilidad) y la inscripción del comprador permanece activa.
 - Está definido el comportamiento cuando la confirmación falla: el comprador sigue en la lista de espera para el próximo intento.
 - Está acordado que dos liberaciones simultáneas del mismo evento no pueden asignarse al mismo comprador; el bloqueo se resuelve con la restricción única de una oportunidad activa por inscripción.
 
@@ -260,7 +274,7 @@ Scenario: Fallo al confirmar la reserva temporal
 
 - El sistema puede detectar automáticamente cuando una entrada se libera y es relevante para la lista de espera.
 - El sistema selecciona correctamente al siguiente comprador elegible por orden de llegada.
-- La oportunidad queda activa con la vigencia configurada solo cuando la reserva temporal fue confirmada exitosamente. Si falla, no se crea ninguna oportunidad para ese comprador.
+- La oportunidad queda activa con la vigencia configurada solo cuando la reserva temporal fue confirmada exitosamente. Si falla, la oportunidad creada como pending transiciona a failed para trazabilidad.
 - La oportunidad activa implica que la entrada quedó reservada temporalmente para ese comprador.
 - La inscripción relacionada queda inactiva una vez que la oportunidad se activa, permitiendo una futura reinscripción del comprador.
 - Cuando no hay elegibles, la entrada vuelve al inventario general disponible para compra directa.
@@ -552,6 +566,28 @@ Scenario: El comprador ve que su oportunidad expiró
   When el comprador consulta su estado desde la aplicación
   Then la aplicación muestra que la oportunidad ha expirado
   And la aplicación no muestra acción de pago
+
+Scenario: El comprador ve que su oportunidad fue utilizada
+  Given un comprador cuya oportunidad fue reclamada para avanzar al pago
+  When el comprador consulta su estado desde la aplicación
+  Then la aplicación muestra que la oportunidad fue utilizada
+  And la aplicación no muestra acción de pago ni cuenta regresiva
+
+Scenario: El comprador intenta avanzar al pago pero la oportunidad ya expiró
+  Given un comprador con una oportunidad que acaba de vencer
+  When el comprador intenta avanzar al pago desde la aplicación
+  Then la aplicación informa que la oportunidad ya no está activa
+  And la aplicación actualiza la vista al estado de oportunidad expirada
+
+Scenario: El comprador intenta avanzar al pago con un correo que no corresponde
+  Given un comprador que intenta actuar sobre una oportunidad con un correo electrónico diferente al del comprador asignado
+  When el comprador intenta avanzar al pago desde la aplicación
+  Then la aplicación informa que la oportunidad no pertenece al comprador indicado
+
+Scenario: Comprador sin inscripción consulta su estado
+  Given un comprador que no tiene inscripción en la lista de espera de un evento
+  When el comprador consulta su estado desde la aplicación
+  Then la aplicación muestra que no existe inscripción para ese comprador
 ```
 
 #### DoR
@@ -559,15 +595,22 @@ Scenario: El comprador ve que su oportunidad expiró
 - Están definidos los estados visibles en la aplicación: inscripción activa, oportunidad activa con tiempo restante, oportunidad utilizada, oportunidad expirada.
 - Está definido qué significa "actuar sobre una oportunidad activa": el comprador avanza al flujo de pago desde esa oportunidad, y en ese momento la oportunidad pasa a estado utilizada.
 - Está definido que la información visible en la aplicación debe ser coherente con el estado real del sistema en todo momento.
-- Están disponibles los endpoints de backend que soportan los flujos de HU2 y HU3.
+- Está definido qué sucede cuando el comprador intenta avanzar al pago pero la oportunidad ya expiró: el sistema rechaza la acción e informa que la oportunidad ya no está disponible.
+- Está definido qué sucede cuando el correo electrónico proporcionado no corresponde al comprador asignado: el sistema rechaza la acción.
+- Está definido qué ve un comprador que consulta sin tener inscripción: el sistema informa que no existe inscripción.
+- Están disponibles los endpoints de backend que soportan los flujos de HU2 y HU3, incluyendo la acción de reclamar la oportunidad.
 
 #### DoD
 
 - El comprador puede consultar su estado actual desde la aplicación y distinguir entre inscripción activa, oportunidad activa, oportunidad utilizada y oportunidad expirada.
 - El comprador puede actuar sobre una oportunidad activa desde la aplicación, avanzando al flujo de pago; en ese momento la oportunidad pasa a utilizada.
 - La aplicación muestra el tiempo restante de vigencia cuando el comprador tiene una oportunidad activa.
+- La aplicación muestra correctamente el estado de oportunidad utilizada cuando el comprador ya avanzó al pago.
+- La aplicación informa adecuadamente al comprador cuando intenta avanzar al pago pero la oportunidad ya expiró.
+- La aplicación informa adecuadamente cuando el correo proporcionado no corresponde al comprador asignado.
+- La aplicación muestra un mensaje claro cuando un comprador sin inscripción consulta su estado.
 - La información visible es coherente con el estado real del sistema.
-- QA y negocio validan cada flujo desde la perspectiva del comprador en la aplicación.
+- QA y negocio validan cada flujo desde la perspectiva del comprador en la aplicación, incluyendo los escenarios de rechazo.
 
 **Estimación: 5 puntos**
 
@@ -726,7 +769,7 @@ El mensaje al delay queue se publica **cuando la oportunidad transiciona a `acti
 
 | Patrón | Justificación |
 |---|---|
-| **Observer** | Cuando el estado de una oportunidad cambia, el sistema reacciona en múltiples canales sin que esa reacción quede acoplada a quien tomó la decisión. Si el negocio agrega un canal en el futuro, simplemente se añade como nuevo suscriptor, sin modificar la lógica de asignación. |
+| **Observer** | Cuando el estado de una oportunidad cambia, el sistema reacciona en múltiples canales sin que esa reacción quede acoplada a quien tomó la decisión. Actualmente el handler inyecta un solo `IOpportunityObserver` (HU3); en HU5 se refactorizará a `IEnumerable<IOpportunityObserver>` para que, al agregar un canal, solo se registre un nuevo suscriptor en DI sin modificar la lógica de asignación. |
 | **Strategy** | La política de "a quién le toca" se puede cambiar sin deshacer el proceso de asignación. Hoy es orden de llegada; mañana puede ser otro criterio sin afectar el resto del sistema. |
 | **State** | La oportunidad tiene estados con reglas claras de transición (`pending` → `active` → `consumed`/`expired`, y `pending` → `failed`). Si el negocio quiere agregar un estado intermedio, el modelo lo soporta sin condicionales dispersos que dificulten diagnósticos. |
 | **Command** | Las acciones relevantes para el negocio (registrar interés, expirar oportunidad, enviar aviso) existen como objetos formales con su propio handler. Esto facilita trazabilidad y auditoría. |
@@ -737,6 +780,12 @@ Cada patrón tiene su documentación detallada con diagrama de clases UML y frag
 - [Strategy — Política de priorización](patterns/strategy.md)
 - [State — Ciclo de vida de la oportunidad](patterns/state.md)
 - [Command — Casos de uso como objetos](patterns/command.md)
+
+### Decisiones de diseño sobre canales de notificación
+
+- **Distribución de la notificación en tiempo real:** la notificación dentro de la aplicación se distribuye a través del sistema de mensajería, no dentro del mismo proceso que asigna la oportunidad. Esto permite que cualquier instancia del servicio que tenga una conexión activa con el comprador pueda emitir el aviso, soportando la operación con múltiples instancias sin perder notificaciones. Además, el sistema limita la cantidad de conexiones simultáneas por comprador y envía señales periódicas para mantener la conexión abierta.
+- **Enriquecimiento del aviso en el punto de asignación:** cuando el sistema asigna una oportunidad, incluye el nombre del evento una sola vez al momento de publicar el aviso. De este modo, cada canal de notificación (aplicación y correo) recibe la información completa sin que cada uno tenga que buscarla por separado.
+- **Registro de auditoría de notificaciones por correo:** cada intento de envío de correo queda registrado con su resultado (enviado o fallido) en un registro que no se modifica después de resolverse. El registro transiciona de "pendiente" a "enviado" o "fallido" exactamente una vez. Un fallo en el envío no afecta el estado de la oportunidad del comprador.
 
 ### Herramientas de soporte que pueden ayudar a cubrir reglas de negocio
 

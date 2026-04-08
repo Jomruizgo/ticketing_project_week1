@@ -12,6 +12,8 @@ import { PaymentForm } from "@/components/payment-form"
 import { waitForTicketStatusSse } from "@/hooks/use-ticket-status-sse"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
+import { WaitlistEnrollForm } from "@/components/waitlist-enroll-form"
+import { WaitlistStatus } from "@/components/waitlist-status"
 
 type PurchaseStep = "form" | "processing" | "reserved" | "success" | "error"
 type PaymentProgress = "idle" | "processing" | "success" | "error"
@@ -250,7 +252,33 @@ export default function BuyerEventPage() {
 
           {/* Purchase Form or Status */}
           <div className="rounded-xl border border-border bg-card p-6">
-            {step === "form" && (
+            {availableTickets.length === 0 && step === "form" ? (
+              new Date(event.startsAt) > new Date() ? (
+                <div className="flex flex-col gap-6">
+                  <WaitlistEnrollForm eventId={eventId} />
+                  <WaitlistStatus
+                    eventId={eventId}
+                    onClaimSuccess={(ticketId) => {
+                      setReservedCount(1)
+                      setReservedTicketIds([ticketId])
+                      setPaymentStates({ [ticketId]: "idle" })
+                      setPaymentErrors({})
+                      setStep("reserved")
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2 py-4">
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Lista de espera cerrada
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Este evento ya ha pasado y no es posible inscribirse en la
+                    lista de espera.
+                  </p>
+                </div>
+              )
+            ) : step === "form" && (
               <form onSubmit={handlePurchase} className="flex flex-col gap-4">
                 <h2 className="text-lg font-semibold text-foreground">
                   Compra de Tickets

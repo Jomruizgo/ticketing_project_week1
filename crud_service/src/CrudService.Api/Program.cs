@@ -1,13 +1,8 @@
 using CrudService.Infrastructure.Persistence;
 using CrudService.Infrastructure;
 using CrudService.Infrastructure.Messaging;
-using CrudService.Domain.Entities;
-using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
-
-NpgsqlConnection.GlobalTypeMapper.MapEnum<TicketStatus>("ticket_status");
-NpgsqlConnection.GlobalTypeMapper.MapEnum<PaymentStatus>("payment_status");
 
 // Cargar variables de entorno
 builder.Configuration
@@ -25,6 +20,8 @@ builder.Services.AddApplicationServices(builder.Configuration);
 // RabbitMQ consumer para ticket.status.changed
 builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection(RabbitMQSettings.SectionName));
 builder.Services.AddHostedService<TicketStatusConsumer>();
+builder.Services.AddHostedService<TicketReleasedConsumer>();
+builder.Services.AddHostedService<SseNotificationConsumer>();
 
 // CORS (si es necesario para frontend)
 builder.Services.AddCors(options =>

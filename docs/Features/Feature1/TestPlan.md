@@ -45,18 +45,19 @@ En términos de negocio, el sistema bajo prueba debe garantizar que:
 
 | ID | Comportamiento funcional verificado |
 |---|---|
-| HU1 | Un comprador puede inscribirse en la lista de espera, el sistema previene duplicados y permite reinscripción tras una oportunidad utilizada o expirada |
+| HU1 | Un comprador puede inscribirse en la lista de espera, el sistema previene duplicados, rechaza inscripciones cuando la lista está llena y permite reinscripción tras una oportunidad utilizada o expirada |
 | HU2 | Un comprador puede consultar su estado actual: en espera, oportunidad activa, oportunidad utilizada u oportunidad expirada |
 | HU3 | Cuando una entrada se libera, el sistema asigna una oportunidad al siguiente comprador elegible o no genera ninguna si la lista está vacía |
 | HU4 | Cuando una oportunidad se activa, el comprador que tiene la aplicación abierta recibe la actualización en tiempo real sin recargar la página |
 | HU5 | Cuando una oportunidad se activa, el sistema envía un correo de aviso al comprador; un fallo en el envío no afecta el estado de la oportunidad ni detiene el flujo |
 | HU6 | Una oportunidad que no fue utilizada dentro de los 15 minutos expira automáticamente; el sistema intenta reasignar la entrada o la devuelve al inventario según corresponda |
 | HU7 | El comprador puede ver la opción de lista de espera e inscribirse directamente desde la aplicación cuando un evento no tiene disponibilidad inmediata |
-| HU8 | El comprador puede consultar su estado en la lista de espera y actuar sobre una oportunidad activa directamente desde la aplicación |
+| HU8 | El comprador puede consultar su estado en la lista de espera, actuar sobre una oportunidad activa directamente desde la aplicación y recibir retroalimentación clara cuando la acción no puede completarse (oportunidad expirada, correo incorrecto, comprador no inscrito) |
 
 Adicionalmente se verifican:
 
 - la restricción de unicidad de inscripción activa por comprador y evento, garantizada tanto por la capa de aplicación como por la base de datos,
+- el límite global de tamaño de la lista de espera, que rechaza nuevas inscripciones cuando se alcanza el máximo configurado,
 - el contrato del evento de dominio ticket.released como disparador único de la asignación,
 - la auditoría de todos los intentos de envío de correo con resultado y momento, independientemente del éxito o fallo,
 - la consistencia entre el estado real del sistema y la información que el comprador puede consultar.
@@ -72,6 +73,8 @@ Adicionalmente se verifican:
 5. Cuando una oportunidad expira, el sistema debe intentar reasignar la entrada al siguiente comprador en lista antes de devolverla al inventario general.
 6. La inscripción del comprador cuya oportunidad fue utilizada o expiró queda inactiva, habilitando una futura reinscripción mientras la lista del evento siga vigente.
 7. La lista de espera cierra al alcanzarse la fecha del evento. Después de ese momento no se aceptan inscripciones y no se asignan oportunidades.
+8. La lista de espera tiene un límite global de tamaño configurable. Cuando se alcanza ese límite, las nuevas inscripciones son rechazadas hasta que alguna inscripción activa deje de estarlo.
+9. El comprador con una oportunidad activa puede reclamarla para avanzar al flujo de pago; al hacerlo, la oportunidad pasa a estado utilizada y la entrada sigue el ciclo normal de compra.
 
 #### Restricciones técnicas relevantes para las pruebas
 
@@ -102,6 +105,8 @@ Adicionalmente se verifican:
 | R-006 | La restricción de unicidad podría no sostenerse a nivel de base de datos si solo existe en el código de aplicación | 2 | 3 | Alto |
 | R-007 | La lista podría seguir aceptando inscripciones después de que el evento haya cerrado | 2 | 2 | Medio |
 | R-008 | El reinscrito tras una oportunidad expirada podría quedar bloqueado si la inscripción anterior no quedó inactiva correctamente | 2 | 2 | Medio |
+| R-009 | La lista podría seguir aceptando inscripciones por encima del límite global configurado si la validación solo existe en código de aplicación | 2 | 2 | Medio |
+| R-010 | El comprador podría reclamar una oportunidad que ya expiró si la validación de vigencia tiene condiciones de carrera entre frontend y backend | 2 | 2 | Medio |
 
 ### Orden de ejecución recomendado por riesgo
 
@@ -173,7 +178,7 @@ Las suites nuevas de esta épica se incorporan al mismo pipeline según su nivel
 | Suite de unicidad en base de datos | Integraci\u00f3n | Caja negra structural | Verificar que la restricci\u00f3n de unicidad del \u00edndice parcial opera de forma independiente al c\u00f3digo de aplicaci\u00f3n |
 | Suite de contratos de estado | Integraci\u00f3n | Contrato | Verificar que la API de consulta de estado expone los cuatro estados correctamente con datos reales en base de datos |
 | Suite de flujo completo de lista de espera | Aceptación E2E | Caja negra | Validar las escenas Gherkin de HU1 a HU8 en entorno compose completo, incluyendo la recepción real del evento ticket.released |
-| Suite de experiencia del comprador en la aplicación | Aceptación E2E | Caja negra | Verificar que el comprador puede inscribirse, consultar su estado y actuar sobre una oportunidad activa directamente desde la interfaz de la aplicación |
+| Suite de experiencia del comprador en la aplicación | Aceptación E2E | Caja negra | Verificar que el comprador puede inscribirse, consultar su estado, actuar sobre una oportunidad activa y recibir retroalimentación adecuada cuando la acción no puede completarse (oportunidad expirada, correo incorrecto, comprador no inscrito) directamente desde la interfaz de la aplicación |
 
 ---
 

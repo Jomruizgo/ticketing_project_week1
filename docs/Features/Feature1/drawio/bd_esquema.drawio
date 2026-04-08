@@ -108,7 +108,7 @@
       <mxGeometry height="26" width="200" y="156" as="geometry" />
     </mxCell>
     <mxCell id="we" parent="1" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;" value="waitlist_entries" vertex="1">
-      <mxGeometry height="182" width="200" x="90" y="425" as="geometry" />
+      <mxGeometry height="156" width="200" x="90" y="425" as="geometry" />
     </mxCell>
     <mxCell id="we_id" parent="we" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="id : BIGSERIAL PK" vertex="1">
       <mxGeometry height="26" width="200" y="26" as="geometry" />
@@ -119,17 +119,14 @@
     <mxCell id="we_email" parent="we" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="buyer_email : VARCHAR(120)" vertex="1">
       <mxGeometry height="26" width="200" y="78" as="geometry" />
     </mxCell>
-    <mxCell id="we_status" parent="we" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="status : active | inactive" vertex="1">
+    <mxCell id="we_status" parent="we" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="status : active | consumed | expired" vertex="1">
       <mxGeometry height="26" width="200" y="104" as="geometry" />
     </mxCell>
-    <mxCell id="we_cat" parent="we" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="created_at : TIMESTAMPTZ" vertex="1">
+    <mxCell id="we_cat" parent="we" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="enrolled_at : TIMESTAMPTZ" vertex="1">
       <mxGeometry height="26" width="200" y="130" as="geometry" />
     </mxCell>
-    <mxCell id="we_uat" parent="we" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="updated_at : TIMESTAMPTZ" vertex="1">
-      <mxGeometry height="26" width="200" y="156" as="geometry" />
-    </mxCell>
     <mxCell id="wo" parent="1" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;" value="waitlist_opportunities" vertex="1">
-      <mxGeometry height="234" width="200" x="390" y="623" as="geometry" />
+      <mxGeometry height="260" width="200" x="390" y="623" as="geometry" />
     </mxCell>
     <mxCell id="wo_id" parent="wo" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="id : BIGSERIAL PK" vertex="1">
       <mxGeometry height="26" width="200" y="26" as="geometry" />
@@ -146,11 +143,14 @@
     <mxCell id="wo_exp" parent="wo" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="expires_at : TIMESTAMPTZ" vertex="1">
       <mxGeometry height="26" width="200" y="130" as="geometry" />
     </mxCell>
-    <mxCell id="wo_cat" parent="wo" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="created_at : TIMESTAMPTZ" vertex="1">
+    <mxCell id="wo_cat" parent="wo" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="activated_at : TIMESTAMPTZ" vertex="1">
       <mxGeometry height="26" width="200" y="156" as="geometry" />
     </mxCell>
-    <mxCell id="wo_uat" parent="wo" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="updated_at : TIMESTAMPTZ" vertex="1">
+    <mxCell id="wo_exp_at" parent="wo" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="expired_at : TIMESTAMPTZ" vertex="1">
       <mxGeometry height="26" width="200" y="182" as="geometry" />
+    </mxCell>
+    <mxCell id="wo_reason" parent="wo" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="expiration_reason : VARCHAR(100)" vertex="1">
+      <mxGeometry height="26" width="200" y="208" as="geometry" />
     </mxCell>
     <mxCell id="nd" parent="1" style="swimlane;fontStyle=1;align=center;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;" value="notification_deliveries" vertex="1">
       <mxGeometry height="182" width="200" x="710" y="765" as="geometry" />

@@ -137,6 +137,23 @@ Canal SSE (Server-Sent Events) para notificaciones en tiempo real de lista de es
 
 **Tipo de contenido:** `text/event-stream`
 
+**Headers de respuesta (conexión exitosa):**
+
+| Header | Valor |
+|---|---|
+| Content-Type | `text/event-stream` |
+| Cache-Control | `no-cache` |
+| Connection | `keep-alive` |
+
+**Respuestas de error:**
+
+| Código | Significado | Body |
+|---|---|---|
+| 400 Bad Request | Parámetro `email` ausente o formato inválido | `{ "detail": "A valid 'email' query parameter is required." }` |
+| 429 Too Many Requests | Límite de conexiones SSE concurrentes por email alcanzado (`SSE_MAX_CONNECTIONS_PER_EMAIL`, default 5) | `{ "detail": "Too many active SSE connections for this email." }` |
+
+**Keep-alive:** El servidor envía comentarios SSE (`: keepalive\n\n`) cada `SSE_KEEPALIVE_INTERVAL_SECONDS` segundos (default 30) para mantener la conexión viva ante proxies intermedios.
+
 **Eventos emitidos:**
 
 | Evento | Cuándo se emite | Data |

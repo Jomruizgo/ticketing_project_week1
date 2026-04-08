@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using CrudService.Application.Interfaces;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

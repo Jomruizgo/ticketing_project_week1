@@ -1,4 +1,5 @@
 using System.Text.Json;
+using CrudService.Application.Interfaces;
 using CrudService.Infrastructure.Messaging;
 
 namespace CrudService.Infrastructure.Tests.Messaging;

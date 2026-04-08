@@ -96,3 +96,20 @@
 - Mantener los supuestos de UX asíncrona: el frontend espera consistencia eventual mediante hooks de polling (`frontend/hooks/use-reservation-status.ts` y `frontend/hooks/use-payment-status.ts`).
 - Si se añaden nuevos eventos RabbitMQ, actualizar: publicador del producer, bindings/colas en `scripts/setup-rabbitmq.sh` y el handler del consumidor correspondiente.
 - Para cambios en el modelo de BD, actualizar `scripts/schema.sql` y todos los mappings EF afectados (especialmente conversiones de enums y nombres de columna en snake_case).
+
+## Active Technologies
+- C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, EFCore.NamingConventions 8.0.1 (001-waitlist-enrollment)
+- PostgreSQL (tabla `waitlist_entries`, snake_case automático) (001-waitlist-enrollment)
+- PostgreSQL — tablas `waitlist_entries` (existente), `waitlist_opportunities` (futura; se define el modelo pero puede no existir en BD) (002-waitlist-status-query)
+- C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, EFCore.NamingConventions 8.0.1, RabbitMQ.Client (003-waitlist-opportunity-assignment)
+- PostgreSQL (tabla `waitlist_opportunities` existente, columnas snake_case) (003-waitlist-opportunity-assignment)
+- C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, RabbitMQ.Client (004-inapp-notification)
+- N/A — esta feature no persiste datos. Consume entidades existentes de solo lectura. (004-inapp-notification)
+- C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, EFCore.NamingConventions 8.0.1, RabbitMQ.Client 6.8.1, Microsoft.Extensions.Logging.Abstractions 8.0.0 (005-email-notification)
+- PostgreSQL (tabla `notification_deliveries`, snake_case automático via NamingConventions) (005-email-notification)
+- C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, RabbitMQ.Client 6.8.1, EFCore.NamingConventions 8.0.1 (006-opportunity-expiration)
+- C# / .NET 8 (backend), TypeScript 5.7.3 (frontend) + EF Core 8.0.4 + Npgsql (backend), React 19.2.3 + Next.js 16.1.6 + shadcn/ui + sonner (frontend) (008-waitlist-opportunity-ui)
+- PostgreSQL — tablas `waitlist_entries`, `waitlist_opportunities` (existentes) (008-waitlist-opportunity-ui)
+
+## Recent Changes
+- 001-waitlist-enrollment: Added C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, EFCore.NamingConventions 8.0.1

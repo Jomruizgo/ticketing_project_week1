@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
+using CrudService.Application.Interfaces;
 
 namespace CrudService.Infrastructure.Messaging;
 

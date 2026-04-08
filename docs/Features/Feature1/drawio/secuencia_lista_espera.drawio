@@ -215,7 +215,7 @@
     <mxCell id="act_db_hu3" parent="1" style="fillColor=#dae8fc;strokeColor=#6c8ebf;" value="" vertex="1">
       <mxGeometry height="280" width="12" x="1650" y="1036" as="geometry" />
     </mxCell>
-    <mxCell id="act_rs_hu3b" parent="1" style="fillColor=#dae8fc;strokeColor=#6c8ebf;" value="" vertex="1">
+    <mxCell id="act_rs_hu3b" parent="1" style="fillColor=none;strokeColor=none;" value="" vertex="1">
       <mxGeometry height="70" width="12" x="1450" y="1126" as="geometry" />
     </mxCell>
     <mxCell id="m12" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;verticalAlign=bottom;" value="Publica ticket.released  { ticketId, eventId }  [AMQP]">
@@ -254,25 +254,25 @@
         <mxPoint x="802" y="1102" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="m16" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;verticalAlign=bottom;" value="POST /reservations/temp  { ticketId, buyerEmail }  [HTTP]">
+    <mxCell id="m16" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#82b366;strokeWidth=2;fontSize=10;verticalAlign=bottom;" value="UPDATE ticket SET status=&#39;reserved&#39;, version=v+1  [TicketReservationAdapter — DB directa]">
       <mxGeometry as="geometry">
         <mxPoint x="802" y="1132" as="sourcePoint" />
-        <mxPoint x="1450" y="1132" as="targetPoint" />
+        <mxPoint x="1650" y="1132" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="m17" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#333333;fontSize=10;verticalAlign=bottom;" value="UPDATE ticket SET status=&#39;reserved&#39;, version=v+1  WHERE id=… AND version=v">
+    <mxCell id="m17" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=none;strokeColor=none" value="">
       <mxGeometry as="geometry">
         <mxPoint x="1462" y="1150" as="sourcePoint" />
         <mxPoint x="1650" y="1150" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="m17r" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#666666;fontSize=10;verticalAlign=bottom;" value="OK">
+    <mxCell id="m17r" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#666666;fontSize=10;verticalAlign=bottom;" value="OK — ticket reservado">
       <mxGeometry as="geometry">
         <mxPoint x="1650" y="1170" as="sourcePoint" />
-        <mxPoint x="1462" y="1170" as="targetPoint" />
+        <mxPoint x="802" y="1170" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="m18" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#666666;fontSize=10;verticalAlign=bottom;" value="202 Accepted">
+    <mxCell id="m18" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=none;strokeColor=none" value="">
       <mxGeometry as="geometry">
         <mxPoint x="1450" y="1190" as="sourcePoint" />
         <mxPoint x="802" y="1190" as="targetPoint" />
@@ -284,7 +284,7 @@
         <mxPoint x="1650" y="1220" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="m20" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#333333;fontSize=10;verticalAlign=bottom;" value="UPDATE WaitlistEntry SET status=&#39;inactive&#39;  (reinscripción futura habilitada)">
+    <mxCell id="m20" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=1;strokeColor=#333333;fontSize=10;verticalAlign=bottom;" value="UPDATE WaitlistEntry SET status=&#39;consumed&#39;">
       <mxGeometry as="geometry">
         <mxPoint x="802" y="1254" as="sourcePoint" />
         <mxPoint x="1650" y="1254" as="targetPoint" />
@@ -306,8 +306,8 @@
         <mxPoint x="572" y="1322" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="note_sse_chain" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" value="El servidor usa la conexión abierta en el paso anterior para enviar este aviso sin que el usuario recargue" vertex="1">
-      <mxGeometry height="28" width="300" x="821" y="1314" as="geometry" />
+    <mxCell id="note_sse_chain" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=12;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" value="El Observer recibe un record tipado OpportunityActivatedEvent (con EventName ya resuelto) y publica waitlist.opportunity.activated a RabbitMQ; un consumer dedicado (SseNotificationConsumer) recibe el evento y lo envía por la conexión SSE abierta al frontend, habilitando escalamiento horizontal. El mismo consumer también escucha waitlist.opportunity.expired para notificar expiración en tiempo real" vertex="1">
+      <mxGeometry height="44" width="440" x="821" y="1300" as="geometry" />
     </mxCell>
     <mxCell id="m22" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;dashed=1;strokeColor=#666666;fontSize=10;verticalAlign=bottom;" value="Tienes una oportunidad activa — entrada retenida hasta [vigencia]">
       <mxGeometry as="geometry">

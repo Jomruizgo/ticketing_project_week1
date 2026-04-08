@@ -23,7 +23,7 @@ public interface IPrioritizationStrategy
 ### Implementación concreta (Infrastructure)
 
 ```csharp
-// Infrastructure/Services/FifoStrategy.cs
+// Infrastructure/Strategies/FifoStrategy.cs
 public class FifoStrategy : IPrioritizationStrategy
 {
     public WaitlistEntry? SelectNextEligible(IReadOnlyList<WaitlistEntry> activeEntries)

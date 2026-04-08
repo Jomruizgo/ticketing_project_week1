@@ -10,22 +10,22 @@
                 <mxCell id="iuc" value="&lt;&lt;interface&gt;&gt;&#xa;IEnrollInWaitlistUseCase" style="swimlane;fontStyle=3;align=center;startSize=40;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
                     <mxGeometry x="370" y="70" width="360" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="iuc_m1" value="+ ExecuteAsync(command: EnrollInWaitlistCommand): Task&lt;EnrollInWaitlistResponse&gt;" style="text;align=left;fontSize=9;spacingLeft=4;" parent="iuc" vertex="1">
+                <mxCell id="iuc_m1" value="+ HandleAsync(command: EnrollInWaitlistCommand): Task&lt;WaitlistEntryDto&gt;" style="text;align=left;fontSize=9;spacingLeft=4;" parent="iuc" vertex="1">
                     <mxGeometry y="40" width="360" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="cmd" value="EnrollInWaitlistCommand" style="swimlane;fontStyle=1;align=center;startSize=26;fontSize=11;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
                     <mxGeometry x="430" y="415" width="240" height="70" as="geometry"/>
                 </mxCell>
-                <mxCell id="cmd_f1" value="+ EventId: int" style="text;align=left;fontSize=10;spacingLeft=4;" parent="cmd" vertex="1">
+                <mxCell id="cmd_f1" value="+ EventId: long" style="text;align=left;fontSize=10;spacingLeft=4;" parent="cmd" vertex="1">
                     <mxGeometry y="26" width="240" height="20" as="geometry"/>
                 </mxCell>
                 <mxCell id="cmd_f2" value="+ BuyerEmail: string" style="text;align=left;fontSize=10;spacingLeft=4;" parent="cmd" vertex="1">
                     <mxGeometry y="46" width="240" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="resp" value="EnrollInWaitlistResponse" style="swimlane;fontStyle=1;align=center;startSize=26;fontSize=11;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+                <mxCell id="resp" value="WaitlistEntryDto" style="swimlane;fontStyle=1;align=center;startSize=26;fontSize=11;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
                     <mxGeometry x="50" y="265" width="240" height="70" as="geometry"/>
                 </mxCell>
-                <mxCell id="resp_f1" value="+ EntryId: int" style="text;align=left;fontSize=10;spacingLeft=4;" parent="resp" vertex="1">
+                <mxCell id="resp_f1" value="+ Id: long" style="text;align=left;fontSize=10;spacingLeft=4;" parent="resp" vertex="1">
                     <mxGeometry y="26" width="240" height="20" as="geometry"/>
                 </mxCell>
                 <mxCell id="resp_f2" value="+ Status: string" style="text;align=left;fontSize=10;spacingLeft=4;" parent="resp" vertex="1">
@@ -43,7 +43,7 @@
                 <mxCell id="h_sep" value="" style="line;strokeWidth=1;" parent="handler" vertex="1">
                     <mxGeometry y="66" width="320" height="4" as="geometry"/>
                 </mxCell>
-                <mxCell id="h_m1" value="+ ExecuteAsync(command): Task&lt;EnrollInWaitlistResponse&gt;" style="text;align=left;fontSize=10;spacingLeft=4;" parent="handler" vertex="1">
+                <mxCell id="h_m1" value="+ HandleAsync(command): Task&lt;WaitlistEntryDto&gt;" style="text;align=left;fontSize=10;spacingLeft=4;" parent="handler" vertex="1">
                     <mxGeometry y="70" width="320" height="24" as="geometry"/>
                 </mxCell>
                 <mxCell id="ctrl" value="WaitlistController" style="swimlane;fontStyle=1;align=center;startSize=26;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">

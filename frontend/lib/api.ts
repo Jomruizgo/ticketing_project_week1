@@ -6,6 +6,9 @@ import type {
   CreateTicketsResponse,
   ReserveTicketPayload,
   UpdateTicketPayload,
+  WaitlistEntryDto,
+  WaitlistStatusResponse,
+  ClaimOpportunityResponse,
 } from "./types"
 
 const CRUD_URL = process.env.NEXT_PUBLIC_API_CRUD || "http://localhost:8002"
@@ -185,6 +188,60 @@ export const api = {
     // Any other status (including errors) goes through error handler
     const text = await res.text()
     throw new ApiError(res.status, text || `Error ${res.status}`, "producer")
+  },
+
+  // ─── Waitlist ──────────────────────────────────────────
+  async enrollInWaitlist(eventId: number, buyerEmail: string): Promise<WaitlistEntryDto> {
+    let res: Response
+    try {
+      res = await fetch(`${CRUD_URL}/api/waitlist/entries`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventId, buyerEmail }),
+      })
+    } catch {
+      throw new ApiError(0, "Error de red al conectar con el servidor")
+    }
+
+    if (res.status === 201) {
+      return res.json()
+    }
+
+    if (res.status === 409) {
+      throw new ApiError(409, "Ya tienes una inscripción activa")
+    }
+
+    if (res.status === 422) {
+      throw new ApiError(422, "La lista de espera ya cerró")
+    }
+
+    if (res.status === 404) {
+      throw new ApiError(404, "Evento no encontrado")
+    }
+
+    throw new ApiError(res.status, `Error ${res.status}`)
+  },
+
+  async getWaitlistStatus(eventId: number, email: string): Promise<WaitlistStatusResponse> {
+    const res = await fetch(
+      `${CRUD_URL}/api/waitlist/entries?eventId=${eventId}&email=${encodeURIComponent(email)}`
+    )
+    return handleResponse<WaitlistStatusResponse>(res)
+  },
+
+  async claimOpportunity(opportunityId: number, buyerEmail: string): Promise<ClaimOpportunityResponse> {
+    let res: Response
+    try {
+      res = await fetch(`${CRUD_URL}/api/waitlist/opportunities/${opportunityId}/claim`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ buyerEmail }),
+      })
+    } catch {
+      throw new ApiError(0, "Error de red al conectar con el servidor")
+    }
+
+    return handleResponse<ClaimOpportunityResponse>(res)
   },
 
   // ─── Health ───────────────────────────────────────────

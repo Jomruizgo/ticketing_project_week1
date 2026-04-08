@@ -144,6 +144,8 @@ services:
       - RabbitMQ__Port=${RABBITMQ_AMQP_PORT}
       - RabbitMQ__Username=${RABBITMQ_DEFAULT_USER}
       - RabbitMQ__Password=${RABBITMQ_DEFAULT_PASS}
+      - SSE_KEEPALIVE_INTERVAL_SECONDS=30
+      - SSE_MAX_CONNECTIONS_PER_EMAIL=5
     depends_on:
       postgres:
         condition: service_healthy
@@ -177,6 +179,26 @@ services:
       - RabbitMQ__Username=${RABBITMQ_DEFAULT_USER}
       - RabbitMQ__Password=${RABBITMQ_DEFAULT_PASS}
       - RabbitMQ__QueueName=q.ticket.reserved
+    networks:
+      - ticketing_network
+    restart: unless-stopped
+
+  # Frontend - Next.js application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_CRUD=http://localhost:${CRUD_PORT}
+        - NEXT_PUBLIC_API_PRODUCER=http://localhost:${PRODUCER_PORT}
+    container_name: ticketing_frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      crud-service:
+        condition: service_healthy
+      producer:
+        condition: service_healthy
     networks:
       - ticketing_network
     restart: unless-stopped

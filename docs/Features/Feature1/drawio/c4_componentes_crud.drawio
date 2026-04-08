@@ -1,301 +1,616 @@
-<mxGraphModel dx="3176" dy="1788" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" math="0" shadow="0">
-  <root>
-    <mxCell id="0" />
-    <mxCell id="1" parent="0" />
-    <mxCell id="title" parent="1" style="text;html=1;align=left;verticalAlign=middle;" value="&lt;b style=&#39;font-size:15px&#39;&gt;C4 Componentes — CRUD Service (capa 4) — Lista de espera&lt;/b&gt;" vertex="1">
-      <mxGeometry height="28" width="900" x="28" y="14" as="geometry" />
-    </mxCell>
-    <mxCell id="leg" parent="1" style="swimlane;startSize=22;fillColor=none;strokeColor=#666666;" value="" vertex="1">
-      <mxGeometry height="76" width="210" x="2058" y="34" as="geometry" />
-    </mxCell>
-    <mxCell id="leg_t" parent="leg" style="text;html=1;fontStyle=1;align=center;" value="Leyenda" vertex="1">
-      <mxGeometry height="22" width="210" as="geometry" />
-    </mxCell>
-    <mxCell id="leg_ex" parent="leg" style="text;html=1;strokeColor=#6c8ebf;fillColor=#dae8fc;align=left;verticalAlign=middle;spacingLeft=6;" value="Componente existente" vertex="1">
-      <mxGeometry height="22" width="202" x="4" y="26" as="geometry" />
-    </mxCell>
-    <mxCell id="leg_new" parent="leg" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;" value="Componente nuevo ★" vertex="1">
-      <mxGeometry height="22" width="202" x="4" y="50" as="geometry" />
-    </mxCell>
-    <mxCell id="crudBound" parent="1" style="swimlane;startSize=30;fillColor=#fafafa;strokeColor=#333333;dashed=1;dashPattern=8 8;fontStyle=1;fontSize=12;rounded=1;" value="CRUD Service&#xa;[.NET / ASP.NET Core]" vertex="1">
-      <mxGeometry height="1295" width="1874" x="18" y="337" as="geometry" />
-    </mxCell>
-    <mxCell id="BuSAlyP2UbxkKwuAdjUu-1" parent="crudBound" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#ffe6cc;strokeColor=#d6b656;align=right;verticalAlign=middle;spacingLeft=6;rotation=-90;" value="Infrastructure" vertex="1">
-      <mxGeometry height="24" width="907.75" x="1068.12" y="478.63" as="geometry" />
-    </mxCell>
-    <mxCell id="api_bg" parent="crudBound" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=middle;spacingLeft=6;" value="API" vertex="1">
-      <mxGeometry height="24" width="1491" x="10" y="40" as="geometry" />
-    </mxCell>
-    <mxCell id="evCtrl" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=4;" value="&lt;b&gt;EventsController&lt;/b&gt;&lt;br/&gt;TicketsController&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[Controladores existentes]&lt;/font&gt;" vertex="1">
-      <mxGeometry height="100" width="190" x="20" y="78" as="geometry" />
-    </mxCell>
-    <mxCell id="wlCtrl" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;WaitlistController ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[.NET ApiController]&lt;br/&gt;POST /api/waitlist/entries&lt;br/&gt;GET /api/waitlist/entries&lt;/font&gt;" vertex="1">
-      <mxGeometry height="100" width="190" x="310" y="79" as="geometry" />
-    </mxCell>
-    <mxCell id="opCtrl" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;OpportunityController ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[.NET ApiController]&lt;br/&gt;POST /api/waitlist/opportunities/{id}/claim&lt;/font&gt;" vertex="1">
-      <mxGeometry height="100" width="190" x="660" y="79" as="geometry" />
-    </mxCell>
-    <mxCell id="sseCtrl" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;WaitlistStreamEndpoint ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[Server-Sent Events]&lt;br/&gt;GET /waitlist/stream&lt;/font&gt;" vertex="1">
-      <mxGeometry height="100" width="190" x="1178" y="80" as="geometry" />
-    </mxCell>
-    <mxCell id="app_bg" parent="crudBound" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=middle;spacingLeft=6;" value="Application" vertex="1">
-      <mxGeometry height="24" width="1492" x="10" y="190" as="geometry" />
-    </mxCell>
-    <mxCell id="evApp" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=4;" value="&lt;b&gt;EventQueryHandler&lt;/b&gt;&lt;br/&gt;TicketQueryHandler&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[Handlers existentes CQRS]&lt;/font&gt;" vertex="1">
-      <mxGeometry height="100" width="190" x="20" y="408" as="geometry" />
-    </mxCell>
-    <mxCell id="joinH" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;EnrollInWaitlistHandler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Inscripción en lista de espera&lt;/font&gt;" vertex="1">
-      <mxGeometry height="80" width="190" x="165" y="298" as="geometry" />
-    </mxCell>
-    <mxCell id="statH" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;GetWaitlistStatusQueryHandler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Consulta de estado del comprador&lt;/font&gt;" vertex="1">
-      <mxGeometry height="80" width="190" x="455" y="241" as="geometry" />
-    </mxCell>
-    <mxCell id="assignH" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;AssignOpportunityHandler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Asignación FIFO al elegible&lt;/font&gt;" vertex="1">
-      <mxGeometry height="80" width="190" x="1290" y="323" as="geometry" />
-    </mxCell>
-    <mxCell id="expH" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;ExpireOpportunityHandler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Vencimiento y reasignación&lt;/font&gt;" vertex="1">
-      <mxGeometry height="80" width="190" x="745" y="504" as="geometry" />
-    </mxCell>
-    <mxCell id="emailH" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;SendOpportunityEmailCommandHandler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Disparo de correo de aviso&lt;/font&gt;" vertex="1">
-      <mxGeometry height="80" width="236" x="1085" y="504" as="geometry" />
-    </mxCell>
-    <mxCell id="opH" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;ClaimOpportunityHandler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Reclamo de oportunidad activa&lt;/font&gt;" vertex="1">
-      <mxGeometry height="80" width="225" x="915" y="244" as="geometry" />
-    </mxCell>
-    <mxCell id="dom_bg" parent="crudBound" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#ffcd28;strokeColor=#d79b00;align=left;verticalAlign=middle;spacingLeft=6;gradientColor=#ffa500;" value="Domain" vertex="1">
-      <mxGeometry height="24" width="1493" x="10" y="614" as="geometry" />
-    </mxCell>
-    <mxCell id="evEnt" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=middle;" value="&lt;b&gt;Event, Ticket&lt;/b&gt;&lt;br/&gt;Payment, TicketHistory&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[Entidades existentes]&lt;br/&gt;Domain/Interfaces/ (cada repo)&lt;/font&gt;" vertex="1">
-      <mxGeometry height="90" width="190" x="93" y="783" as="geometry" />
-    </mxCell>
-    <mxCell id="weEnt" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;WaitlistEntry ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;id, event_id, buyer_email,&lt;br/&gt;status (active|inactive)&lt;/font&gt;" vertex="1">
-      <mxGeometry height="80" width="190" x="154" y="666" as="geometry" />
-    </mxCell>
-    <mxCell id="woEnt" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;WaitlistOpportunity ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;id, entry_id, ticket_id,&lt;br/&gt;status, expires_at&lt;/font&gt;" vertex="1">
-      <mxGeometry height="80" width="156" x="495" y="758" as="geometry" />
-    </mxCell>
-    <mxCell id="ndEnt" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;NotificationDelivery ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;id, opportunity_id, channel,&lt;br/&gt;status, sent_at&lt;/font&gt;" vertex="1">
-      <mxGeometry height="80" width="190" x="1290" y="661" as="geometry" />
-    </mxCell>
-    <mxCell id="iNotif" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;dashed=1;" value="&lt;b&gt;&lt;&lt;port&gt;&gt;&lt;br/&gt;INotificationService ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;SendAsync(opportunity)&lt;/font&gt;" vertex="1">
-      <mxGeometry height="80" width="190" x="1108" y="771" as="geometry" />
-    </mxCell>
-    <mxCell id="inf_bg" parent="crudBound" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#ffe6cc;strokeColor=#d6b656;align=left;verticalAlign=middle;spacingLeft=6;" value="Infrastructure" vertex="1">
-      <mxGeometry height="24" width="1490" x="10" y="921" as="geometry" />
-    </mxCell>
-    <mxCell id="evRepo" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=4;" value="&lt;b&gt;EventRepository&lt;/b&gt;&lt;br/&gt;TicketRepository&lt;br/&gt;TicketHistoryRepository&lt;br/&gt;PaymentRepository&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[Persistence/Repositories/]&lt;br/&gt;impl. Domain/Interfaces/&lt;/font&gt;" vertex="1">
-      <mxGeometry height="120" width="190" x="20" y="1184" as="geometry" />
-    </mxCell>
-    <mxCell id="weRepo" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;WaitlistEntryRepository ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[EF Core + PostgreSQL]&lt;br/&gt;Unique constraint activas&lt;/font&gt;" vertex="1">
-      <mxGeometry height="90" width="190" x="328" y="1115" as="geometry" />
-    </mxCell>
-    <mxCell id="woRepo" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;WaitlistOpportunityRepository ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[EF Core + PostgreSQL]&lt;/font&gt;" vertex="1">
-      <mxGeometry height="90" width="190" x="626" y="1040" as="geometry" />
-    </mxCell>
-    <mxCell id="ndRepo" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;NotificationDeliveryRepository ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[EF Core + PostgreSQL]&lt;/font&gt;" vertex="1">
-      <mxGeometry height="90" width="190" x="1620" y="632.5" as="geometry" />
-    </mxCell>
-    <mxCell id="consumer" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;TicketReleasedConsumer ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[RabbitMQ Consumer]&lt;br/&gt;Escucha ticket.released&lt;/font&gt;" vertex="1">
-      <mxGeometry height="90" width="190" x="1620" y="378" as="geometry" />
-    </mxCell>
-    <mxCell id="sseHub" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;WaitlistNotificationHub ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[SSE / Observer]&lt;br/&gt;Propaga estado al frontend&lt;/font&gt;" vertex="1">
-      <mxGeometry height="90" width="190" x="1620" y="85" as="geometry" />
-    </mxCell>
-    <mxCell id="emailAdp" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;EmailAdapter ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[impl INotificationService]&lt;br/&gt;SendGrid / Amazon SES&lt;/font&gt;" vertex="1">
-      <mxGeometry height="90" width="190" x="1620" y="766" as="geometry" />
-    </mxCell>
-    <mxCell id="resClient" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;ReservationHttpClient ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[HttpClient]&lt;br/&gt;POST /reservations/temp&lt;/font&gt;" vertex="1">
-      <mxGeometry height="90" width="190" x="1620" y="519" as="geometry" />
-    </mxCell>
-    <mxCell id="strategy" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;dashed=1;" value="&lt;b&gt;&lt;&lt;strategy&gt;&gt;&lt;br/&gt;FifoSelectionPolicy ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Orden de llegada (intercambiable)&lt;/font&gt;" vertex="1">
-      <mxGeometry height="90" width="190" x="1620" y="257" as="geometry" />
-    </mxCell>
-    <mxCell id="scheduler" parent="crudBound" style="rounded=1;whiteSpace:wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;WaitlistOpportunityExpiredConsumer &#9733;&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[RabbitMQ Consumer]&lt;br/&gt;Procesa vencimiento de oportunidades&lt;/font&gt;" vertex="1">
-      <mxGeometry height="90" width="190" x="976" y="969" as="geometry" />
-    </mxCell>
-    <mxCell id="ia1" edge="1" parent="crudBound" source="wlCtrl" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" target="joinH" value="">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="ia2" edge="1" parent="crudBound" source="wlCtrl" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="statH" value="">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="ia3" edge="1" parent="crudBound" source="emailH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;" target="iNotif" value="">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="ia4" edge="1" parent="crudBound" source="assignH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=0;exitY=0.25;exitDx=0;exitDy=0;jumpStyle=arc;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" target="weRepo" value="">
-      <mxGeometry relative="1" as="geometry">
-        <mxPoint x="389" y="1011" as="targetPoint" />
-      </mxGeometry>
-    </mxCell>
-    <mxCell id="ia5" edge="1" parent="crudBound" source="assignH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;" target="woRepo" value="">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="ia6" edge="1" parent="crudBound" source="joinH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" target="weRepo" value="">
-      <mxGeometry relative="1" as="geometry">
-        <Array as="points">
-          <mxPoint x="376" y="338" />
-          <mxPoint x="376" y="693" />
-        </Array>
-      </mxGeometry>
-    </mxCell>
-    <mxCell id="ia7" edge="1" parent="crudBound" source="expH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" target="woRepo" value="">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="ia8" edge="1" parent="crudBound" source="emailH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" target="ndRepo" value="">
-      <mxGeometry relative="1" as="geometry">
-        <Array as="points">
-          <mxPoint x="1556" y="544" />
-          <mxPoint x="1556" y="655" />
-        </Array>
-      </mxGeometry>
-    </mxCell>
-    <mxCell id="ia9" edge="1" parent="crudBound" source="emailAdp" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;dashed=1;" target="iNotif" value="impl">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="ia10" edge="1" parent="crudBound" source="consumer" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" target="assignH" value="">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="ia11" edge="1" parent="crudBound" source="scheduler" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.75;entryY=1;entryDx=0;entryDy=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;" target="expH" value="">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="ia12" edge="1" parent="crudBound" source="assignH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" target="resClient" value="">
-      <mxGeometry relative="1" as="geometry">
-        <Array as="points">
-          <mxPoint x="1433" y="486" />
-          <mxPoint x="1715" y="486" />
-        </Array>
-      </mxGeometry>
-    </mxCell>
-    <mxCell id="ia13" edge="1" parent="crudBound" source="assignH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" target="strategy" value="uses">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="ia14" edge="1" parent="crudBound" source="assignH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;" target="sseHub" value="">
-      <mxGeometry relative="1" as="geometry">
-        <Array as="points">
-          <mxPoint x="1433" y="233" />
-          <mxPoint x="1715" y="233" />
-        </Array>
-      </mxGeometry>
-    </mxCell>
-    <mxCell id="eb1" edge="1" parent="crudBound" source="evCtrl" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;" target="evApp" value="">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="eb2" edge="1" parent="crudBound" source="evApp" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" target="evRepo" value="">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="eb3" edge="1" parent="crudBound" source="opCtrl" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;" target="opH" value="">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="eb4" edge="1" parent="crudBound" source="opH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;jumpStyle=arc;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" target="woRepo" value="">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="eb5" edge="1" parent="crudBound" source="sseCtrl" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="sseHub" value="subscribe">
-      <mxGeometry relative="1" x="-0.1667" as="geometry">
-        <mxPoint as="offset" />
-        <Array as="points">
-          <mxPoint x="1621" y="130" />
-          <mxPoint x="1621" y="130" />
-        </Array>
-        <mxPoint x="1617" y="157" as="targetPoint" />
-      </mxGeometry>
-    </mxCell>
-    <mxCell id="eb6" edge="1" parent="crudBound" source="statH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" target="weRepo" value="">
-      <mxGeometry relative="1" as="geometry">
-        <Array as="points">
-          <mxPoint x="423" y="301" />
-        </Array>
-      </mxGeometry>
-    </mxCell>
-    <mxCell id="eb7" edge="1" parent="crudBound" source="expH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0;entryY=0.75;entryDx=0;entryDy=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;" target="assignH" value="reasigna">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="eb8" edge="1" parent="crudBound" source="expH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="emailH" value="aviso expiración">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="eb9" edge="1" parent="crudBound" source="assignH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" target="emailH" value="aviso asignación">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="eb10" edge="1" parent="crudBound" source="weRepo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;dashed=1;endArrow=open;endFill=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="weEnt" value="persiste">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="eb11" edge="1" parent="crudBound" source="woRepo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;dashed=1;endArrow=open;endFill=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="woEnt" value="persiste">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="eb12" edge="1" parent="crudBound" source="ndRepo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;dashed=1;endArrow=open;endFill=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" target="ndEnt" value="persiste">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="eb13" edge="1" parent="crudBound" source="evRepo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;dashed=1;endArrow=open;endFill=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="evEnt" value="persiste">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="extRmq" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=4;" value="&lt;b&gt;RabbitMQ&lt;/b&gt;&lt;br/&gt;&lt;i&gt;[Message Broker]&lt;/i&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;consume: ticket.released&lt;br/&gt;publish: ticket.returned_to_inventory&lt;/font&gt;" vertex="1">
-      <mxGeometry height="120" width="200" x="1981" y="710" as="geometry" />
-    </mxCell>
-    <mxCell id="extRs" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=4;" value="&lt;b&gt;ReservationService&lt;/b&gt;&lt;br/&gt;&lt;i&gt;[.NET Worker]&lt;/i&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Reserva temporal con locking&lt;/font&gt;" vertex="1">
-      <mxGeometry height="100" width="200" x="1981" y="850" as="geometry" />
-    </mxCell>
-    <mxCell id="extDb" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=4;" value="&lt;b&gt;PostgreSQL&lt;/b&gt;&lt;br/&gt;&lt;i&gt;[Base de datos relacional]&lt;/i&gt;" vertex="1">
-      <mxGeometry height="110" width="200" x="2118" y="1235" as="geometry" />
-    </mxCell>
-    <mxCell id="extMail" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=4;" value="&lt;b&gt;Proveedor de correo&lt;/b&gt;&lt;br/&gt;&lt;i&gt;[SendGrid / Amazon SES]&lt;/i&gt;" vertex="1">
-      <mxGeometry height="90" width="200" x="1981" y="1103" as="geometry" />
-    </mxCell>
-    <mxCell id="ea1" edge="1" parent="1" source="consumer" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" target="extRmq" value="Consume ticket.released /&lt;br/&gt;Publica ticket.returned_to_inventory&lt;br/&gt;AMQP">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="ea2" edge="1" parent="1" source="resClient" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" target="extRs" value="Reserva temporal&lt;br/&gt;HTTP">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="ea3" edge="1" parent="1" source="weRepo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" target="extDb" value="Lee/escribe&lt;br/&gt;SQL">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="ea4" edge="1" parent="1" source="woRepo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;" target="extDb" value="">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="ea5" edge="1" parent="1" source="ndRepo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;" target="extDb" value="">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="ea6" edge="1" parent="1" source="emailAdp" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" target="extMail" value="Envía correo&lt;br/&gt;HTTPS">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="ea7" edge="1" parent="1" source="evRepo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;" target="extDb" value="Lee/escribe&lt;br/&gt;SQL">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <mxCell id="SWLmQF2tEm2FfNqg0jpy-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=4;" value="&lt;b&gt;Frontend&lt;/b&gt;&lt;br/&gt;&lt;i&gt;[Next.js / React]&lt;/i&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;SPA — comprador y admin&lt;/font&gt;" vertex="1">
-      <mxGeometry height="90" width="200" x="857" y="151" as="geometry" />
-    </mxCell>
-    <mxCell id="SWLmQF2tEm2FfNqg0jpy-2" edge="1" parent="1" source="SWLmQF2tEm2FfNqg0jpy-1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="evCtrl" value="HTTP — eventos y entradas">
-      <mxGeometry relative="1" as="geometry">
-        <mxPoint x="519" y="425" as="targetPoint" />
-      </mxGeometry>
-    </mxCell>
-    <mxCell id="SWLmQF2tEm2FfNqg0jpy-3" edge="1" parent="1" source="SWLmQF2tEm2FfNqg0jpy-1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" target="wlCtrl" value="HTTP — lista de espera">
-      <mxGeometry relative="1" as="geometry">
-        <mxPoint x="729" y="425" as="targetPoint" />
-      </mxGeometry>
-    </mxCell>
-    <mxCell id="SWLmQF2tEm2FfNqg0jpy-4" edge="1" parent="1" source="SWLmQF2tEm2FfNqg0jpy-1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="opCtrl" value="HTTP — oportunidades">
-      <mxGeometry relative="1" as="geometry">
-        <Array as="points">
-          <mxPoint x="957" y="286" />
-          <mxPoint x="773" y="286" />
-        </Array>
-        <mxPoint x="939" y="425" as="targetPoint" />
-      </mxGeometry>
-    </mxCell>
-    <mxCell id="SWLmQF2tEm2FfNqg0jpy-5" edge="1" parent="1" source="SWLmQF2tEm2FfNqg0jpy-1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" target="sseCtrl" value="Abre stream&lt;br/&gt;GET /waitlist/stream">
-      <mxGeometry relative="1" x="0.2636" as="geometry">
-        <mxPoint as="offset" />
-        <mxPoint x="1559" y="436" as="targetPoint" />
-      </mxGeometry>
-    </mxCell>
-    <mxCell id="SWLmQF2tEm2FfNqg0jpy-6" edge="1" parent="1" source="sseCtrl" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;dashed=1;endArrow=open;endFill=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" target="SWLmQF2tEm2FfNqg0jpy-1" value="Eventos en tiempo real&lt;br/&gt;SSE push">
-      <mxGeometry relative="1" x="-0.278" as="geometry">
-        <mxPoint as="offset" />
-        <Array as="points">
-          <mxPoint x="1244" y="218" />
-        </Array>
-        <mxPoint x="1512" y="436" as="sourcePoint" />
-      </mxGeometry>
-    </mxCell>
-  </root>
-</mxGraphModel>
+<mxfile host="65bd71144e">
+    <diagram id="6DHSDtY5C05OShUcAykz" name="Page-1">
+        <mxGraphModel dx="679" dy="662" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="&lt;b style=&#39;font-size:15px&#39;&gt;C4 Componentes — CRUD Service (capa 4) — Lista de espera&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="28" y="14" width="900" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg" value="" style="swimlane;startSize=22;fillColor=none;strokeColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="2058" y="34" width="210" height="76" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg_t" value="Leyenda" style="text;html=1;fontStyle=1;align=center;" parent="leg" vertex="1">
+                    <mxGeometry width="210" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg_ex" value="Componente existente" style="text;html=1;strokeColor=#6c8ebf;fillColor=#dae8fc;align=left;verticalAlign=middle;spacingLeft=6;" parent="leg" vertex="1">
+                    <mxGeometry x="4" y="26" width="202" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg_new" value="Componente nuevo ★" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;" parent="leg" vertex="1">
+                    <mxGeometry x="4" y="50" width="202" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="crudBound" value="CRUD Service&#xa;[.NET / ASP.NET Core]" style="swimlane;startSize=30;fillColor=#fafafa;strokeColor=#333333;dashed=1;dashPattern=8 8;fontStyle=1;fontSize=12;rounded=1;" parent="1" vertex="1">
+                    <mxGeometry x="18" y="337" width="1874" height="1295" as="geometry"/>
+                </mxCell>
+                <mxCell id="BuSAlyP2UbxkKwuAdjUu-1" value="Infrastructure" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#ffe6cc;strokeColor=#d6b656;align=right;verticalAlign=middle;spacingLeft=6;rotation=-90;" parent="crudBound" vertex="1">
+                    <mxGeometry x="1068.12" y="478.63" width="907.75" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_bg" value="API" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=middle;spacingLeft=6;" parent="crudBound" vertex="1">
+                    <mxGeometry x="10" y="40" width="1491" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="evCtrl" value="&lt;b&gt;EventsController&lt;/b&gt;&lt;br/&gt;TicketsController&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[Controladores existentes]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=4;" parent="crudBound" vertex="1">
+                    <mxGeometry x="20" y="78" width="190" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="wlCtrl" value="&lt;b&gt;WaitlistController ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[.NET ApiController]&lt;br/&gt;POST /api/waitlist/entries&lt;br/&gt;GET /api/waitlist/entries&lt;br/&gt;POST /api/waitlist/opportunities/{id}/claim&lt;br/&gt;GET /api/waitlist/stream (SSE)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="310" y="79" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="opCtrl" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;" parent="crudBound" vertex="1">
+                    <mxGeometry x="642" y="79" width="0" height="0" as="geometry"/>
+                </mxCell>
+                <mxCell id="sseCtrl" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;" parent="crudBound" vertex="1">
+                    <mxGeometry x="1178" y="80" width="0" height="0" as="geometry"/>
+                </mxCell>
+                <mxCell id="app_bg" value="Application" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=middle;spacingLeft=6;" parent="crudBound" vertex="1">
+                    <mxGeometry x="10" y="190" width="1492" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="evApp" value="&lt;b&gt;EventQueryHandler&lt;/b&gt;&lt;br/&gt;TicketQueryHandler&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[Handlers existentes CQRS]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=4;" parent="crudBound" vertex="1">
+                    <mxGeometry x="20" y="408" width="190" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="joinH" value="&lt;b&gt;EnrollInWaitlistHandler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Inscripción en lista de espera&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="165" y="298" width="190" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="statH" value="&lt;b&gt;GetWaitlistStatusQueryHandler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Consulta de estado del comprador&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="455" y="241" width="190" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="assignH" value="&lt;b&gt;AssignOpportunityHandler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Asignación FIFO al elegible&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="1290" y="323" width="190" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="expH" value="&lt;b&gt;ExpireOpportunityHandler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Vencimiento y reasignación&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="745" y="504" width="190" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="emailH" value="&lt;b&gt;EmailNotificationObserver ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Observer de correo de aviso&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="1085" y="504" width="240" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="opH" value="&lt;b&gt;ClaimOpportunityHandler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Reclamo de oportunidad activa&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="915" y="244" width="225" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="dom_bg" value="Domain" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#ffcd28;strokeColor=#d79b00;align=left;verticalAlign=middle;spacingLeft=6;gradientColor=#ffa500;" parent="crudBound" vertex="1">
+                    <mxGeometry x="10" y="614" width="1493" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="evEnt" value="&lt;b&gt;Event, Ticket&lt;/b&gt;&lt;br/&gt;Payment, TicketHistory&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[Entidades existentes]&lt;br/&gt;Domain/Interfaces/ (cada repo)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=middle;" parent="crudBound" vertex="1">
+                    <mxGeometry x="93" y="783" width="190" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="weEnt" value="&lt;b&gt;WaitlistEntry ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;id, event_id, buyer_email,&lt;br/&gt;status (active|consumed|expired)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="154" y="666" width="190" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="woEnt" value="&lt;b&gt;WaitlistOpportunity ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;id, entry_id, ticket_id,&lt;br/&gt;status, expires_at&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="495" y="758" width="156" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="ndEnt" value="&lt;b&gt;NotificationDelivery ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;id, waitlist_opportunity_id, channel,&lt;br/&gt;status, sent_at, failure_reason&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="1290" y="661" width="190" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="iNotif" value="&lt;b&gt;&lt;&lt;port&gt;&gt;&lt;br/&gt;IEmailSender ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;SendOpportunityNotificationAsync(...)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;dashed=1;" parent="crudBound" vertex="1">
+                    <mxGeometry x="1108" y="771" width="190" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="inf_bg" value="Infrastructure" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#ffe6cc;strokeColor=#d6b656;align=left;verticalAlign=middle;spacingLeft=6;" parent="crudBound" vertex="1">
+                    <mxGeometry x="10" y="921" width="1490" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="evRepo" value="&lt;b&gt;EventRepository&lt;/b&gt;&lt;br/&gt;TicketRepository&lt;br/&gt;TicketHistoryRepository&lt;br/&gt;PaymentRepository&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[Persistence/Repositories/]&lt;br/&gt;impl. Domain/Interfaces/&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=4;" parent="crudBound" vertex="1">
+                    <mxGeometry x="20" y="1184" width="190" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="weRepo" value="&lt;b&gt;WaitlistEntryRepository ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[EF Core + PostgreSQL]&lt;br/&gt;Unique constraint activas&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="328" y="1115" width="190" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="woRepo" value="&lt;b&gt;WaitlistOpportunityRepository ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[EF Core + PostgreSQL]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="626" y="1040" width="190" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="ndRepo" value="&lt;b&gt;NotificationDeliveryRepository ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[EF Core + PostgreSQL]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="1620" y="632.5" width="190" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="consumer" value="&lt;b&gt;TicketReleasedConsumer ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[RabbitMQ Consumer]&lt;br/&gt;Escucha ticket.released&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="1620" y="378" width="190" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="sseHub" value="&lt;b&gt;WaitlistSseHub ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[SSE / In-memory hub]&lt;br/&gt;Propaga estado al frontend&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="1620" y="85" width="190" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="emailAdp" value="&lt;b&gt;LogEmailSender ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[impl IEmailSender]&lt;br/&gt;Stub — loguea en consola&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="1620" y="766" width="190" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="resClient" value="&lt;b&gt;TicketReservationAdapter ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[EF Core / DB directa]&lt;br/&gt;TryReserveForWaitlistAsync&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="1620" y="519" width="190" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="strategy" value="&lt;b&gt;&lt;&lt;strategy&gt;&gt;&lt;br/&gt;FifoStrategy ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Orden de llegada (intercambiable)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;dashed=1;" parent="crudBound" vertex="1">
+                    <mxGeometry x="1620" y="257" width="190" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="scheduler" value="&lt;b&gt;WaitlistOpportunityExpiredConsumer ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[RabbitMQ Consumer]&lt;br/&gt;Procesa vencimiento de oportunidades&lt;/font&gt;" style="rounded=1;whiteSpace:wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" parent="crudBound" vertex="1">
+                    <mxGeometry x="976" y="969" width="252" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia1" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" parent="crudBound" source="wlCtrl" target="joinH" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia2" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="crudBound" source="wlCtrl" target="statH" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia3" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;" parent="crudBound" source="emailH" target="iNotif" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia4" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=0;exitY=0.25;exitDx=0;exitDy=0;jumpStyle=arc;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" parent="crudBound" source="assignH" target="weRepo" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="389" y="1011" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="ia5" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;" parent="crudBound" source="assignH" target="woRepo" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia6" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" parent="crudBound" source="joinH" target="weRepo" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="376" y="338"/>
+                            <mxPoint x="376" y="693"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="ia7" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" parent="crudBound" source="expH" target="woRepo" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia8" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" parent="crudBound" source="emailH" target="ndRepo" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1556" y="544"/>
+                            <mxPoint x="1556" y="655"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="ia9" value="impl" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;dashed=1;" parent="crudBound" source="emailAdp" target="iNotif" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia10" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" parent="crudBound" source="consumer" target="assignH" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia11" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.75;entryY=1;entryDx=0;entryDy=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;" parent="crudBound" source="scheduler" target="expH" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia12" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" parent="crudBound" source="assignH" target="resClient" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1433" y="486"/>
+                            <mxPoint x="1715" y="486"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="ia13" value="uses" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" parent="crudBound" source="assignH" target="strategy" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia14" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;" parent="crudBound" source="assignH" target="sseHub" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1433" y="233"/>
+                            <mxPoint x="1715" y="233"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eb1" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;" parent="crudBound" source="evCtrl" target="evApp" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb2" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" parent="crudBound" source="evApp" target="evRepo" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb3" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;" parent="crudBound" source="opCtrl" target="opH" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb4" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;jumpStyle=arc;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" parent="crudBound" source="opH" target="woRepo" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb5" value="subscribe" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="crudBound" source="sseCtrl" target="sseHub" edge="1">
+                    <mxGeometry x="-0.1667" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                        <Array as="points">
+                            <mxPoint x="1621" y="130"/>
+                            <mxPoint x="1621" y="130"/>
+                        </Array>
+                        <mxPoint x="1617" y="157" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eb6" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" parent="crudBound" source="statH" target="weRepo" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="423" y="301"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eb7" value="reasigna" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0;entryY=0.75;entryDx=0;entryDy=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;" parent="crudBound" source="expH" target="assignH" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb8" value="aviso expiración" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="crudBound" source="expH" target="emailH" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb9" value="aviso asignación" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" parent="crudBound" source="assignH" target="emailH" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb10" value="persiste" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;dashed=1;endArrow=open;endFill=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="crudBound" source="weRepo" target="weEnt" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb11" value="persiste" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;dashed=1;endArrow=open;endFill=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="crudBound" source="woRepo" target="woEnt" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb12" value="persiste" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;dashed=1;endArrow=open;endFill=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" parent="crudBound" source="ndRepo" target="ndEnt" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb13" value="persiste" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;dashed=1;endArrow=open;endFill=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="crudBound" source="evRepo" target="evEnt" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="extRmq" value="&lt;b&gt;RabbitMQ&lt;/b&gt;&lt;br/&gt;&lt;i&gt;[Message Broker]&lt;/i&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;consume: ticket.released&lt;br/&gt;publish: ticket.returned_to_inventory&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+                    <mxGeometry x="1981" y="710" width="200" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="extRs" value="&lt;b&gt;ReservationService&lt;/b&gt;&lt;br/&gt;&lt;i&gt;[.NET Worker]&lt;/i&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Reserva temporal con locking&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+                    <mxGeometry x="1981" y="850" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="extDb" value="&lt;b&gt;PostgreSQL&lt;/b&gt;&lt;br/&gt;&lt;i&gt;[Base de datos relacional]&lt;/i&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+                    <mxGeometry x="2118" y="1235" width="200" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="extMail" value="&lt;b&gt;Proveedor de correo&lt;/b&gt;&lt;br/&gt;&lt;i&gt;[SendGrid / Amazon SES]&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+                    <mxGeometry x="1981" y="1103" width="200" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="ea1" value="Consume ticket.released /&lt;br/&gt;Publica ticket.returned_to_inventory&lt;br/&gt;AMQP" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" parent="1" source="consumer" target="extRmq" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ea2" value="Reserva temporal&lt;br/&gt;SQL (DB directa)" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" parent="1" source="resClient" target="extDb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ea3" value="Lee/escribe&lt;br/&gt;SQL" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" parent="1" source="weRepo" target="extDb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ea4" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;" parent="1" source="woRepo" target="extDb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ea5" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;" parent="1" source="ndRepo" target="extDb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ea6" value="Loguea correo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" parent="1" source="emailAdp" target="extMail" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ea7" value="Lee/escribe&lt;br/&gt;SQL" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;" parent="1" source="evRepo" target="extDb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="SWLmQF2tEm2FfNqg0jpy-1" value="&lt;b&gt;Frontend&lt;/b&gt;&lt;br/&gt;&lt;i&gt;[Next.js / React]&lt;/i&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;SPA — comprador y admin&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+                    <mxGeometry x="857" y="151" width="200" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="SWLmQF2tEm2FfNqg0jpy-2" value="HTTP — eventos y entradas" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="SWLmQF2tEm2FfNqg0jpy-1" target="evCtrl" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="519" y="425" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="SWLmQF2tEm2FfNqg0jpy-3" value="HTTP — lista de espera" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" parent="1" source="SWLmQF2tEm2FfNqg0jpy-1" target="wlCtrl" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="729" y="425" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="SWLmQF2tEm2FfNqg0jpy-4" value="HTTP — oportunidades" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="SWLmQF2tEm2FfNqg0jpy-1" target="opCtrl" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="957" y="286"/>
+                            <mxPoint x="773" y="286"/>
+                        </Array>
+                        <mxPoint x="939" y="425" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="SWLmQF2tEm2FfNqg0jpy-5" value="Abre stream&lt;br/&gt;GET /waitlist/stream" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" parent="1" source="SWLmQF2tEm2FfNqg0jpy-1" target="sseCtrl" edge="1">
+                    <mxGeometry x="0.2636" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                        <mxPoint x="1559" y="436" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="SWLmQF2tEm2FfNqg0jpy-6" value="Eventos en tiempo real&lt;br/&gt;SSE push" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;dashed=1;endArrow=open;endFill=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" parent="1" source="sseCtrl" target="SWLmQF2tEm2FfNqg0jpy-1" edge="1">
+                    <mxGeometry x="-0.278" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                        <Array as="points">
+                            <mxPoint x="1244" y="218"/>
+                        </Array>
+                        <mxPoint x="1512" y="436" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="mm_qVabuNJNwS46QZ_yk" name="Page-1">
+        <mxGraphModel dx="3176" dy="1788" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" parent="1" style="text;html=1;align=left;verticalAlign=middle;" value="&lt;b style=&#39;font-size:15px&#39;&gt;C4 Componentes — CRUD Service (capa 4) — Lista de espera&lt;/b&gt;" vertex="1">
+                    <mxGeometry height="28" width="900" x="28" y="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg" parent="1" style="swimlane;startSize=22;fillColor=none;strokeColor=#666666;" value="" vertex="1">
+                    <mxGeometry height="76" width="210" x="2058" y="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg_t" parent="leg" style="text;html=1;fontStyle=1;align=center;" value="Leyenda" vertex="1">
+                    <mxGeometry height="22" width="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg_ex" parent="leg" style="text;html=1;strokeColor=#6c8ebf;fillColor=#dae8fc;align=left;verticalAlign=middle;spacingLeft=6;" value="Componente existente" vertex="1">
+                    <mxGeometry height="22" width="202" x="4" y="26" as="geometry"/>
+                </mxCell>
+                <mxCell id="leg_new" parent="leg" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=middle;spacingLeft=6;" value="Componente nuevo ★" vertex="1">
+                    <mxGeometry height="22" width="202" x="4" y="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="crudBound" parent="1" style="swimlane;startSize=30;fillColor=#fafafa;strokeColor=#333333;dashed=1;dashPattern=8 8;fontStyle=1;fontSize=12;rounded=1;" value="CRUD Service&#xa;[.NET / ASP.NET Core]" vertex="1">
+                    <mxGeometry height="1295" width="1874" x="18" y="337" as="geometry"/>
+                </mxCell>
+                <mxCell id="BuSAlyP2UbxkKwuAdjUu-1" parent="crudBound" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#ffe6cc;strokeColor=#d6b656;align=right;verticalAlign=middle;spacingLeft=6;rotation=-90;" value="Infrastructure" vertex="1">
+                    <mxGeometry height="24" width="907.75" x="1068.12" y="478.63" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_bg" parent="crudBound" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=middle;spacingLeft=6;" value="API" vertex="1">
+                    <mxGeometry height="24" width="1491" x="10" y="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="evCtrl" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=4;" value="&lt;b&gt;EventsController&lt;/b&gt;&lt;br/&gt;TicketsController&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[Controladores existentes]&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="100" width="190" x="20" y="78" as="geometry"/>
+                </mxCell>
+                <mxCell id="wlCtrl" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;WaitlistController ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[.NET ApiController]&lt;br/&gt;POST /api/waitlist/entries&lt;br/&gt;GET /api/waitlist/entries&lt;br/&gt;POST /api/waitlist/opportunities/{id}/claim&lt;br/&gt;GET /api/waitlist/stream (SSE)&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="100" width="260" x="310" y="79" as="geometry"/>
+                </mxCell>
+                <mxCell id="opCtrl" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;" value="" vertex="1">
+                    <mxGeometry height="0" width="0" x="660" y="79" as="geometry"/>
+                </mxCell>
+                <mxCell id="sseCtrl" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;" value="" vertex="1">
+                    <mxGeometry height="0" width="0" x="1178" y="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="app_bg" parent="crudBound" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=middle;spacingLeft=6;" value="Application" vertex="1">
+                    <mxGeometry height="24" width="1492" x="10" y="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="evApp" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=4;" value="&lt;b&gt;EventQueryHandler&lt;/b&gt;&lt;br/&gt;TicketQueryHandler&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[Handlers existentes CQRS]&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="100" width="190" x="20" y="408" as="geometry"/>
+                </mxCell>
+                <mxCell id="joinH" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;EnrollInWaitlistHandler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Inscripción en lista de espera&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="80" width="190" x="165" y="298" as="geometry"/>
+                </mxCell>
+                <mxCell id="statH" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;GetWaitlistStatusQueryHandler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Consulta de estado del comprador&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="80" width="190" x="455" y="241" as="geometry"/>
+                </mxCell>
+                <mxCell id="assignH" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;AssignOpportunityHandler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Asignación FIFO al elegible&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="80" width="190" x="1290" y="323" as="geometry"/>
+                </mxCell>
+                <mxCell id="expH" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;ExpireOpportunityHandler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Vencimiento y reasignación&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="80" width="190" x="745" y="504" as="geometry"/>
+                </mxCell>
+                <mxCell id="emailH" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;EmailNotificationObserver ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Observer de correo de aviso&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="80" width="236" x="1085" y="504" as="geometry"/>
+                </mxCell>
+                <mxCell id="opH" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;ClaimOpportunityHandler ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Reclamo de oportunidad activa&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="80" width="225" x="915" y="244" as="geometry"/>
+                </mxCell>
+                <mxCell id="dom_bg" parent="crudBound" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#ffcd28;strokeColor=#d79b00;align=left;verticalAlign=middle;spacingLeft=6;gradientColor=#ffa500;" value="Domain" vertex="1">
+                    <mxGeometry height="24" width="1493" x="10" y="614" as="geometry"/>
+                </mxCell>
+                <mxCell id="evEnt" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=middle;" value="&lt;b&gt;Event, Ticket&lt;/b&gt;&lt;br/&gt;Payment, TicketHistory&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[Entidades existentes]&lt;br/&gt;Domain/Interfaces/ (cada repo)&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="90" width="190" x="93" y="783" as="geometry"/>
+                </mxCell>
+                <mxCell id="weEnt" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;WaitlistEntry ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;id, event_id, buyer_email,&lt;br/&gt;status (active|consumed|expired)&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="80" width="190" x="154" y="666" as="geometry"/>
+                </mxCell>
+                <mxCell id="woEnt" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;WaitlistOpportunity ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;id, entry_id, ticket_id,&lt;br/&gt;status, expires_at&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="80" width="156" x="495" y="758" as="geometry"/>
+                </mxCell>
+                <mxCell id="ndEnt" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;NotificationDelivery ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;id, waitlist_opportunity_id, channel,&lt;br/&gt;status, sent_at, failure_reason&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="80" width="190" x="1290" y="661" as="geometry"/>
+                </mxCell>
+                <mxCell id="iNotif" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;dashed=1;" value="&lt;b&gt;&lt;&lt;port&gt;&gt;&lt;br/&gt;IEmailSender ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;SendOpportunityNotificationAsync(...)&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="80" width="190" x="1108" y="771" as="geometry"/>
+                </mxCell>
+                <mxCell id="inf_bg" parent="crudBound" style="text;html=1;fontStyle=1;fontSize=11;fillColor=#ffe6cc;strokeColor=#d6b656;align=left;verticalAlign=middle;spacingLeft=6;" value="Infrastructure" vertex="1">
+                    <mxGeometry height="24" width="1490" x="10" y="921" as="geometry"/>
+                </mxCell>
+                <mxCell id="evRepo" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;spacingTop=4;" value="&lt;b&gt;EventRepository&lt;/b&gt;&lt;br/&gt;TicketRepository&lt;br/&gt;TicketHistoryRepository&lt;br/&gt;PaymentRepository&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[Persistence/Repositories/]&lt;br/&gt;impl. Domain/Interfaces/&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="120" width="190" x="20" y="1184" as="geometry"/>
+                </mxCell>
+                <mxCell id="weRepo" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;WaitlistEntryRepository ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[EF Core + PostgreSQL]&lt;br/&gt;Unique constraint activas&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="90" width="190" x="328" y="1115" as="geometry"/>
+                </mxCell>
+                <mxCell id="woRepo" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;WaitlistOpportunityRepository ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[EF Core + PostgreSQL]&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="90" width="190" x="626" y="1040" as="geometry"/>
+                </mxCell>
+                <mxCell id="ndRepo" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;NotificationDeliveryRepository ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[EF Core + PostgreSQL]&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="90" width="190" x="1620" y="632.5" as="geometry"/>
+                </mxCell>
+                <mxCell id="consumer" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;TicketReleasedConsumer ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[RabbitMQ Consumer]&lt;br/&gt;Escucha ticket.released&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="90" width="190" x="1620" y="378" as="geometry"/>
+                </mxCell>
+                <mxCell id="sseHub" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;WaitlistSseHub ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[SSE / In-memory hub]&lt;br/&gt;Propaga estado al frontend&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="90" width="190" x="1620" y="85" as="geometry"/>
+                </mxCell>
+                <mxCell id="emailAdp" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;LogEmailSender ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[impl IEmailSender]&lt;br/&gt;Stub — loguea en consola&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="90" width="190" x="1620" y="766" as="geometry"/>
+                </mxCell>
+                <mxCell id="resClient" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;TicketReservationAdapter ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[EF Core / DB directa]&lt;br/&gt;TryReserveForWaitlistAsync&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="90" width="190" x="1620" y="519" as="geometry"/>
+                </mxCell>
+                <mxCell id="strategy" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;dashed=1;" value="&lt;b&gt;&lt;&lt;strategy&gt;&gt;&lt;br/&gt;FifoStrategy ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Orden de llegada (intercambiable)&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="90" width="190" x="1620" y="257" as="geometry"/>
+                </mxCell>
+                <mxCell id="scheduler" parent="crudBound" style="rounded=1;whiteSpace:wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;WaitlistOpportunityExpiredConsumer ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[RabbitMQ Consumer]&lt;br/&gt;Procesa vencimiento de oportunidades&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="90" width="190" x="976" y="969" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia1" edge="1" parent="crudBound" source="wlCtrl" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" target="joinH" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia2" edge="1" parent="crudBound" source="wlCtrl" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="statH" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia3" edge="1" parent="crudBound" source="emailH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;" target="iNotif" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia4" edge="1" parent="crudBound" source="assignH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=0;exitY=0.25;exitDx=0;exitDy=0;jumpStyle=arc;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" target="weRepo" value="">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="389" y="1011" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="ia5" edge="1" parent="crudBound" source="assignH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;" target="woRepo" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia6" edge="1" parent="crudBound" source="joinH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" target="weRepo" value="">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="376" y="338"/>
+                            <mxPoint x="376" y="693"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="ia7" edge="1" parent="crudBound" source="expH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" target="woRepo" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia8" edge="1" parent="crudBound" source="emailH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" target="ndRepo" value="">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1556" y="544"/>
+                            <mxPoint x="1556" y="655"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="ia9" edge="1" parent="crudBound" source="emailAdp" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;dashed=1;" target="iNotif" value="impl">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia10" edge="1" parent="crudBound" source="consumer" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" target="assignH" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia11" edge="1" parent="crudBound" source="scheduler" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.75;entryY=1;entryDx=0;entryDy=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;" target="expH" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia12" edge="1" parent="crudBound" source="assignH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" target="resClient" value="">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1433" y="486"/>
+                            <mxPoint x="1715" y="486"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="ia13" edge="1" parent="crudBound" source="assignH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" target="strategy" value="uses">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="sseNotifConsumer" parent="crudBound" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;spacingTop=4;strokeWidth=2;" value="&lt;b&gt;SseNotificationConsumer ★&lt;/b&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;[RabbitMQ Consumer]&lt;br/&gt;Consume waitlist.opportunity.activated&lt;br/&gt;y waitlist.opportunity.expired&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="90" width="220" x="1372" y="969" as="geometry"/>
+                </mxCell>
+                <mxCell id="ia14" edge="1" parent="crudBound" source="sseNotifConsumer" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="sseHub" value="notifica">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1482" y="130"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eb1" edge="1" parent="crudBound" source="evCtrl" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;" target="evApp" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb2" edge="1" parent="crudBound" source="evApp" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" target="evRepo" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb3" edge="1" parent="crudBound" source="opCtrl" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;" target="opH" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb4" edge="1" parent="crudBound" source="opH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;jumpStyle=arc;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" target="woRepo" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb5" edge="1" parent="crudBound" source="sseCtrl" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="sseHub" value="subscribe">
+                    <mxGeometry relative="1" x="-0.1667" as="geometry">
+                        <mxPoint as="offset"/>
+                        <Array as="points">
+                            <mxPoint x="1621" y="130"/>
+                            <mxPoint x="1621" y="130"/>
+                        </Array>
+                        <mxPoint x="1617" y="157" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eb6" edge="1" parent="crudBound" source="statH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" target="weRepo" value="">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="423" y="301"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eb7" edge="1" parent="crudBound" source="expH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0;entryY=0.75;entryDx=0;entryDy=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;" target="assignH" value="reasigna">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb8" edge="1" parent="crudBound" source="expH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="emailH" value="aviso expiración">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb9" edge="1" parent="crudBound" source="assignH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" target="emailH" value="aviso asignación">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb10" edge="1" parent="crudBound" source="weRepo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;dashed=1;endArrow=open;endFill=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="weEnt" value="persiste">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb11" edge="1" parent="crudBound" source="woRepo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;dashed=1;endArrow=open;endFill=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="woEnt" value="persiste">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb12" edge="1" parent="crudBound" source="ndRepo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;dashed=1;endArrow=open;endFill=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" target="ndEnt" value="persiste">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eb13" edge="1" parent="crudBound" source="evRepo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;dashed=1;endArrow=open;endFill=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="evEnt" value="persiste">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="extRmq" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=4;" value="&lt;b&gt;RabbitMQ&lt;/b&gt;&lt;br/&gt;&lt;i&gt;[Message Broker]&lt;/i&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;ticket.released&lt;br/&gt;ticket.returned_to_inventory&lt;br/&gt;waitlist.opportunity.activated&lt;br/&gt;waitlist.opportunity.expired&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="140" width="200" x="1981" y="710" as="geometry"/>
+                </mxCell>
+                <mxCell id="extRs" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=4;" value="&lt;b&gt;ReservationService&lt;/b&gt;&lt;br/&gt;&lt;i&gt;[.NET Worker]&lt;/i&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;Reserva temporal con locking&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="100" width="200" x="1981" y="850" as="geometry"/>
+                </mxCell>
+                <mxCell id="extDb" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=4;" value="&lt;b&gt;PostgreSQL&lt;/b&gt;&lt;br/&gt;&lt;i&gt;[Base de datos relacional]&lt;/i&gt;" vertex="1">
+                    <mxGeometry height="110" width="200" x="2118" y="1235" as="geometry"/>
+                </mxCell>
+                <mxCell id="extMail" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=4;" value="&lt;b&gt;Proveedor de correo&lt;/b&gt;&lt;br/&gt;&lt;i&gt;[SendGrid / Amazon SES]&lt;/i&gt;" vertex="1">
+                    <mxGeometry height="90" width="200" x="1981" y="1103" as="geometry"/>
+                </mxCell>
+                <mxCell id="ea1" edge="1" parent="1" source="consumer" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" target="extRmq" value="Consume ticket.released /&lt;br/&gt;Publica ticket.returned_to_inventory&lt;br/&gt;AMQP">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ea2" edge="1" parent="1" source="resClient" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" target="extRs" value="Reserva temporal&lt;br/&gt;HTTP">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ea3" edge="1" parent="1" source="weRepo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" target="extDb" value="Lee/escribe&lt;br/&gt;SQL">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ea4" edge="1" parent="1" source="woRepo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;" target="extDb" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ea5" edge="1" parent="1" source="ndRepo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;" target="extDb" value="">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ea6" edge="1" parent="1" source="emailAdp" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" target="extMail" value="Envía correo&lt;br/&gt;HTTPS">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ea7" edge="1" parent="1" source="evRepo" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;" target="extDb" value="Lee/escribe&lt;br/&gt;SQL">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ea8" edge="1" parent="1" source="assignH" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" target="extRmq" value="Publica waitlist.opportunity.activated&lt;br/&gt;(vía Observer) AMQP">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ea9" edge="1" parent="1" source="extRmq" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;" target="sseNotifConsumer" value="Consume&lt;br/&gt;waitlist.opportunity.activated&lt;br/&gt;waitlist.opportunity.expired&lt;br/&gt;AMQP">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="SWLmQF2tEm2FfNqg0jpy-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;spacingTop=4;" value="&lt;b&gt;Frontend&lt;/b&gt;&lt;br/&gt;&lt;i&gt;[Next.js / React]&lt;/i&gt;&lt;br/&gt;&lt;font color=&#39;#444444&#39; size=&#39;2&#39;&gt;SPA — comprador y admin&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="90" width="200" x="857" y="151" as="geometry"/>
+                </mxCell>
+                <mxCell id="SWLmQF2tEm2FfNqg0jpy-2" edge="1" parent="1" source="SWLmQF2tEm2FfNqg0jpy-1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#6c8ebf;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="evCtrl" value="HTTP — eventos y entradas">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="519" y="425" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="SWLmQF2tEm2FfNqg0jpy-3" edge="1" parent="1" source="SWLmQF2tEm2FfNqg0jpy-1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" target="wlCtrl" value="HTTP — lista de espera">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="729" y="425" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="SWLmQF2tEm2FfNqg0jpy-4" edge="1" parent="1" source="SWLmQF2tEm2FfNqg0jpy-1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="opCtrl" value="HTTP — oportunidades">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="957" y="286"/>
+                            <mxPoint x="773" y="286"/>
+                        </Array>
+                        <mxPoint x="939" y="425" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="SWLmQF2tEm2FfNqg0jpy-5" edge="1" parent="1" source="SWLmQF2tEm2FfNqg0jpy-1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" target="sseCtrl" value="Abre stream&lt;br/&gt;GET /waitlist/stream">
+                    <mxGeometry relative="1" x="0.2636" as="geometry">
+                        <mxPoint as="offset"/>
+                        <mxPoint x="1559" y="436" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="SWLmQF2tEm2FfNqg0jpy-6" edge="1" parent="1" source="sseCtrl" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#82b366;strokeWidth=2;dashed=1;endArrow=open;endFill=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" target="SWLmQF2tEm2FfNqg0jpy-1" value="Eventos en tiempo real&lt;br/&gt;SSE push">
+                    <mxGeometry relative="1" x="-0.278" as="geometry">
+                        <mxPoint as="offset"/>
+                        <Array as="points">
+                            <mxPoint x="1244" y="218"/>
+                        </Array>
+                        <mxPoint x="1512" y="436" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
