@@ -13,6 +13,7 @@ using CrudService.Application.UseCases.Waitlist.EnrollInWaitlist;
 using CrudService.Application.UseCases.Waitlist.GetWaitlistStatus;
 using CrudService.Application.UseCases.Waitlist.AssignOpportunity;
 using CrudService.Application.UseCases.Waitlist.ExpireOpportunity;
+using CrudService.Application.UseCases.Waitlist.ClaimOpportunity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -74,6 +75,9 @@ public static class DependencyInjection
         services.AddScoped<IInventoryReturnPort, InventoryReturnAdapter>();
         services.AddScoped<IExpireOpportunityUseCase, ExpireOpportunityHandler>();
         services.AddHostedService<WaitlistOpportunityExpiredConsumer>();
+
+        // Waitlist opportunity claim
+        services.AddScoped<IClaimOpportunityUseCase, ClaimOpportunityHandler>();
 
         // Email notification ports
         services.AddScoped<IEmailSender, LogEmailSender>();

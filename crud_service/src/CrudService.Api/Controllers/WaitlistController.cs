@@ -2,6 +2,7 @@ using System.Globalization;
 using CrudService.Application.Dtos;
 using CrudService.Application.UseCases.Waitlist.EnrollInWaitlist;
 using CrudService.Application.UseCases.Waitlist.GetWaitlistStatus;
+using CrudService.Application.UseCases.Waitlist.ClaimOpportunity;
 using CrudService.Domain.Exceptions;
 using CrudService.Infrastructure.Sse;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +15,7 @@ public class WaitlistController : ControllerBase
 {
     private readonly IEnrollInWaitlistUseCase _enrollInWaitlistUseCase;
     private readonly IGetWaitlistStatusUseCase _getWaitlistStatusUseCase;
+    private readonly IClaimOpportunityUseCase _claimOpportunityUseCase;
     private readonly IWaitlistSseSubscriber _sseSubscriber;
 
     private static readonly int MaxConnectionsPerEmail =
@@ -29,10 +31,12 @@ public class WaitlistController : ControllerBase
     public WaitlistController(
         IEnrollInWaitlistUseCase enrollInWaitlistUseCase,
         IGetWaitlistStatusUseCase getWaitlistStatusUseCase,
+        IClaimOpportunityUseCase claimOpportunityUseCase,
         IWaitlistSseSubscriber sseSubscriber)
     {
         _enrollInWaitlistUseCase = enrollInWaitlistUseCase;
         _getWaitlistStatusUseCase = getWaitlistStatusUseCase;
+        _claimOpportunityUseCase = claimOpportunityUseCase;
         _sseSubscriber = sseSubscriber;
     }
 
@@ -138,6 +142,24 @@ public class WaitlistController : ControllerBase
         }
 
         return new EmptyResult();
+    }
+
+    [HttpPost("opportunities/{id}/claim")]
+    public async Task<IActionResult> ClaimOpportunity(
+        long id,
+        [FromBody] ClaimOpportunityRequest request)
+    {
+        var command = new ClaimOpportunityCommand(id, request.BuyerEmail);
+        var result = await _claimOpportunityUseCase.HandleAsync(command);
+
+        return result.Type switch
+        {
+            ClaimOpportunityResultType.Claimed => Ok(result.Response),
+            ClaimOpportunityResultType.NotFound => NotFound(new { detail = "Opportunity not found." }),
+            ClaimOpportunityResultType.Expired => Conflict(new { detail = "Opportunity is no longer active." }),
+            ClaimOpportunityResultType.Forbidden => StatusCode(403, new { detail = "This opportunity does not belong to the specified buyer." }),
+            _ => StatusCode(500, new { detail = "Unexpected error." })
+        };
     }
 
     private static bool IsValidEmail(string email)
