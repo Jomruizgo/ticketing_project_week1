@@ -48,3 +48,11 @@ export interface UpdateTicketPayload {
   newStatus: TicketStatus
   reason?: string
 }
+
+export interface WaitlistEntryDto {
+  id: number
+  eventId: number
+  buyerEmail: string
+  status: string
+  enrolledAt: string
+}
