@@ -64,12 +64,12 @@ export function BuyerEventCard({ event }: { event: Event }) {
       <Link href={`/buy/${event.id}`} className="mt-auto">
         <Button
           className="w-full"
-          disabled={!isUpcoming || event.availableTickets === 0}
+          disabled={!isUpcoming}
         >
           {!isUpcoming ? (
             "Evento finalizado"
           ) : event.availableTickets === 0 ? (
-            "Sin tickets disponibles"
+            "Unirse a lista de espera"
           ) : (
             <>
               Comprar tickets
