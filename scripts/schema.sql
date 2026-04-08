@@ -57,7 +57,24 @@ CREATE TABLE ticket_history (
   reason VARCHAR(200)
 );
 
+CREATE TYPE waitlist_entry_status AS ENUM (
+  'active',
+  'consumed',
+  'expired'
+);
+
+CREATE TABLE waitlist_entries (
+  id BIGSERIAL PRIMARY KEY,
+  event_id BIGINT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  buyer_email VARCHAR(255) NOT NULL,
+  status waitlist_entry_status NOT NULL DEFAULT 'active',
+  enrolled_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX idx_tickets_status_expires_at ON tickets(status, expires_at);
 CREATE INDEX idx_tickets_event_id ON tickets(event_id);
 CREATE INDEX idx_payments_ticket_id ON payments(ticket_id);
 CREATE INDEX idx_payments_status ON payments(status);
+CREATE UNIQUE INDEX idx_waitlist_entries_active_unique
+  ON waitlist_entries (event_id, buyer_email)
+  WHERE status = 'active';
