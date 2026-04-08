@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using CrudService.Application.Interfaces;
 using CrudService.Infrastructure.Messaging;
 using CrudService.Infrastructure.Sse;
 using Microsoft.Extensions.Logging;

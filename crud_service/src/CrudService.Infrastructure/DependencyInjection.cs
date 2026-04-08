@@ -4,7 +4,10 @@ using CrudService.Infrastructure.Persistence.Repositories;
 using CrudService.Infrastructure.Messaging;
 using CrudService.Infrastructure.Strategies;
 using CrudService.Infrastructure.Services;
+using CrudService.Domain.Entities;
+using CrudService.Domain.Enums;
 using CrudService.Domain.Interfaces;
+using CrudService.Application.Interfaces;
 using CrudService.Application.Services;
 using CrudService.Application.UseCases.Waitlist.EnrollInWaitlist;
 using CrudService.Application.UseCases.Waitlist.GetWaitlistStatus;
@@ -12,6 +15,8 @@ using CrudService.Application.UseCases.Waitlist.AssignOpportunity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
+using Npgsql.NameTranslation;
 
 namespace CrudService.Infrastructure;
 
@@ -27,9 +32,21 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        // NpgsqlDataSource with enum mappings (snake_case name translator
+        // replaces the [PgName] attributes that were previously in Domain)
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+        var snakeCaseTranslator = new NpgsqlSnakeCaseNameTranslator();
+        dataSourceBuilder.MapEnum<TicketStatus>(nameTranslator: snakeCaseTranslator);
+        dataSourceBuilder.MapEnum<PaymentStatus>(nameTranslator: snakeCaseTranslator);
+        dataSourceBuilder.MapEnum<WaitlistEntryStatus>(nameTranslator: snakeCaseTranslator);
+        dataSourceBuilder.MapEnum<WaitlistOpportunityStatus>(nameTranslator: snakeCaseTranslator);
+        dataSourceBuilder.MapEnum<NotificationDeliveryStatus>(nameTranslator: snakeCaseTranslator);
+        var dataSource = dataSourceBuilder.Build();
+
         // DbContext (Scoped: una conexión por request HTTP)
         services.AddDbContext<TicketingDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+            options.UseNpgsql(dataSource));
 
         // Repositorios (Scoped: viven en ciclo del request)
         services.AddScoped<IEventRepository, EventRepository>();
@@ -49,7 +66,12 @@ public static class DependencyInjection
         services.AddScoped<IPrioritizationStrategy, FifoStrategy>();
         services.AddScoped<ITicketReservationPort, TicketReservationAdapter>();
         services.AddScoped<IOpportunityObserver, OpportunityActivatedObserver>();
+        services.AddScoped<IOpportunityObserver, EmailNotificationObserver>();
         services.AddScoped<IAssignOpportunityUseCase, AssignOpportunityHandler>();
+
+        // Email notification ports
+        services.AddScoped<IEmailSender, LogEmailSender>();
+        services.AddScoped<INotificationDeliveryRepository, NotificationDeliveryRepository>();
 
         // SSE hub (Singleton: correlaciona ticketId con conexiones activas)
         services.AddSingleton<TicketStatusHub>();

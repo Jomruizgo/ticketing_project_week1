@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using CrudService.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 
 namespace CrudService.Infrastructure.Sse;
