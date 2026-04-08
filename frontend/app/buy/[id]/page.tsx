@@ -13,6 +13,7 @@ import { waitForTicketStatusSse } from "@/hooks/use-ticket-status-sse"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
 import { WaitlistEnrollForm } from "@/components/waitlist-enroll-form"
+import { WaitlistStatus } from "@/components/waitlist-status"
 
 type PurchaseStep = "form" | "processing" | "reserved" | "success" | "error"
 type PaymentProgress = "idle" | "processing" | "success" | "error"
@@ -253,7 +254,19 @@ export default function BuyerEventPage() {
           <div className="rounded-xl border border-border bg-card p-6">
             {availableTickets.length === 0 && step === "form" ? (
               new Date(event.startsAt) > new Date() ? (
-                <WaitlistEnrollForm eventId={eventId} />
+                <div className="flex flex-col gap-6">
+                  <WaitlistEnrollForm eventId={eventId} />
+                  <WaitlistStatus
+                    eventId={eventId}
+                    onClaimSuccess={(ticketId) => {
+                      setReservedCount(1)
+                      setReservedTicketIds([ticketId])
+                      setPaymentStates({ [ticketId]: "idle" })
+                      setPaymentErrors({})
+                      setStep("reserved")
+                    }}
+                  />
+                </div>
               ) : (
                 <div className="flex flex-col gap-2 py-4">
                   <h2 className="text-lg font-semibold text-foreground">

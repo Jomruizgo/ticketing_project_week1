@@ -7,6 +7,8 @@ import type {
   ReserveTicketPayload,
   UpdateTicketPayload,
   WaitlistEntryDto,
+  WaitlistStatusResponse,
+  ClaimOpportunityResponse,
 } from "./types"
 
 const CRUD_URL = process.env.NEXT_PUBLIC_API_CRUD || "http://localhost:8002"
@@ -218,6 +220,28 @@ export const api = {
     }
 
     throw new ApiError(res.status, `Error ${res.status}`)
+  },
+
+  async getWaitlistStatus(eventId: number, email: string): Promise<WaitlistStatusResponse> {
+    const res = await fetch(
+      `${CRUD_URL}/api/waitlist/entries?eventId=${eventId}&email=${encodeURIComponent(email)}`
+    )
+    return handleResponse<WaitlistStatusResponse>(res)
+  },
+
+  async claimOpportunity(opportunityId: number, buyerEmail: string): Promise<ClaimOpportunityResponse> {
+    let res: Response
+    try {
+      res = await fetch(`${CRUD_URL}/api/waitlist/opportunities/${opportunityId}/claim`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ buyerEmail }),
+      })
+    } catch {
+      throw new ApiError(0, "Error de red al conectar con el servidor")
+    }
+
+    return handleResponse<ClaimOpportunityResponse>(res)
   },
 
   // ─── Health ───────────────────────────────────────────

@@ -56,3 +56,24 @@ export interface WaitlistEntryDto {
   status: string
   enrolledAt: string
 }
+
+export interface WaitlistOpportunityDto {
+  id: number
+  ticketId: number
+  status: string
+  activatedAt: string | null
+  expiresAt: string | null
+  remainingMinutes: number
+}
+
+export interface WaitlistStatusResponse {
+  entry: WaitlistEntryDto
+  opportunity: WaitlistOpportunityDto | null
+}
+
+export interface ClaimOpportunityResponse {
+  opportunityId: number
+  ticketId: number
+  eventId: number
+  status: string
+}
