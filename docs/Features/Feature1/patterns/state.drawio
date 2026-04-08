@@ -64,7 +64,7 @@
                 <mxCell id="cd_title" value="&lt;b&gt;Diagrama de clases&lt;/b&gt;" style="text;html=1;align=left;fontSize=12;" parent="1" vertex="1">
                     <mxGeometry x="40" y="280" width="200" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="enum" value="&lt;&lt;enumeration&gt;&gt;&#xa;OpportunityStatus" style="swimlane;fontStyle=3;align=center;startSize=40;fontSize=11;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+                <mxCell id="enum" value="&lt;&lt;enumeration&gt;&gt;&#xa;WaitlistOpportunityStatus" style="swimlane;fontStyle=3;align=center;startSize=40;fontSize=11;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
                     <mxGeometry x="67" y="340" width="180" height="140" as="geometry"/>
                 </mxCell>
                 <mxCell id="e1" value="Pending" style="text;align=left;fontSize=10;spacingLeft=4;" parent="enum" vertex="1">
@@ -83,31 +83,37 @@
                     <mxGeometry y="120" width="180" height="20" as="geometry"/>
                 </mxCell>
                 <mxCell id="entity" value="WaitlistOpportunity" style="swimlane;fontStyle=1;align=center;startSize=26;fontSize=11;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
-                    <mxGeometry x="340" y="320" width="340" height="180" as="geometry"/>
+                    <mxGeometry x="340" y="320" width="340" height="230" as="geometry"/>
                 </mxCell>
-                <mxCell id="ef1" value="+ Id: int" style="text;align=left;fontSize=10;spacingLeft=4;" parent="entity" vertex="1">
+                <mxCell id="ef1" value="+ Id: long" style="text;align=left;fontSize=10;spacingLeft=4;" parent="entity" vertex="1">
                     <mxGeometry y="26" width="340" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="ef2" value="+ WaitlistEntryId: int" style="text;align=left;fontSize=10;spacingLeft=4;" parent="entity" vertex="1">
+                <mxCell id="ef2" value="+ WaitlistEntryId: long" style="text;align=left;fontSize=10;spacingLeft=4;" parent="entity" vertex="1">
                     <mxGeometry y="46" width="340" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="ef3" value="+ TicketId: int" style="text;align=left;fontSize=10;spacingLeft=4;" parent="entity" vertex="1">
+                <mxCell id="ef3" value="+ TicketId: long" style="text;align=left;fontSize=10;spacingLeft=4;" parent="entity" vertex="1">
                     <mxGeometry y="66" width="340" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="ef4" value="+ Status: OpportunityStatus {private set}" style="text;align=left;fontSize=10;spacingLeft=4;" parent="entity" vertex="1">
+                <mxCell id="ef4" value="+ Status: WaitlistOpportunityStatus { set }" style="text;align=left;fontSize=10;spacingLeft=4;" parent="entity" vertex="1">
                     <mxGeometry y="86" width="340" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="ef5" value="+ CreatedAt: DateTime" style="text;align=left;fontSize=10;spacingLeft=4;" parent="entity" vertex="1">
+                <mxCell id="ef5" value="+ ActivatedAt: DateTime?" style="text;align=left;fontSize=10;spacingLeft=4;" parent="entity" vertex="1">
                     <mxGeometry y="106" width="340" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="ef6" value="+ ActivatedAt: DateTime?" style="text;align=left;fontSize=10;spacingLeft=4;" parent="entity" vertex="1">
+                <mxCell id="ef5b" value="+ ExpiresAt: DateTime?" style="text;align=left;fontSize=10;spacingLeft=4;" parent="entity" vertex="1">
                     <mxGeometry y="126" width="340" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="esep" value="" style="line;strokeWidth=1;" parent="entity" vertex="1">
-                    <mxGeometry y="146" width="340" height="4" as="geometry"/>
+                <mxCell id="ef5c" value="+ ExpiredAt: DateTime?" style="text;align=left;fontSize=10;spacingLeft=4;" parent="entity" vertex="1">
+                    <mxGeometry y="146" width="340" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="em1" value="+ TransitionTo(newStatus: OpportunityStatus): void" style="text;align=left;fontSize=10;spacingLeft=4;" parent="entity" vertex="1">
-                    <mxGeometry y="150" width="340" height="24" as="geometry"/>
+                <mxCell id="ef5d" value="+ ExpirationReason: string?" style="text;align=left;fontSize=10;spacingLeft=4;" parent="entity" vertex="1">
+                    <mxGeometry y="166" width="340" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="esep" value="" style="line;strokeWidth=1;" parent="entity" vertex="1">
+                    <mxGeometry y="186" width="340" height="4" as="geometry"/>
+                </mxCell>
+                <mxCell id="em1" value="+ TransitionTo(newStatus: WaitlistOpportunityStatus): void" style="text;align=left;fontSize=10;spacingLeft=4;" parent="entity" vertex="1">
+                    <mxGeometry y="190" width="340" height="24" as="geometry"/>
                 </mxCell>
                 <mxCell id="assoc1" style="endArrow=open;endFill=1;strokeColor=#333333;" parent="1" source="entity" target="enum" edge="1">
                     <mxGeometry relative="1" as="geometry"/>

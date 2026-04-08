@@ -16,28 +16,35 @@ Ver [state.drawio](state.drawio) — contiene el diagrama de estados y el diagra
 // Domain/Entities/WaitlistOpportunity.cs
 public class WaitlistOpportunity
 {
-    public OpportunityStatus Status { get; private set; }
+    public long Id { get; set; }
+    public long WaitlistEntryId { get; set; }
+    public long TicketId { get; set; }
+    public WaitlistOpportunityStatus Status { get; set; } = WaitlistOpportunityStatus.Pending;
+    public DateTime? ActivatedAt { get; set; }
+    public DateTime? ExpiresAt { get; set; }
+    public DateTime? ExpiredAt { get; set; }
+    public string? ExpirationReason { get; set; }
 
-    private static readonly Dictionary<OpportunityStatus, HashSet<OpportunityStatus>> AllowedTransitions = new()
+    private static readonly Dictionary<WaitlistOpportunityStatus, HashSet<WaitlistOpportunityStatus>> AllowedTransitions = new()
     {
-        [OpportunityStatus.Pending] = new() { OpportunityStatus.Active, OpportunityStatus.Failed },
-        [OpportunityStatus.Active]  = new() { OpportunityStatus.Consumed, OpportunityStatus.Expired },
+        [WaitlistOpportunityStatus.Pending] = new() { WaitlistOpportunityStatus.Active, WaitlistOpportunityStatus.Failed },
+        [WaitlistOpportunityStatus.Active]  = new() { WaitlistOpportunityStatus.Consumed, WaitlistOpportunityStatus.Expired },
     };
 
-    public void TransitionTo(OpportunityStatus newStatus)
+    public void TransitionTo(WaitlistOpportunityStatus newStatus)
     {
         if (!AllowedTransitions.TryGetValue(Status, out var allowed) || !allowed.Contains(newStatus))
             throw new InvalidOpportunityTransitionException(Status, newStatus);
 
         Status = newStatus;
 
-        if (newStatus == OpportunityStatus.Active)
+        if (newStatus == WaitlistOpportunityStatus.Active)
             ActivatedAt = DateTime.UtcNow;
     }
 }
 ```
 
-> **Nota de implementación (HU3)**: La implementación actual usa `public set` en lugar de `private set` para mantener compatibilidad con los tests existentes de HU2 (`GetWaitlistStatusHandlerTests`), que asignan `Status` directamente al construir datos de prueba. La protección de transiciones se garantiza mediante `TransitionTo` en la lógica de negocio.
+> **Nota de implementación**: La entidad usa `public set` para mantener compatibilidad con tests que asignan `Status` directamente al construir datos de prueba. La protección de transiciones se garantiza mediante `TransitionTo` en la lógica de negocio.
 
 ## Por qué hace el código más escalable
 

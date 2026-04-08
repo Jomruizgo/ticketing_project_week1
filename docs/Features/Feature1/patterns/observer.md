@@ -16,13 +16,12 @@ Ver [observer.drawio](observer.drawio) — abrir con draw.io o VS Code con exten
 // Domain/Interfaces/IOpportunityObserver.cs
 public interface IOpportunityObserver
 {
-    Task OnOpportunityActivatedAsync(WaitlistOpportunity opportunity);
+    Task OnOpportunityActivatedAsync(OpportunityActivatedEvent activatedEvent);
+    Task OnOpportunityExpiredAsync(WaitlistOpportunity opportunity);
 }
 ```
 
-> **Estado actual (HU3)**: La interfaz recibe la entidad `WaitlistOpportunity` directamente. `OnOpportunityActivatedAsync` es el único método. El handler inyecta un **solo** `IOpportunityObserver` (no `IEnumerable`), y el DI registra `OpportunityActivatedObserver` como única implementación.
->
-> **Refactor planificado (HU5)**: Se refactorizará la interfaz para recibir un record tipado `OpportunityActivatedEvent` (a definir en Domain) que incluya `EventName` resuelto upstream, siguiendo Tell Don't Ask. Se cambiará el handler a `IEnumerable<IOpportunityObserver>` para soportar múltiples observers (RabbitMQ + Email). Se agregará `OnOpportunityExpiredAsync` al implementar HU6.
+> **Implementación actual**: La interfaz recibe un record tipado `OpportunityActivatedEvent` (definido en `Domain/Events/`) con `EventName` resuelto upstream, siguiendo Tell Don't Ask. El handler inyecta `IEnumerable<IOpportunityObserver>` y notifica a todos los observers registrados: `OpportunityActivatedObserver` (publica a RabbitMQ) y `EmailNotificationObserver` (envía correo y persiste notificación).
 
 ### Handler (Application)
 
@@ -30,19 +29,20 @@ public interface IOpportunityObserver
 // Application/UseCases/AssignOpportunity/AssignOpportunityHandler.cs
 public class AssignOpportunityHandler
 {
-    private readonly IOpportunityObserver _observer;
+    private readonly IEnumerable<IOpportunityObserver> _observers;
     // ... otros puertos
 
     public async Task HandleAsync(AssignOpportunityCommand command)
     {
         // ... lógica de asignación (buscar elegible, reservar ticket, crear oportunidad)
 
-        await _observer.OnOpportunityActivatedAsync(opportunity);
+        foreach (var observer in _observers)
+            await observer.OnOpportunityActivatedAsync(activatedEvent);
     }
 }
 ```
 
-> **Estado actual**: El handler inyecta un solo `IOpportunityObserver`. El refactor a `IEnumerable<IOpportunityObserver>` se realizará en HU5 cuando se agregue `EmailNotificationObserver` como segundo observer.
+> **Estado actual**: El handler inyecta `IEnumerable<IOpportunityObserver>` y notifica a ambos observers. El refactor de HU3→HU5 ya fue completado.
 
 ### Adaptadores (Infrastructure)
 
@@ -50,24 +50,33 @@ public class AssignOpportunityHandler
 // Infrastructure/Messaging/OpportunityActivatedObserver.cs
 public class OpportunityActivatedObserver : IOpportunityObserver
 {
-    public async Task OnOpportunityActivatedAsync(WaitlistOpportunity opportunity)
+    public async Task OnOpportunityActivatedAsync(OpportunityActivatedEvent activatedEvent)
     {
-        // Construye OpportunityActivatedEvent (class en Infrastructure/Messaging/)
         // Serializa y publica a exchange RabbitMQ "tickets"
         // routing key: waitlist.opportunity.activated
         // Publica delay message a q.waitlist.opportunity.delay
     }
+
+    public async Task OnOpportunityExpiredAsync(WaitlistOpportunity opportunity)
+    {
+        // Publica waitlist.opportunity.expired a RabbitMQ
+    }
 }
 
-// Infrastructure/Services/EmailNotificationObserver.cs (HU5 — futuro)
+// Infrastructure/Services/EmailNotificationObserver.cs
 public class EmailNotificationObserver : IOpportunityObserver
 {
-    public async Task OnOpportunityActivatedAsync(WaitlistOpportunity opportunity)
+    public async Task OnOpportunityActivatedAsync(OpportunityActivatedEvent activatedEvent)
     {
         // Crea registro pending en notification_deliveries
         // Envía correo vía IEmailSender
         // Actualiza registro a sent/failed según resultado
         // Fallo aislado: no propaga excepciones
+    }
+
+    public async Task OnOpportunityExpiredAsync(WaitlistOpportunity opportunity)
+    {
+        // No-op: la expiración no requiere correo adicional
     }
 }
 ```

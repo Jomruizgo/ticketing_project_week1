@@ -63,7 +63,7 @@
         <mxGeometry height="120" width="240" x="470" y="530" as="geometry" />
       </mxCell>
     </object>
-    <mxCell id="a9" edge="1" parent="sys" source="7VVC1Yvj32ms7alTp6X5-6" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;strokeColor=#82b366;strokeWidth=2;exitPerimeter=0;entryPerimeter=0;" target="7VVC1Yvj32ms7alTp6X5-8" value="Solicita reserva temporal ++&lt;br&gt;HTTP">
+    <mxCell id="a9" edge="1" parent="sys" source="7VVC1Yvj32ms7alTp6X5-6" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;strokeColor=#82b366;strokeWidth=2;exitPerimeter=0;entryPerimeter=0;" target="7VVC1Yvj32ms7alTp6X5-9" value="Reserva temporal de ticket ++&lt;br&gt;SQL (DB directa)">
       <mxGeometry relative="1" as="geometry">
         <Array as="points">
           <mxPoint x="1300" y="590" />
@@ -120,7 +120,7 @@
         <mxPoint x="32" y="740" as="targetPoint" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="a11" edge="1" parent="1" source="7VVC1Yvj32ms7alTp6X5-6" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeColor=#82b366;strokeWidth=2;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="7VVC1Yvj32ms7alTp6X5-24" value="Solicita envío de correo ++&lt;br&gt;HTTPS">
+    <mxCell id="a11" edge="1" parent="1" source="7VVC1Yvj32ms7alTp6X5-6" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeColor=#82b366;strokeWidth=2;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="7VVC1Yvj32ms7alTp6X5-24" value="Solicita envío de correo ++ (stub)&lt;br&gt;Log">
       <mxGeometry relative="1" as="geometry">
         <Array as="points">
           <mxPoint x="1048" y="1103" />

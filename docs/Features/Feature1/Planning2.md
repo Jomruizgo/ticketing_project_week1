@@ -25,6 +25,8 @@ Hoy, cuando un evento se queda sin disponibilidad inmediata, los compradores int
 - Una entrada se considera liberada cuando: (a) una reserva existente vence sin pago completado, o (b) un pago es rechazado. En ambos casos el sistema detecta la liberación automáticamente y activa el proceso de lista de espera.
 - Cuando una entrada queda libre, la lista de espera tiene prioridad antes de que esa entrada vuelva al inventario general. Solo si no hay ningún comprador elegible en la lista de espera, la entrada queda disponible para compra directa.
 - El comprador se identifica con su correo electrónico; no existe un sistema de usuarios con autenticación previa. El correo es suficiente para registrar el interés y recibir avisos.
+- La lista de espera tiene un límite global de tamaño configurable; cuando se alcanza, las nuevas inscripciones son rechazadas hasta que alguna inscripción activa deje de estarlo.
+- La inscripción en lista de espera no depende de la disponibilidad actual de entradas a nivel del sistema; la experiencia del comprador en la aplicación decide cuándo ofrecer la opción de lista de espera.
 
 ---
 
@@ -37,6 +39,7 @@ Hoy, cuando un evento se queda sin disponibilidad inmediata, los compradores int
 - El comprador puede enterarse de su oportunidad dentro de la aplicación, en tiempo real.
 - El comprador recibe una notificación por correo electrónico como canal de aviso complementario.
 - La oportunidad tiene un estado visible, trazable y coherente para el comprador, soporte y negocio.
+- El comprador con una oportunidad activa puede reclamarla para avanzar al flujo de pago; al hacerlo, la oportunidad pasa a estado utilizada y la entrada sigue el ciclo normal de compra.
 - Una vez que la oportunidad fue utilizada o expiró, el comprador puede volver a inscribirse mientras la lista siga vigente.
 - La lista de espera cierra al alcanzarse la fecha del evento; después no se aceptan inscripciones ni se asignan oportunidades.
 
@@ -66,6 +69,8 @@ Hoy, cuando un evento se queda sin disponibilidad inmediata, los compradores int
 | **Política de liberación** | Si una oportunidad vence, la entrada queda libre e inmediatamente el sistema intenta asignarla al siguiente comprador en espera; si no hay nadie más, la entrada vuelve al inventario general sin prioridad especial. |
 | **Reinscripción** | Inscripción nueva que un comprador realiza después de que su oportunidad anterior fue utilizada o expiró. Es válida mientras la lista de espera del evento esté vigente. |
 | **Vigencia de la lista de espera** | La lista acepta inscripciones y genera oportunidades solo hasta la fecha del evento. Al alcanzarse esa fecha, la lista cierra y las inscripciones activas sin oportunidad se cierran sin asignación. |
+| **Lista de espera llena** | La lista de espera tiene un límite global de tamaño configurable. Cuando se alcanza ese límite, el sistema no acepta nuevas inscripciones hasta que alguna inscripción activa deje de estarlo. |
+| **Oportunidad fallida** | Estado interno de trazabilidad: el sistema intentó reservar una entrada para el comprador elegible pero la confirmación no fue exitosa. La oportunidad queda registrada como fallida, y la inscripción del comprador permanece activa para el siguiente intento. Este estado no es visible para el comprador. |
 
 ---
 
@@ -119,6 +124,13 @@ Scenario: Reinscripción válida después de oportunidad utilizada o expirada
   When el comprador solicita unirse nuevamente a la lista de espera
   Then el sistema registra una nueva inscripción activa
   And el sistema confirma que su interés fue registrado nuevamente
+
+Scenario: Lista de espera llena
+  Given un evento sin disponibilidad inmediata
+  And la lista de espera de ese evento alcanzó el límite máximo de inscripciones configurado
+  When un comprador solicita unirse a la lista de espera
+  Then el sistema rechaza la inscripción
+  And el sistema informa que la lista de espera de ese evento está llena
 ```
 
 #### DoR
@@ -130,6 +142,7 @@ Scenario: Reinscripción válida después de oportunidad utilizada o expirada
 - Está claro el mensaje de confirmación que verá el comprador.
 - Está claro el mensaje de rechazo que verá el comprador en cada caso.
 - Está definido que la reinscripción es válida solo cuando la inscripción/oportunidad anterior ya no está activa.
+- Está definido el límite global de inscripciones activas por lista de espera y que es configurable sin necesidad de un despliegue.
 
 #### DoD
 
@@ -138,7 +151,8 @@ Scenario: Reinscripción válida después de oportunidad utilizada o expirada
 - La inscripción queda disponible para consulta posterior.
 - El sistema rechaza inscripciones cuando la lista de espera del evento ya cerró.
 - El sistema permite reinscripción cuando la inscripción u oportunidad anterior ya no está activa.
-- QA y negocio pueden validar los cuatro escenarios anteriores.
+- El sistema rechaza inscripciones cuando la lista de espera está llena y lo comunica al comprador.
+- QA y negocio pueden validar los cinco escenarios anteriores.
 
 **Estimación: 3 puntos**
 
@@ -317,8 +331,6 @@ Scenario: Consulta posterior del estado si el comprador sigue navegando
 - La notificación in-app deja claro que la entrada está retenida temporalmente para ese comprador.
 - Negocio y QA validan que la comunicación in-app sea suficientemente clara.
 
-> **Decisión de implementación (spec 004)**: La notificación SSE NO se implementa como un segundo `IOpportunityObserver` in-process, sino mediante un consumer RabbitMQ dedicado (`SseNotificationConsumer`) que escucha `waitlist.opportunity.activated` (publicado por `OpportunityActivatedObserver` de HU3) y despacha al hub SSE. Esta decisión soporta escalamiento horizontal: cualquier instancia del CRUD Service que tenga la conexión SSE del comprador puede emitir la notificación. Adicionalmente, el endpoint SSE valida formato de email (400) y limita conexiones concurrentes por email vía `SSE_MAX_CONNECTIONS_PER_EMAIL` (429). Keep-alive configurable vía `SSE_KEEPALIVE_INTERVAL_SECONDS`. Ver `specs/004-inapp-notification/spec.md` Clarifications.
-
 **Estimación: 5 puntos**
 
 ---
@@ -380,8 +392,6 @@ Scenario: Fallo en el envío del correo
 - El correo deja claro que es un aviso y no reemplaza el estado oficial.
 - El intento de envío queda auditado con resultado y momento, tanto en caso de éxito como de fallo.
 - QA y negocio validan el contenido y el momento del envío.
-
-> **Decisión de implementación (spec 005)**: La interfaz `IOpportunityObserver.OnOpportunityActivatedAsync` actualmente recibe la entidad `WaitlistOpportunity` directamente (estado de HU3). En HU5 se planifica refactorizarla para recibir un record tipado `OpportunityActivatedEvent` (a definir en Domain) que incluya `EventName` resuelto upstream por el handler de asignación (que tiene acceso a `IEventRepository`). Esto seguirá el principio Tell Don't Ask del patrón Observer canónico (GoF): el publicador enriquecerá el payload una sola vez, evitando que N observers hagan queries redundantes. Este refactor también cambiará el handler de inyectar un solo `IOpportunityObserver` a `IEnumerable<IOpportunityObserver>` para soportar múltiples observers (RabbitMQ + Email). Adicionalmente, el registro de auditoría en `notification_deliveries` usa un ciclo de vida de tres estados (`pending → sent | failed`) con inmutabilidad tras estado terminal, en vez de append-only puro. Ver `specs/005-email-notification/spec.md` Clarifications.
 
 **Estimación: 8 puntos**
 
@@ -556,6 +566,28 @@ Scenario: El comprador ve que su oportunidad expiró
   When el comprador consulta su estado desde la aplicación
   Then la aplicación muestra que la oportunidad ha expirado
   And la aplicación no muestra acción de pago
+
+Scenario: El comprador ve que su oportunidad fue utilizada
+  Given un comprador cuya oportunidad fue reclamada para avanzar al pago
+  When el comprador consulta su estado desde la aplicación
+  Then la aplicación muestra que la oportunidad fue utilizada
+  And la aplicación no muestra acción de pago ni cuenta regresiva
+
+Scenario: El comprador intenta avanzar al pago pero la oportunidad ya expiró
+  Given un comprador con una oportunidad que acaba de vencer
+  When el comprador intenta avanzar al pago desde la aplicación
+  Then la aplicación informa que la oportunidad ya no está activa
+  And la aplicación actualiza la vista al estado de oportunidad expirada
+
+Scenario: El comprador intenta avanzar al pago con un correo que no corresponde
+  Given un comprador que intenta actuar sobre una oportunidad con un correo electrónico diferente al del comprador asignado
+  When el comprador intenta avanzar al pago desde la aplicación
+  Then la aplicación informa que la oportunidad no pertenece al comprador indicado
+
+Scenario: Comprador sin inscripción consulta su estado
+  Given un comprador que no tiene inscripción en la lista de espera de un evento
+  When el comprador consulta su estado desde la aplicación
+  Then la aplicación muestra que no existe inscripción para ese comprador
 ```
 
 #### DoR
@@ -563,15 +595,22 @@ Scenario: El comprador ve que su oportunidad expiró
 - Están definidos los estados visibles en la aplicación: inscripción activa, oportunidad activa con tiempo restante, oportunidad utilizada, oportunidad expirada.
 - Está definido qué significa "actuar sobre una oportunidad activa": el comprador avanza al flujo de pago desde esa oportunidad, y en ese momento la oportunidad pasa a estado utilizada.
 - Está definido que la información visible en la aplicación debe ser coherente con el estado real del sistema en todo momento.
-- Están disponibles los endpoints de backend que soportan los flujos de HU2 y HU3.
+- Está definido qué sucede cuando el comprador intenta avanzar al pago pero la oportunidad ya expiró: el sistema rechaza la acción e informa que la oportunidad ya no está disponible.
+- Está definido qué sucede cuando el correo electrónico proporcionado no corresponde al comprador asignado: el sistema rechaza la acción.
+- Está definido qué ve un comprador que consulta sin tener inscripción: el sistema informa que no existe inscripción.
+- Están disponibles los endpoints de backend que soportan los flujos de HU2 y HU3, incluyendo la acción de reclamar la oportunidad.
 
 #### DoD
 
 - El comprador puede consultar su estado actual desde la aplicación y distinguir entre inscripción activa, oportunidad activa, oportunidad utilizada y oportunidad expirada.
 - El comprador puede actuar sobre una oportunidad activa desde la aplicación, avanzando al flujo de pago; en ese momento la oportunidad pasa a utilizada.
 - La aplicación muestra el tiempo restante de vigencia cuando el comprador tiene una oportunidad activa.
+- La aplicación muestra correctamente el estado de oportunidad utilizada cuando el comprador ya avanzó al pago.
+- La aplicación informa adecuadamente al comprador cuando intenta avanzar al pago pero la oportunidad ya expiró.
+- La aplicación informa adecuadamente cuando el correo proporcionado no corresponde al comprador asignado.
+- La aplicación muestra un mensaje claro cuando un comprador sin inscripción consulta su estado.
 - La información visible es coherente con el estado real del sistema.
-- QA y negocio validan cada flujo desde la perspectiva del comprador en la aplicación.
+- QA y negocio validan cada flujo desde la perspectiva del comprador en la aplicación, incluyendo los escenarios de rechazo.
 
 **Estimación: 5 puntos**
 
@@ -741,6 +780,12 @@ Cada patrón tiene su documentación detallada con diagrama de clases UML y frag
 - [Strategy — Política de priorización](patterns/strategy.md)
 - [State — Ciclo de vida de la oportunidad](patterns/state.md)
 - [Command — Casos de uso como objetos](patterns/command.md)
+
+### Decisiones de diseño sobre canales de notificación
+
+- **Distribución de la notificación en tiempo real:** la notificación dentro de la aplicación se distribuye a través del sistema de mensajería, no dentro del mismo proceso que asigna la oportunidad. Esto permite que cualquier instancia del servicio que tenga una conexión activa con el comprador pueda emitir el aviso, soportando la operación con múltiples instancias sin perder notificaciones. Además, el sistema limita la cantidad de conexiones simultáneas por comprador y envía señales periódicas para mantener la conexión abierta.
+- **Enriquecimiento del aviso en el punto de asignación:** cuando el sistema asigna una oportunidad, incluye el nombre del evento una sola vez al momento de publicar el aviso. De este modo, cada canal de notificación (aplicación y correo) recibe la información completa sin que cada uno tenga que buscarla por separado.
+- **Registro de auditoría de notificaciones por correo:** cada intento de envío de correo queda registrado con su resultado (enviado o fallido) en un registro que no se modifica después de resolverse. El registro transiciona de "pendiente" a "enviado" o "fallido" exactamente una vez. Un fallo en el envío no afecta el estado de la oportunidad del comprador.
 
 ### Herramientas de soporte que pueden ayudar a cubrir reglas de negocio
 

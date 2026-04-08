@@ -183,6 +183,26 @@ services:
       - ticketing_network
     restart: unless-stopped
 
+  # Frontend - Next.js application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_CRUD=http://localhost:${CRUD_PORT}
+        - NEXT_PUBLIC_API_PRODUCER=http://localhost:${PRODUCER_PORT}
+    container_name: ticketing_frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      crud-service:
+        condition: service_healthy
+      producer:
+        condition: service_healthy
+    networks:
+      - ticketing_network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   rabbitmq_data:

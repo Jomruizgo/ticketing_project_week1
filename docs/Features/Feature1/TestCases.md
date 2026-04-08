@@ -108,6 +108,25 @@ Resultado esperado:
 
 ---
 
+### TC-HU1-06 — Rechazo cuando la lista de espera está llena
+Tipo: A
+Técnica: VL — valor límite: la cantidad de inscripciones activas alcanza exactamente el límite global configurado.
+Gherkin: "Lista de espera llena"
+
+Precondiciones:
+- Existe un evento sin disponibilidad inmediata.
+- La lista de espera del evento tiene exactamente el número máximo de inscripciones activas configurado en el sistema.
+
+Pasos:
+1. Un comprador nuevo envía una solicitud de inscripción para ese evento.
+
+Resultado esperado:
+- El sistema rechaza la solicitud.
+- La respuesta informa que la lista de espera de ese evento está llena.
+- No se crea ningún registro adicional.
+
+---
+
 ## HU2 — Consulta de estado
 
 ### TC-HU2-01 — Ver inscripción activa
@@ -178,6 +197,24 @@ Pasos:
 Resultado esperado:
 - Cada escenario devuelve el estado correcto sin ambigüedad.
 - No se devuelve nunca un estado inexistente o nulo.
+
+---
+
+### TC-HU2-05 — Ver oportunidad utilizada
+Tipo: A
+Técnica: PE — clase válida: comprador cuya oportunidad fue utilizada para avanzar al pago.
+Gherkin: "Ver oportunidad utilizada"
+
+Precondiciones:
+- El comprador tiene una oportunidad cuyo estado es utilizada (el comprador avanzó al pago desde esa oportunidad).
+
+Pasos:
+1. El comprador consulta su estado para ese evento.
+
+Resultado esperado:
+- La respuesta muestra la oportunidad en estado utilizada.
+- No se muestra ninguna acción de pago pendiente para ese comprador.
+- No se muestra cuenta regresiva ni reserva temporal activa.
 
 ---
 
@@ -495,10 +532,12 @@ Resultado esperado:
 | TC-HU1-03 | HU1 | A | VL | Lista cerrada |
 | TC-HU1-04 | HU1 | A | TE | Reinscripción válida |
 | TC-HU1-05 | HU1 | I | SE | Unicidad en base de datos |
+| TC-HU1-06 | HU1 | A | VL | Lista de espera llena |
 | TC-HU2-01 | HU2 | A | PE | Inscripción activa |
 | TC-HU2-02 | HU2 | A | PE + VL | Oportunidad activa con tiempo restante |
 | TC-HU2-03 | HU2 | A | VL | Oportunidad expirada |
 | TC-HU2-04 | HU2 | U | TD | Distinción entre cuatro estados |
+| TC-HU2-05 | HU2 | A | PE | Oportunidad utilizada |
 | TC-HU3-01 | HU3 | A | CP | Asignación exitosa |
 | TC-HU3-02 | HU3 | U | PE | Sin compradores |
 | TC-HU3-03 | HU3 | U | SE | Fallo en reserva temporal |
@@ -665,6 +704,77 @@ Resultado esperado:
 
 ---
 
+### TC-HU8-05 — El comprador ve que su oportunidad fue utilizada desde la aplicación
+Tipo: A
+Técnica: PE — clase válida: comprador cuya oportunidad fue reclamada, consulta su estado.
+Gherkin: "El comprador ve que su oportunidad fue utilizada"
+
+Precondiciones:
+- La oportunidad del comprador fue reclamada para avanzar al pago.
+
+Pasos:
+1. El comprador consulta su estado desde la aplicación.
+
+Resultado esperado:
+- La aplicación muestra que la oportunidad fue utilizada.
+- La aplicación no muestra acción de pago ni cuenta regresiva.
+
+---
+
+### TC-HU8-06 — El comprador intenta avanzar al pago pero la oportunidad ya expiró
+Tipo: A
+Técnica: SE — suposición de errores: condición de carrera entre la cuenta regresiva del cliente y la expiración en el servidor.
+Gherkin: "El comprador intenta avanzar al pago pero la oportunidad ya expiró"
+
+Precondiciones:
+- El comprador tiene una oportunidad que acaba de vencer en el servidor.
+- La aplicación aún muestra la oportunidad como activa (por latencia).
+
+Pasos:
+1. El comprador intenta avanzar al pago desde la aplicación.
+
+Resultado esperado:
+- La aplicación informa que la oportunidad ya no está activa.
+- La aplicación actualiza la vista al estado de oportunidad expirada.
+- No se redirige al flujo de pago.
+
+---
+
+### TC-HU8-07 — El comprador intenta avanzar al pago con un correo que no corresponde
+Tipo: A
+Técnica: PE — clase inválida: correo electrónico proporcionado no coincide con el asignado a la oportunidad.
+Gherkin: "El comprador intenta avanzar al pago con un correo que no corresponde"
+
+Precondiciones:
+- Existe una oportunidad activa asignada a un comprador específico.
+
+Pasos:
+1. Un comprador proporciona un correo electrónico diferente al del comprador asignado e intenta avanzar al pago.
+
+Resultado esperado:
+- La aplicación informa que la oportunidad no pertenece al comprador indicado.
+- La oportunidad no cambia de estado.
+- No se redirige al flujo de pago.
+
+---
+
+### TC-HU8-08 — Comprador sin inscripción consulta su estado desde la aplicación
+Tipo: A
+Técnica: PE — clase inválida: comprador sin inscripción intenta consultar estado.
+Gherkin: "Comprador sin inscripción consulta su estado"
+
+Precondiciones:
+- El comprador no tiene inscripción en la lista de espera del evento.
+
+Pasos:
+1. El comprador consulta su estado desde la aplicación proporcionando su correo electrónico.
+
+Resultado esperado:
+- La aplicación muestra que no existe inscripción para ese comprador.
+- No se muestra ninguna oportunidad ni acción de pago.
+
+---
+
 ## Escenarios de automatización funcional
 
 Estos escenarios se planifican con Serenity BDD. Su propósito es generar evidencia ejecutable de que la feature cumple los criterios de aceptación acordados, expresados en lenguaje que negocio y QA puedan leer directamente en el reporte.
@@ -827,6 +937,53 @@ Pasos:
 Resultado esperado:
 - La aplicación muestra la oportunidad activa sin que el comprador recargue la página.
 - Se muestra el tiempo restante y la referencia a la reserva temporal.
+
+---
+
+### TC-AUTO-F10 — El comprador ve que su oportunidad fue utilizada
+Enfoque planificado: Front
+Gherkin: "El comprador ve que su oportunidad fue utilizada" (HU8)
+
+Precondiciones:
+- La oportunidad del comprador fue reclamada para avanzar al pago.
+
+Pasos:
+1. El comprador consulta su estado desde la aplicación.
+
+Resultado esperado:
+- La aplicación muestra que la oportunidad fue utilizada.
+- No se muestra acción de pago ni cuenta regresiva.
+
+---
+
+### TC-AUTO-F11 — El comprador intenta avanzar al pago pero la oportunidad ya expiró
+Enfoque planificado: Front
+Gherkin: "El comprador intenta avanzar al pago pero la oportunidad ya expiró" (HU8)
+
+Precondiciones:
+- La oportunidad del comprador acaba de vencer en el servidor.
+
+Pasos:
+1. El comprador intenta avanzar al pago desde la aplicación.
+
+Resultado esperado:
+- La aplicación informa que la oportunidad ya no está activa.
+- La vista se actualiza al estado de oportunidad expirada.
+
+---
+
+### TC-AUTO-F12 — Comprador sin inscripción consulta su estado
+Enfoque planificado: Front
+Gherkin: "Comprador sin inscripción consulta su estado" (HU8)
+
+Precondiciones:
+- El comprador no tiene inscripción en la lista de espera del evento.
+
+Pasos:
+1. El comprador consulta su estado desde la aplicación.
+
+Resultado esperado:
+- La aplicación muestra que no existe inscripción para ese comprador.
 
 ---
 
@@ -1024,6 +1181,38 @@ Resultado esperado:
 
 ---
 
+### TC-AUTO-B12 — Rechazo de inscripción por lista de espera llena
+Enfoque planificado: Back — Serenity REST
+Gherkin: "Lista de espera llena" (HU1)
+
+Precondiciones:
+- La lista de espera del evento tiene exactamente el número máximo de inscripciones activas configurado.
+
+Pasos:
+1. Un comprador nuevo solicita inscribirse en la lista de espera.
+
+Resultado esperado:
+- El sistema rechaza la solicitud.
+- La respuesta informa que la lista de espera está llena.
+
+---
+
+### TC-AUTO-B13 — Consulta de estado con oportunidad utilizada
+Enfoque planificado: Back — Serenity REST
+Gherkin: "Ver oportunidad utilizada" (HU2)
+
+Precondiciones:
+- El comprador tiene una oportunidad cuyo estado es utilizada.
+
+Pasos:
+1. El comprador consulta su estado.
+
+Resultado esperado:
+- La respuesta muestra la oportunidad en estado utilizada.
+- No se muestra acción de pago pendiente ni reserva temporal activa.
+
+---
+
 ## Resumen de trazabilidad
 
 | ID | HU | Tipo | Técnica / Enfoque | Gherkin |
@@ -1033,10 +1222,12 @@ Resultado esperado:
 | TC-HU1-03 | HU1 | A | VL | Lista cerrada |
 | TC-HU1-04 | HU1 | A | TE | Reinscripción válida |
 | TC-HU1-05 | HU1 | I | SE | Unicidad en base de datos |
+| TC-HU1-06 | HU1 | A | VL | Lista de espera llena |
 | TC-HU2-01 | HU2 | A | PE | Inscripción activa |
 | TC-HU2-02 | HU2 | A | PE + VL | Oportunidad activa con tiempo restante |
 | TC-HU2-03 | HU2 | A | VL | Oportunidad expirada |
 | TC-HU2-04 | HU2 | U | TD | Distinción entre cuatro estados |
+| TC-HU2-05 | HU2 | A | PE | Oportunidad utilizada |
 | TC-HU3-01 | HU3 | A | CP | Asignación exitosa |
 | TC-HU3-02 | HU3 | U | PE | Sin compradores |
 | TC-HU3-03 | HU3 | U | SE | Fallo en reserva temporal |
@@ -1061,6 +1252,10 @@ Resultado esperado:
 | TC-HU8-02 | HU8 | A | PE + VL | Oportunidad activa con tiempo restante |
 | TC-HU8-03 | HU8 | A | TE | Actuar sobre oportunidad activa |
 | TC-HU8-04 | HU8 | A | VL | Oportunidad expirada desde la aplicación |
+| TC-HU8-05 | HU8 | A | PE | Oportunidad utilizada desde la aplicación |
+| TC-HU8-06 | HU8 | A | SE | Claim fallido por oportunidad expirada |
+| TC-HU8-07 | HU8 | A | PE | Claim fallido por correo incorrecto |
+| TC-HU8-08 | HU8 | A | PE | Comprador sin inscripción consulta estado |
 | TC-AUTO-F01 | HU7 | AUTO | Front (planificado) | Opción visible sin disponibilidad |
 | TC-AUTO-F02 | HU7 | AUTO | Front — POM + PageFactory ⬅ | Inscripción desde la aplicación |
 | TC-AUTO-F03 | HU7 | AUTO | Front (planificado) | Duplicado rechazado |
@@ -1070,6 +1265,9 @@ Resultado esperado:
 | TC-AUTO-F07 | HU8 | AUTO | Front (planificado) | Actuar sobre oportunidad |
 | TC-AUTO-F08 | HU8, HU2 | AUTO | Front (planificado) | Oportunidad expirada visible |
 | TC-AUTO-F09 | HU4 | AUTO | Front (planificado) | Actualización sin recarga |
+| TC-AUTO-F10 | HU8 | AUTO | Front (planificado) | Oportunidad utilizada visible |
+| TC-AUTO-F11 | HU8 | AUTO | Front (planificado) | Claim fallido por expiración |
+| TC-AUTO-F12 | HU8 | AUTO | Front (planificado) | Comprador sin inscripción |
 | TC-AUTO-B01 | HU1 | AUTO | Back (planificado) | Inscripción exitosa |
 | TC-AUTO-B02 | HU1 | AUTO | Back (planificado) | Duplicado rechazado |
 | TC-AUTO-B03 | HU1 | AUTO | Back (planificado) | Lista cerrada |
@@ -1081,3 +1279,5 @@ Resultado esperado:
 | TC-AUTO-B09 | HU3 + HU2 | AUTO | Back (planificado) | Flujo liberación → asignación → consulta |
 | TC-AUTO-B10 | HU6 + HU3 | AUTO | Back (planificado) | Flujo expiración → reasignación |
 | TC-AUTO-B11 | HU5 | AUTO | Back (planificado) | Intento de correo auditado |
+| TC-AUTO-B12 | HU1 | AUTO | Back (planificado) | Lista de espera llena |
+| TC-AUTO-B13 | HU2 | AUTO | Back (planificado) | Estado oportunidad utilizada |

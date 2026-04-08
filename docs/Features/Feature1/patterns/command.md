@@ -14,10 +14,7 @@ Ver [command.drawio](command.drawio) — abrir con draw.io o VS Code con extensi
 
 ```csharp
 // Application/UseCases/EnrollInWaitlist/EnrollInWaitlistCommand.cs
-public record EnrollInWaitlistCommand(int EventId, string BuyerEmail);
-
-// Application/UseCases/EnrollInWaitlist/EnrollInWaitlistResponse.cs
-public record EnrollInWaitlistResponse(int EntryId, string Status);
+public record EnrollInWaitlistCommand(long EventId, string BuyerEmail);
 ```
 
 ### Puerto de entrada (Application)
@@ -26,7 +23,7 @@ public record EnrollInWaitlistResponse(int EntryId, string Status);
 // Application/Interfaces/IEnrollInWaitlistUseCase.cs
 public interface IEnrollInWaitlistUseCase
 {
-    Task<EnrollInWaitlistResponse> ExecuteAsync(EnrollInWaitlistCommand command);
+    Task<WaitlistEntryDto> HandleAsync(EnrollInWaitlistCommand command);
 }
 ```
 
@@ -39,12 +36,12 @@ public class EnrollInWaitlistHandler : IEnrollInWaitlistUseCase
     private readonly IWaitlistEntryRepository _entryRepo;
     private readonly IEventRepository _eventRepo;
 
-    public async Task<EnrollInWaitlistResponse> ExecuteAsync(EnrollInWaitlistCommand command)
+    public async Task<WaitlistEntryDto> HandleAsync(EnrollInWaitlistCommand command)
     {
         // Validar que el evento existe y la lista sigue vigente
         // Validar unicidad de inscripción activa
         // Crear inscripción
-        // Retornar respuesta
+        // Retornar DTO
     }
 }
 ```
@@ -63,8 +60,8 @@ public class WaitlistController : ControllerBase
     public async Task<IActionResult> PostEntry([FromBody] EnrollRequest request)
     {
         var command = new EnrollInWaitlistCommand(request.EventId, request.BuyerEmail);
-        var response = await _enrollUseCase.ExecuteAsync(command);
-        return CreatedAtAction(/* ... */, response);
+        var result = await _enrollUseCase.HandleAsync(command);
+        return CreatedAtAction(/* ... */, result);
     }
 }
 ```
