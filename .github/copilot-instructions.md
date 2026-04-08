@@ -105,6 +105,9 @@
 - PostgreSQL (tabla `waitlist_opportunities` existente, columnas snake_case) (003-waitlist-opportunity-assignment)
 - C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, RabbitMQ.Client (004-inapp-notification)
 - N/A — esta feature no persiste datos. Consume entidades existentes de solo lectura. (004-inapp-notification)
+- C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, EFCore.NamingConventions 8.0.1, RabbitMQ.Client 6.8.1, Microsoft.Extensions.Logging.Abstractions 8.0.0 (005-email-notification)
+- PostgreSQL (tabla `notification_deliveries`, snake_case automático via NamingConventions) (005-email-notification)
+- C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, RabbitMQ.Client 6.8.1, EFCore.NamingConventions 8.0.1 (006-opportunity-expiration)
 
 ## Recent Changes
 - 001-waitlist-enrollment: Added C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, EFCore.NamingConventions 8.0.1

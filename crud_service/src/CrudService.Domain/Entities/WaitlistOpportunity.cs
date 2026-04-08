@@ -17,6 +17,8 @@ public class WaitlistOpportunity
     public WaitlistOpportunityStatus Status { get; set; } = WaitlistOpportunityStatus.Pending;
     public DateTime? ActivatedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }
+    public DateTime? ExpiredAt { get; set; }
+    public string? ExpirationReason { get; set; }
     public WaitlistEntry WaitlistEntry { get; set; } = null!;
     public Ticket Ticket { get; set; } = null!;
 

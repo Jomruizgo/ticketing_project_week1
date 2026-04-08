@@ -1,0 +1,16 @@
+.git/
+.gitignore
+.dockerignore
+node_modules/
+frontend/node_modules/
+**/bin/
+**/obj/
+**/*.log
+.env*
+.vscode/
+.idea/
+docs/
+specs/
+*.md
+coverage/
+**/TestResults/

@@ -1,3 +1,4 @@
+using CrudService.Application.Interfaces;
 using CrudService.Infrastructure.Messaging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;

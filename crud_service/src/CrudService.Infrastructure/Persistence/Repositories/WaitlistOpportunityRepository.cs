@@ -14,6 +14,13 @@ public class WaitlistOpportunityRepository : IWaitlistOpportunityRepository
         _context = context;
     }
 
+    public async Task<WaitlistOpportunity?> FindByIdAsync(long id)
+    {
+        return await _context.WaitlistOpportunities
+            .Include(o => o.WaitlistEntry)
+            .FirstOrDefaultAsync(o => o.Id == id);
+    }
+
     public async Task<WaitlistOpportunity?> FindByWaitlistEntryIdAsync(long waitlistEntryId)
     {
         try

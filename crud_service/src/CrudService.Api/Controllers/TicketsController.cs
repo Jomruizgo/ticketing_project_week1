@@ -1,4 +1,4 @@
-using CrudService.Infrastructure.Messaging;
+using CrudService.Application.Interfaces;
 using CrudService.Application.Dtos;
 using CrudService.Application.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -49,7 +49,8 @@ public class TicketsController : ControllerBase
         {
             await foreach (var update in reader.ReadAllAsync(combined.Token))
             {
-                var sseData = SseMessageFormatter.ToSseJson(update);
+                var sseData = System.Text.Json.JsonSerializer.Serialize(
+                    new { ticketId = update.TicketId, status = update.NewStatus });
                 await Response.WriteAsync($"data: {sseData}\n\n", combined.Token);
                 await Response.Body.FlushAsync(combined.Token);
                 break;

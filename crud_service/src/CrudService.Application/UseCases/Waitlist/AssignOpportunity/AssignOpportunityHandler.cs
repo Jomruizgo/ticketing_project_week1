@@ -2,6 +2,7 @@ namespace CrudService.Application.UseCases.Waitlist.AssignOpportunity;
 
 using CrudService.Domain.Entities;
 using CrudService.Domain.Enums;
+using CrudService.Domain.Events;
 using CrudService.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -12,7 +13,7 @@ public class AssignOpportunityHandler : IAssignOpportunityUseCase
     private readonly IEventRepository _eventRepo;
     private readonly IPrioritizationStrategy _strategy;
     private readonly ITicketReservationPort _reservationPort;
-    private readonly IOpportunityObserver _observer;
+    private readonly IEnumerable<IOpportunityObserver> _observers;
     private readonly ILogger<AssignOpportunityHandler> _logger;
 
     private static readonly long DefaultTtlMs = long.TryParse(
@@ -24,7 +25,7 @@ public class AssignOpportunityHandler : IAssignOpportunityUseCase
         IEventRepository eventRepo,
         IPrioritizationStrategy strategy,
         ITicketReservationPort reservationPort,
-        IOpportunityObserver observer,
+        IEnumerable<IOpportunityObserver> observers,
         ILogger<AssignOpportunityHandler>? logger = null)
     {
         _opportunityRepo = opportunityRepo;
@@ -32,7 +33,7 @@ public class AssignOpportunityHandler : IAssignOpportunityUseCase
         _eventRepo = eventRepo;
         _strategy = strategy;
         _reservationPort = reservationPort;
-        _observer = observer;
+        _observers = observers;
         _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<AssignOpportunityHandler>.Instance;
     }
 
@@ -93,7 +94,17 @@ public class AssignOpportunityHandler : IAssignOpportunityUseCase
                 opportunity.ExpiresAt = opportunity.ActivatedAt!.Value.AddMilliseconds(DefaultTtlMs);
                 await _opportunityRepo.UpdateAsync(opportunity);
                 await _entryRepo.UpdateStatusAsync(selected.Id, WaitlistEntryStatus.Consumed);
-                await _observer.OnOpportunityActivatedAsync(opportunity);
+
+                var activatedEvent = new OpportunityActivatedEvent(
+                    OpportunityId: opportunity.Id,
+                    EventId: eventEntity.Id,
+                    EventName: eventEntity.Name,
+                    BuyerEmail: selected.BuyerEmail,
+                    ActivatedAt: opportunity.ActivatedAt!.Value,
+                    ExpiresAt: opportunity.ExpiresAt!.Value);
+
+                foreach (var observer in _observers)
+                    await observer.OnOpportunityActivatedAsync(activatedEvent);
 
                 _logger.LogInformation(
                     "Opportunity assigned. OpportunityId={OpportunityId}, EntryId={EntryId}, TicketId={TicketId}",

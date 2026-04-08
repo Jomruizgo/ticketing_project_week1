@@ -381,6 +381,8 @@ Scenario: Fallo en el envío del correo
 - El intento de envío queda auditado con resultado y momento, tanto en caso de éxito como de fallo.
 - QA y negocio validan el contenido y el momento del envío.
 
+> **Decisión de implementación (spec 005)**: La interfaz `IOpportunityObserver.OnOpportunityActivatedAsync` actualmente recibe la entidad `WaitlistOpportunity` directamente (estado de HU3). En HU5 se planifica refactorizarla para recibir un record tipado `OpportunityActivatedEvent` (a definir en Domain) que incluya `EventName` resuelto upstream por el handler de asignación (que tiene acceso a `IEventRepository`). Esto seguirá el principio Tell Don't Ask del patrón Observer canónico (GoF): el publicador enriquecerá el payload una sola vez, evitando que N observers hagan queries redundantes. Este refactor también cambiará el handler de inyectar un solo `IOpportunityObserver` a `IEnumerable<IOpportunityObserver>` para soportar múltiples observers (RabbitMQ + Email). Adicionalmente, el registro de auditoría en `notification_deliveries` usa un ciclo de vida de tres estados (`pending → sent | failed`) con inmutabilidad tras estado terminal, en vez de append-only puro. Ver `specs/005-email-notification/spec.md` Clarifications.
+
 **Estimación: 8 puntos**
 
 ---
@@ -728,7 +730,7 @@ El mensaje al delay queue se publica **cuando la oportunidad transiciona a `acti
 
 | Patrón | Justificación |
 |---|---|
-| **Observer** | Cuando el estado de una oportunidad cambia, el sistema reacciona en múltiples canales sin que esa reacción quede acoplada a quien tomó la decisión. Si el negocio agrega un canal en el futuro, simplemente se añade como nuevo suscriptor, sin modificar la lógica de asignación. |
+| **Observer** | Cuando el estado de una oportunidad cambia, el sistema reacciona en múltiples canales sin que esa reacción quede acoplada a quien tomó la decisión. Actualmente el handler inyecta un solo `IOpportunityObserver` (HU3); en HU5 se refactorizará a `IEnumerable<IOpportunityObserver>` para que, al agregar un canal, solo se registre un nuevo suscriptor en DI sin modificar la lógica de asignación. |
 | **Strategy** | La política de "a quién le toca" se puede cambiar sin deshacer el proceso de asignación. Hoy es orden de llegada; mañana puede ser otro criterio sin afectar el resto del sistema. |
 | **State** | La oportunidad tiene estados con reglas claras de transición (`pending` → `active` → `consumed`/`expired`, y `pending` → `failed`). Si el negocio quiere agregar un estado intermedio, el modelo lo soporta sin condicionales dispersos que dificulten diagnósticos. |
 | **Command** | Las acciones relevantes para el negocio (registrar interés, expirar oportunidad, enviar aviso) existen como objetos formales con su propio handler. Esto facilita trazabilidad y auditoría. |

@@ -1,19 +1,10 @@
 namespace CrudService.Domain.Entities;
 
-using NpgsqlTypes;
-
-/// <summary>
-/// Estados posibles de un pago
-/// </summary>
 public enum PaymentStatus
 {
-    [PgName("pending")]
     Pending,
-    [PgName("approved")]
     Approved,
-    [PgName("failed")]
     Failed,
-    [PgName("expired")]
     Expired
 }
 

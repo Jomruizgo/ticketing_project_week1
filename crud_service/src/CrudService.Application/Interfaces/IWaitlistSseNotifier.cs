@@ -1,4 +1,4 @@
-namespace CrudService.Infrastructure.Sse;
+namespace CrudService.Application.Interfaces;
 
 public interface IWaitlistSseNotifier
 {

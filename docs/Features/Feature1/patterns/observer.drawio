@@ -8,13 +8,13 @@
                     <mxGeometry x="40" y="20" width="600" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="iobs" value="&lt;&lt;interface&gt;&gt;&#xa;IOpportunityObserver" style="swimlane;fontStyle=3;align=center;startSize=40;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
-                    <mxGeometry x="420" y="80" width="330" height="110" as="geometry"/>
+                    <mxGeometry x="420" y="80" width="380" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="iobs_m1" value="+ OnOpportunityActivatedAsync(opportunity: WaitlistOpportunity): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="iobs" vertex="1">
-                    <mxGeometry y="40" width="330" height="30" as="geometry"/>
+                <mxCell id="iobs_m1" value="+ OnOpportunityActivatedAsync(event: OpportunityActivatedEvent): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="iobs" vertex="1">
+                    <mxGeometry y="40" width="380" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="iobs_m2" value="+ OnOpportunityExpiredAsync(opportunity: WaitlistOpportunity): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="iobs" vertex="1">
-                    <mxGeometry y="70" width="330" height="30" as="geometry"/>
+                    <mxGeometry y="70" width="380" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="handler" value="AssignOpportunityHandler" style="swimlane;fontStyle=1;align=center;startSize=26;fontSize=11;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
                     <mxGeometry x="27" y="90" width="290" height="100" as="geometry"/>
@@ -34,7 +34,7 @@
                 <mxCell id="rmq_obs_f1" value="- settings: RabbitMQSettings" style="text;align=left;fontSize=10;spacingLeft=4;" parent="rmq_obs" vertex="1">
                     <mxGeometry y="26" width="310" height="24" as="geometry"/>
                 </mxCell>
-                <mxCell id="rmq_obs_m1" value="+ OnOpportunityActivatedAsync(opportunity): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="rmq_obs" vertex="1">
+                <mxCell id="rmq_obs_m1" value="+ OnOpportunityActivatedAsync(event): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="rmq_obs" vertex="1">
                     <mxGeometry y="50" width="310" height="24" as="geometry"/>
                 </mxCell>
                 <mxCell id="rmq_obs_m2" value="  → publica a exchange: waitlist.opportunity.activated" style="text;align=left;fontSize=9;spacingLeft=14;fontStyle=2;fontColor=#666666;" parent="rmq_obs" vertex="1">
@@ -49,7 +49,7 @@
                 <mxCell id="email_f2" value="- notificationRepo: INotificationDeliveryRepository" style="text;align=left;fontSize=10;spacingLeft=4;" parent="email" vertex="1">
                     <mxGeometry y="50" width="310" height="24" as="geometry"/>
                 </mxCell>
-                <mxCell id="email_m1" value="+ OnOpportunityActivatedAsync(opportunity): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="email" vertex="1">
+                <mxCell id="email_m1" value="+ OnOpportunityActivatedAsync(event): Task" style="text;align=left;fontSize=10;spacingLeft=4;" parent="email" vertex="1">
                     <mxGeometry y="74" width="310" height="24" as="geometry"/>
                 </mxCell>
                 <mxCell id="email_m2" value="+ OnOpportunityExpiredAsync(opportunity): Task  // no-op" style="text;align=left;fontSize=10;spacingLeft=4;" parent="email" vertex="1">

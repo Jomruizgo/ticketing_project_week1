@@ -15,6 +15,7 @@ public class TicketingDbContext : DbContext
     public DbSet<TicketHistory> TicketHistories { get; set; } = null!;
     public DbSet<WaitlistEntry> WaitlistEntries { get; set; } = null!;
     public DbSet<WaitlistOpportunity> WaitlistOpportunities { get; set; } = null!;
+    public DbSet<NotificationDelivery> NotificationDeliveries { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -30,6 +31,7 @@ public class TicketingDbContext : DbContext
         modelBuilder.HasPostgresEnum<PaymentStatus>("payment_status");
         modelBuilder.HasPostgresEnum<WaitlistEntryStatus>("waitlist_entry_status");
         modelBuilder.HasPostgresEnum<WaitlistOpportunityStatus>("waitlist_opportunity_status");
+        modelBuilder.HasPostgresEnum<NotificationDeliveryStatus>("notification_delivery_status");
 
         modelBuilder.Entity<Event>()
             .HasKey(e => e.Id);
@@ -129,6 +131,9 @@ public class TicketingDbContext : DbContext
             .Property(o => o.Status)
             .HasColumnType("waitlist_opportunity_status");
         modelBuilder.Entity<WaitlistOpportunity>()
+            .Property(o => o.ExpirationReason)
+            .HasMaxLength(100);
+        modelBuilder.Entity<WaitlistOpportunity>()
             .HasOne(o => o.WaitlistEntry)
             .WithMany()
             .HasForeignKey(o => o.WaitlistEntryId)
@@ -151,5 +156,23 @@ public class TicketingDbContext : DbContext
             .IsUnique()
             .HasFilter("status = 'active'")
             .HasDatabaseName("idx_waitlist_opportunities_active_entry_unique");
+
+        modelBuilder.Entity<NotificationDelivery>()
+            .HasKey(n => n.Id);
+        modelBuilder.Entity<NotificationDelivery>()
+            .Property(n => n.Status)
+            .HasColumnType("notification_delivery_status");
+        modelBuilder.Entity<NotificationDelivery>()
+            .Property(n => n.Channel)
+            .HasMaxLength(50)
+            .IsRequired();
+        modelBuilder.Entity<NotificationDelivery>()
+            .HasOne(n => n.WaitlistOpportunity)
+            .WithMany()
+            .HasForeignKey(n => n.WaitlistOpportunityId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<NotificationDelivery>()
+            .HasIndex(n => n.WaitlistOpportunityId)
+            .HasDatabaseName("idx_notification_deliveries_opportunity");
     }
 }

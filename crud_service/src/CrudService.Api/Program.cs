@@ -1,16 +1,8 @@
 using CrudService.Infrastructure.Persistence;
 using CrudService.Infrastructure;
 using CrudService.Infrastructure.Messaging;
-using CrudService.Domain.Entities;
-using CrudService.Domain.Enums;
-using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
-
-NpgsqlConnection.GlobalTypeMapper.MapEnum<TicketStatus>("ticket_status");
-NpgsqlConnection.GlobalTypeMapper.MapEnum<PaymentStatus>("payment_status");
-NpgsqlConnection.GlobalTypeMapper.MapEnum<WaitlistEntryStatus>("waitlist_entry_status");
-NpgsqlConnection.GlobalTypeMapper.MapEnum<WaitlistOpportunityStatus>("waitlist_opportunity_status");
 
 // Cargar variables de entorno
 builder.Configuration
