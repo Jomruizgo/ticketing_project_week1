@@ -104,3 +104,23 @@ CREATE UNIQUE INDEX idx_waitlist_opportunities_active_ticket_unique
 CREATE UNIQUE INDEX idx_waitlist_opportunities_active_entry_unique
   ON waitlist_opportunities (waitlist_entry_id)
   WHERE status = 'active';
+
+-- HU5: Notification deliveries
+CREATE TYPE notification_delivery_status AS ENUM (
+  'pending',
+  'sent',
+  'failed'
+);
+
+CREATE TABLE notification_deliveries (
+  id              BIGSERIAL PRIMARY KEY,
+  waitlist_opportunity_id BIGINT NOT NULL
+    REFERENCES waitlist_opportunities(id) ON DELETE CASCADE,
+  channel         VARCHAR(50)  NOT NULL,
+  status          notification_delivery_status NOT NULL DEFAULT 'pending',
+  sent_at         TIMESTAMPTZ  NOT NULL,
+  failure_reason  TEXT
+);
+
+CREATE INDEX idx_notification_deliveries_opportunity
+  ON notification_deliveries(waitlist_opportunity_id);

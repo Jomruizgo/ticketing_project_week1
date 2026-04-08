@@ -1,6 +1,7 @@
 using CrudService.Application.UseCases.Waitlist.AssignOpportunity;
 using CrudService.Domain.Entities;
 using CrudService.Domain.Enums;
+using CrudService.Domain.Events;
 using CrudService.Domain.Interfaces;
 using NSubstitute;
 using Xunit;
@@ -32,7 +33,7 @@ public class AssignOpportunityHandlerTests
             _eventRepo,
             _strategy,
             _reservationPort,
-            _observer);
+            new[] { _observer });
     }
 
     [Fact]
@@ -81,7 +82,11 @@ public class AssignOpportunityHandlerTests
         Assert.True(result.Opportunity.ExpiresAt > result.Opportunity.ActivatedAt);
 
         await _entryRepo.Received(1).UpdateStatusAsync(1, WaitlistEntryStatus.Consumed);
-        await _observer.Received(1).OnOpportunityActivatedAsync(Arg.Any<WaitlistOpportunity>());
+        await _observer.Received(1).OnOpportunityActivatedAsync(
+            Arg.Is<OpportunityActivatedEvent>(e =>
+                e.EventName == "Concert" &&
+                e.BuyerEmail == "buyer@example.com" &&
+                e.EventId == 42));
     }
 
     [Fact]
@@ -146,7 +151,7 @@ public class AssignOpportunityHandlerTests
         Assert.Equal(AssignOpportunityResultType.NoEligible, result.Type);
         Assert.Null(result.Opportunity);
         await _opportunityRepo.DidNotReceive().AddAsync(Arg.Any<WaitlistOpportunity>());
-        await _observer.DidNotReceive().OnOpportunityActivatedAsync(Arg.Any<WaitlistOpportunity>());
+        await _observer.DidNotReceive().OnOpportunityActivatedAsync(Arg.Any<OpportunityActivatedEvent>());
     }
 
     [Fact]
@@ -240,7 +245,7 @@ public class AssignOpportunityHandlerTests
 
         // Opportunity created as Pending then transitioned to Failed
         await _opportunityRepo.Received(1).AddAsync(Arg.Any<WaitlistOpportunity>());
-        await _observer.DidNotReceive().OnOpportunityActivatedAsync(Arg.Any<WaitlistOpportunity>());
+        await _observer.DidNotReceive().OnOpportunityActivatedAsync(Arg.Any<OpportunityActivatedEvent>());
         await _entryRepo.DidNotReceive().UpdateStatusAsync(Arg.Any<long>(), Arg.Any<WaitlistEntryStatus>());
     }
 
@@ -269,7 +274,7 @@ public class AssignOpportunityHandlerTests
         await _entryRepo.DidNotReceive().GetActiveEntriesByEventAsync(Arg.Any<long>());
         _strategy.DidNotReceive().SelectNextEligible(Arg.Any<IReadOnlyList<WaitlistEntry>>());
         await _reservationPort.DidNotReceive().TryReserveForWaitlistAsync(Arg.Any<long>(), Arg.Any<string>());
-        await _observer.DidNotReceive().OnOpportunityActivatedAsync(Arg.Any<WaitlistOpportunity>());
+        await _observer.DidNotReceive().OnOpportunityActivatedAsync(Arg.Any<OpportunityActivatedEvent>());
     }
 
     [Fact]

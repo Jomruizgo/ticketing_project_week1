@@ -1,8 +1,8 @@
 namespace CrudService.Domain.Interfaces;
 
-using CrudService.Domain.Entities;
+using CrudService.Domain.Events;
 
 public interface IOpportunityObserver
 {
-    Task OnOpportunityActivatedAsync(WaitlistOpportunity opportunity);
+    Task OnOpportunityActivatedAsync(OpportunityActivatedEvent activatedEvent);
 }

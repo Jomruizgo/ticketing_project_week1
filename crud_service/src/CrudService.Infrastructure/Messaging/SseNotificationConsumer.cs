@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using CrudService.Application.Interfaces;
 using CrudService.Infrastructure.Sse;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -126,7 +127,7 @@ public class SseNotificationConsumer : BackgroundService
 
     private void ProcessActivatedMessage(string json)
     {
-        var message = JsonSerializer.Deserialize<OpportunityActivatedEvent>(json, JsonOptions);
+        var message = JsonSerializer.Deserialize<OpportunityRabbitPayload>(json, JsonOptions);
         if (message is null || string.IsNullOrWhiteSpace(message.BuyerEmail))
         {
             _logger.LogWarning("Invalid opportunity activated payload: {Payload}", json);
@@ -153,7 +154,7 @@ public class SseNotificationConsumer : BackgroundService
 
     private void ProcessExpiredMessage(string json)
     {
-        var message = JsonSerializer.Deserialize<OpportunityActivatedEvent>(json, JsonOptions);
+        var message = JsonSerializer.Deserialize<OpportunityRabbitPayload>(json, JsonOptions);
         if (message is null || string.IsNullOrWhiteSpace(message.BuyerEmail))
         {
             _logger.LogWarning("Invalid opportunity expired payload: {Payload}", json);
@@ -181,5 +182,16 @@ public class SseNotificationConsumer : BackgroundService
         _connection?.Close();
         _connection?.Dispose();
         base.Dispose();
+    }
+
+    internal class OpportunityRabbitPayload
+    {
+        public long OpportunityId { get; set; }
+        public long WaitlistEntryId { get; set; }
+        public long TicketId { get; set; }
+        public long EventId { get; set; }
+        public string BuyerEmail { get; set; } = null!;
+        public DateTime ActivatedAt { get; set; }
+        public DateTime ExpiresAt { get; set; }
     }
 }
