@@ -108,6 +108,8 @@
 - C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, EFCore.NamingConventions 8.0.1, RabbitMQ.Client 6.8.1, Microsoft.Extensions.Logging.Abstractions 8.0.0 (005-email-notification)
 - PostgreSQL (tabla `notification_deliveries`, snake_case automático via NamingConventions) (005-email-notification)
 - C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, RabbitMQ.Client 6.8.1, EFCore.NamingConventions 8.0.1 (006-opportunity-expiration)
+- C# / .NET 8 (backend), TypeScript 5.7.3 (frontend) + EF Core 8.0.4 + Npgsql (backend), React 19.2.3 + Next.js 16.1.6 + shadcn/ui + sonner (frontend) (008-waitlist-opportunity-ui)
+- PostgreSQL — tablas `waitlist_entries`, `waitlist_opportunities` (existentes) (008-waitlist-opportunity-ui)
 
 ## Recent Changes
 - 001-waitlist-enrollment: Added C# / .NET 8 + EF Core 8.0.4, Npgsql.EntityFrameworkCore.PostgreSQL 8.0.4, EFCore.NamingConventions 8.0.1
