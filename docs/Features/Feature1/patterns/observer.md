@@ -17,11 +17,12 @@ Ver [observer.drawio](observer.drawio) — abrir con draw.io o VS Code con exten
 public interface IOpportunityObserver
 {
     Task OnOpportunityActivatedAsync(WaitlistOpportunity opportunity);
-    Task OnOpportunityExpiredAsync(WaitlistOpportunity opportunity);
 }
 ```
 
-> **Nota de implementación (HU3)**: La interfaz implementada en HU3 solo declara `OnOpportunityActivatedAsync`. El método `OnOpportunityExpiredAsync` se agregará al implementar HU6 (Expiración de oportunidad), junto con sus adaptadores correspondientes.
+> **Estado actual (HU3)**: La interfaz recibe la entidad `WaitlistOpportunity` directamente. `OnOpportunityActivatedAsync` es el único método. El handler inyecta un **solo** `IOpportunityObserver` (no `IEnumerable`), y el DI registra `OpportunityActivatedObserver` como única implementación.
+>
+> **Refactor planificado (HU5)**: Se refactorizará la interfaz para recibir un record tipado `OpportunityActivatedEvent` (a definir en Domain) que incluya `EventName` resuelto upstream, siguiendo Tell Don't Ask. Se cambiará el handler a `IEnumerable<IOpportunityObserver>` para soportar múltiples observers (RabbitMQ + Email). Se agregará `OnOpportunityExpiredAsync` al implementar HU6.
 
 ### Handler (Application)
 
@@ -29,18 +30,19 @@ public interface IOpportunityObserver
 // Application/UseCases/AssignOpportunity/AssignOpportunityHandler.cs
 public class AssignOpportunityHandler
 {
-    private readonly IEnumerable<IOpportunityObserver> _observers;
+    private readonly IOpportunityObserver _observer;
     // ... otros puertos
 
     public async Task HandleAsync(AssignOpportunityCommand command)
     {
         // ... lógica de asignación (buscar elegible, reservar ticket, crear oportunidad)
 
-        foreach (var observer in _observers)
-            await observer.OnOpportunityActivatedAsync(opportunity);
+        await _observer.OnOpportunityActivatedAsync(opportunity);
     }
 }
 ```
+
+> **Estado actual**: El handler inyecta un solo `IOpportunityObserver`. El refactor a `IEnumerable<IOpportunityObserver>` se realizará en HU5 cuando se agregue `EmailNotificationObserver` como segundo observer.
 
 ### Adaptadores (Infrastructure)
 
@@ -50,13 +52,10 @@ public class OpportunityActivatedObserver : IOpportunityObserver
 {
     public async Task OnOpportunityActivatedAsync(WaitlistOpportunity opportunity)
     {
-        // Publica waitlist.opportunity.activated al exchange RabbitMQ
+        // Construye OpportunityActivatedEvent (class en Infrastructure/Messaging/)
+        // Serializa y publica a exchange RabbitMQ "tickets"
+        // routing key: waitlist.opportunity.activated
         // Publica delay message a q.waitlist.opportunity.delay
-    }
-
-    public async Task OnOpportunityExpiredAsync(WaitlistOpportunity opportunity)
-    {
-        // Pendiente HU6
     }
 }
 
@@ -65,12 +64,10 @@ public class EmailNotificationObserver : IOpportunityObserver
 {
     public async Task OnOpportunityActivatedAsync(WaitlistOpportunity opportunity)
     {
-        // Envía correo + registra intento en NotificationDelivery — fallo aislado
-    }
-
-    public async Task OnOpportunityExpiredAsync(WaitlistOpportunity opportunity)
-    {
-        // No-op: no hay correo de expiración en el alcance de esta épica
+        // Crea registro pending en notification_deliveries
+        // Envía correo vía IEmailSender
+        // Actualiza registro a sent/failed según resultado
+        // Fallo aislado: no propaga excepciones
     }
 }
 ```
@@ -80,3 +77,5 @@ public class EmailNotificationObserver : IOpportunityObserver
 ## Por qué hace el código más escalable
 
 Sin Observer, el handler de asignación tendría llamadas directas a RabbitMQ y correo, y el handler de expiración necesitaría sus propias llamadas. Cada canal nuevo requiere modificar ambos handlers (viola OCP). Con Observer, agregar un canal es registrar un nuevo `IOpportunityObserver` en DI — cero cambios en la lógica de asignación o expiración. La notificación SSE, al consumir el evento publicado por el observer vía RabbitMQ, se beneficia además de escalamiento horizontal sin modificar el handler.
+
+El uso de un record tipado (`OpportunityActivatedEvent`) como payload de notificación en vez de la entidad de dominio (`WaitlistOpportunity`) sigue el principio Tell Don’t Ask y el patrón Observer canónico (GoF): el payload contiene toda la información que los observers necesitan para actuar, evitando queries redundantes y desacoplando la interfaz de notificación del modelo interno.
