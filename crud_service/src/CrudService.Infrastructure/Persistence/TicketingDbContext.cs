@@ -1,4 +1,5 @@
 using CrudService.Domain.Entities;
+using CrudService.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace CrudService.Infrastructure.Persistence;
@@ -12,6 +13,7 @@ public class TicketingDbContext : DbContext
     public DbSet<Ticket> Tickets { get; set; } = null!;
     public DbSet<Payment> Payments { get; set; } = null!;
     public DbSet<TicketHistory> TicketHistories { get; set; } = null!;
+    public DbSet<WaitlistEntry> WaitlistEntries { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -25,6 +27,7 @@ public class TicketingDbContext : DbContext
 
         modelBuilder.HasPostgresEnum<TicketStatus>("ticket_status");
         modelBuilder.HasPostgresEnum<PaymentStatus>("payment_status");
+        modelBuilder.HasPostgresEnum<WaitlistEntryStatus>("waitlist_entry_status");
 
         modelBuilder.Entity<Event>()
             .HasKey(e => e.Id);
@@ -97,5 +100,25 @@ public class TicketingDbContext : DbContext
             .WithMany(t => t.History)
             .HasForeignKey(h => h.TicketId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<WaitlistEntry>()
+            .HasKey(w => w.Id);
+        modelBuilder.Entity<WaitlistEntry>()
+            .Property(w => w.BuyerEmail)
+            .HasMaxLength(255)
+            .IsRequired();
+        modelBuilder.Entity<WaitlistEntry>()
+            .Property(w => w.Status)
+            .HasColumnType("waitlist_entry_status");
+        modelBuilder.Entity<WaitlistEntry>()
+            .HasOne(w => w.Event)
+            .WithMany()
+            .HasForeignKey(w => w.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<WaitlistEntry>()
+            .HasIndex(w => new { w.EventId, w.BuyerEmail })
+            .IsUnique()
+            .HasFilter("status = 'active'")
+            .HasDatabaseName("idx_waitlist_entries_active_unique");
     }
 }

@@ -3,6 +3,7 @@ using CrudService.Infrastructure.Persistence.Repositories;
 using CrudService.Infrastructure.Messaging;
 using CrudService.Domain.Interfaces;
 using CrudService.Application.Services;
+using CrudService.Application.UseCases.Waitlist.EnrollInWaitlist;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,10 +31,12 @@ public static class DependencyInjection
         services.AddScoped<ITicketRepository, TicketRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<ITicketHistoryRepository, TicketHistoryRepository>();
+        services.AddScoped<IWaitlistEntryRepository, WaitlistEntryRepository>();
 
         // Servicios (Scoped: dependen de repositorios)
         services.AddScoped<IEventService, EventService>();
         services.AddScoped<ITicketService, TicketService>();
+        services.AddScoped<IEnrollInWaitlistUseCase, EnrollInWaitlistHandler>();
 
         // SSE hub (Singleton: correlaciona ticketId con conexiones activas)
         services.AddSingleton<TicketStatusHub>();

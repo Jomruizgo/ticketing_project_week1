@@ -114,12 +114,12 @@
 
 ### Tests de integración (TDD RED)
 
-- [ ] T026 Escribir test `AddAsync_DuplicateActiveEntry_ThrowsDuplicateException` (TC-HU1-05) con Testcontainers + IAsyncLifetime en `crud_service/tests/CrudService.Infrastructure.Tests/Integration/WaitlistEntryRepositoryTests.cs`
-- [ ] T027 [P] Escribir test `AddAsync_DuplicateAfterConsumed_Succeeds` (complemento: reinscripción a nivel BD) en `crud_service/tests/CrudService.Infrastructure.Tests/Integration/WaitlistEntryRepositoryTests.cs`
+- [X] T026 Escribir test `AddAsync_DuplicateActiveEntry_ThrowsDuplicateException` (TC-HU1-05) con Testcontainers + IAsyncLifetime en `crud_service/tests/CrudService.Infrastructure.Tests/Integration/WaitlistEntryRepositoryTests.cs`
+- [X] T027 [P] Escribir test `AddAsync_DuplicateAfterConsumed_Succeeds` (complemento: reinscripción a nivel BD) en `crud_service/tests/CrudService.Infrastructure.Tests/Integration/WaitlistEntryRepositoryTests.cs`
 
 ### Implementation (TDD GREEN)
 
-- [ ] T028 Agregar manejo de `PostgresException` código `23505` en `WaitlistEntryRepository.AddAsync` para lanzar `DuplicateWaitlistEntryException` en `crud_service/src/CrudService.Infrastructure/Persistence/Repositories/WaitlistEntryRepository.cs`
+- [X] T028 Agregar manejo de `PostgresException` código `23505` en `WaitlistEntryRepository.AddAsync` para lanzar `DuplicateWaitlistEntryException` en `crud_service/src/CrudService.Infrastructure/Persistence/Repositories/WaitlistEntryRepository.cs`
 
 **Checkpoint**: Unicidad garantizada tanto en aplicación como en BD. Todos los TC-HU1-01 a TC-HU1-05 cubiertos.
 
@@ -129,9 +129,9 @@
 
 **Purpose**: Validación E2E con quickstart.md y limpieza final
 
-- [ ] T029 [P] Verificar compilación de toda la solución con `dotnet build crud_service/CrudService.sln`
-- [ ] T030 [P] Ejecutar todas las pruebas con `dotnet test crud_service/CrudService.sln` y confirmar que pasan
-- [ ] T031 Ejecutar validación manual de quickstart.md: levantar Docker Compose, probar los curls del endpoint
+- [X] T029 [P] Verificar compilación de toda la solución con `dotnet build crud_service/CrudService.sln`
+- [X] T030 [P] Ejecutar todas las pruebas con `dotnet test crud_service/CrudService.sln` y confirmar que pasan
+- [X] T031 Ejecutar validación manual de quickstart.md: levantar Docker Compose, probar los curls del endpoint
 
 ---
 
