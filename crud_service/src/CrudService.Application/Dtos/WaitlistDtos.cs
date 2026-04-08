@@ -10,3 +10,19 @@ public class WaitlistEntryDto
     public string Status { get; set; } = null!;
     public DateTime EnrolledAt { get; set; }
 }
+
+public class WaitlistOpportunityDto
+{
+    public long Id { get; set; }
+    public long TicketId { get; set; }
+    public string Status { get; set; } = null!;
+    public DateTime? ActivatedAt { get; set; }
+    public DateTime? ExpiresAt { get; set; }
+    public int RemainingMinutes { get; set; }
+}
+
+public class WaitlistStatusResponse
+{
+    public WaitlistEntryDto Entry { get; set; } = null!;
+    public WaitlistOpportunityDto? Opportunity { get; set; }
+}
