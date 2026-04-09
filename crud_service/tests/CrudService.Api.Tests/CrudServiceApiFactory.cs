@@ -19,6 +19,19 @@ public class CrudServiceApiFactory : WebApplicationFactory<Program>
     public ITicketService TicketServiceMock { get; } = Substitute.For<ITicketService>();
     public IEventService EventServiceMock { get; } = Substitute.For<IEventService>();
 
+    // Set environment variables BEFORE Program.cs runs.
+    // Program.cs calls AddEnvironmentVariables() which overrides
+    // the placeholder literals in appsettings.json.
+    static CrudServiceApiFactory()
+    {
+        Environment.SetEnvironmentVariable(
+            "ConnectionStrings__DefaultConnection",
+            "Host=localhost;Port=5432;Database=test;Username=test;Password=test");
+        Environment.SetEnvironmentVariable("RabbitMQ__Host", "localhost");
+        Environment.SetEnvironmentVariable("RabbitMQ__Username", "guest");
+        Environment.SetEnvironmentVariable("RabbitMQ__Password", "guest");
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
@@ -29,10 +42,12 @@ public class CrudServiceApiFactory : WebApplicationFactory<Program>
             services.RemoveAll<ITicketService>();
             services.RemoveAll<IEventService>();
 
-            // Quitar el hosted service de RabbitMQ para no intentar conectarse
-            var descriptor = services.FirstOrDefault(d =>
-                d.ImplementationType == typeof(TicketStatusConsumer));
-            if (descriptor is not null)
+            // Quitar todos los hosted services (consumers RabbitMQ)
+            var hostedDescriptors = services
+                .Where(d => d.ImplementationType != null &&
+                            d.ImplementationType.Name.Contains("Consumer"))
+                .ToList();
+            foreach (var descriptor in hostedDescriptors)
                 services.Remove(descriptor);
 
             // Registrar mocks en su lugar
