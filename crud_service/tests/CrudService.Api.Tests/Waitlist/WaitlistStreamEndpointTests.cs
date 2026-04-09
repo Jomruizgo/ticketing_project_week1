@@ -1,4 +1,5 @@
 using CrudService.Api.Controllers;
+using CrudService.Application.UseCases.Waitlist.ClaimOpportunity;
 using CrudService.Application.UseCases.Waitlist.EnrollInWaitlist;
 using CrudService.Application.UseCases.Waitlist.GetWaitlistStatus;
 using CrudService.Infrastructure.Sse;
@@ -14,10 +15,11 @@ public class WaitlistStreamEndpointTests
     private readonly IWaitlistSseSubscriber _subscriber = Substitute.For<IWaitlistSseSubscriber>();
     private readonly IEnrollInWaitlistUseCase _enrollUseCase = Substitute.For<IEnrollInWaitlistUseCase>();
     private readonly IGetWaitlistStatusUseCase _statusUseCase = Substitute.For<IGetWaitlistStatusUseCase>();
+    private readonly IClaimOpportunityUseCase _claimUseCase = Substitute.For<IClaimOpportunityUseCase>();
 
     private WaitlistController CreateController()
     {
-        var controller = new WaitlistController(_enrollUseCase, _statusUseCase, _subscriber);
+        var controller = new WaitlistController(_enrollUseCase, _statusUseCase, _claimUseCase, _subscriber);
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext()
